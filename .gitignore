@@ -1,0 +1,13 @@
+# Laravel
+economica-backend/vendor
+economica-backend/.env
+
+# Vue
+eco-frontend/node_modules
+eco-frontend/dist
+
+# VS Code
+.vscode
+
+# Logs
+*.log
