@@ -5,7 +5,7 @@
       <!-- Lado izquierdo -->
       <div class="bg-[#46674A] text-white flex flex-col items-center justify-center p-12">
         <img
-          src="/logo.png"
+          src="/logo.jpeg"
           alt="Logo"
           class="w-32 h-32 object-contain mb-6"
         />
@@ -23,17 +23,16 @@
         </h2>
 
         <p class="text-gray-500 mb-8">
-          Ingresa tus credenciales para continuar.
+          Ingresa tu usuario para continuar.
         </p>
 
         <!-- Correo -->
         <div class="mb-5">
           <label class="block text-gray-700 font-medium mb-2">
-            Correo electrónico
+            Usuario
           </label>
           <input
-            type="email"
-            placeholder="admin@laeconomica.com"
+            type="usuario"
             class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
           />
         </div>
@@ -45,7 +44,6 @@
           </label>
           <input
             type="password"
-            placeholder="••••••••"
             class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
           />
         </div>

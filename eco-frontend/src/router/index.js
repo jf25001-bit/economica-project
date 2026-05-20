@@ -7,6 +7,7 @@ import Compras from '@/views/Compras.vue'
 import Inventario from '@/views/Inventario.vue'
 import Usuarios from '@/views/Usuarios.vue'
 import Reportes from '@/views/Reportes.vue'
+import Login from '@/views/Login.vue'
 
 const routes = [
   {
@@ -36,6 +37,10 @@ const routes = [
   {
     path: '/reportes',
     component: Reportes
+  },
+   {
+    path: '/login',
+    component: Login
   }
 ]
 

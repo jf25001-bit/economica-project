@@ -1,5 +1,9 @@
 <template>
-  <div class="flex">
+  <!-- Si la ruta es /login, mostrar SOLO el Login -->
+  <router-view v-if="$route.path === '/login'" />
+
+  <!-- Para las demás rutas, mostrar Sidebar + Navbar + contenido -->
+  <div v-else class="flex">
     <!-- Sidebar -->
     <Sidebar :isOpen="sidebarOpen" />
 
@@ -21,9 +25,11 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRoute } from 'vue-router'
 import Sidebar from './components/Sidebar.vue'
 import Navbar from './components/Navbar.vue'
 
+const route = useRoute()
 const sidebarOpen = ref(true)
 
 const toggleSidebar = () => {
