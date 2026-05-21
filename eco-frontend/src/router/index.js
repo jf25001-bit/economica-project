@@ -12,7 +12,7 @@ import Login from '@/views/Login.vue'
 const routes = [
   {
     path: '/',
-    component: Dashboard
+    component: Login
   },
   {
     path: '/productos',
@@ -39,8 +39,8 @@ const routes = [
     component: Reportes
   },
    {
-    path: '/login',
-    component: Login
+    path: '/dashboard',
+    component: Dashboard
   }
 ]
 
