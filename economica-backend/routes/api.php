@@ -8,6 +8,7 @@ use App\Http\Controllers\DetalleCompraController;
 use App\Http\Controllers\VentaController;
 use App\Http\Controllers\DetalleVentaController;
 use App\Http\Controllers\ProductoController;
+use App\Http\Controllers\Auth\AuthController;
 
 // Ruta de prueba
 Route::get('/saludo', function () {
@@ -23,3 +24,26 @@ Route::apiResource('productos', ProductoController::class);
 Route::apiResource('ventas', VentaController::class);
 Route::apiResource('detallecompras', DetalleCompraController::class);
 Route::apiResource('detalleventas', DetalleVentaController::class);
+
+
+
+
+
+
+
+
+
+
+
+
+
+Route::prefix('auth')->group(function(){
+    Route::post('register', [AuthController::class, 'register']);
+    Route::post('login', [AuthController::class, 'login']);
+
+    Route::middleware('auth:api')->group(function(){
+        Route::get('me',[AuthController::class, 'me']);
+        Route::post('logout',[AuthController::class, 'logout']);
+        Route::post('refresh',[AuthController::class, 'refresh']);
+    });
+});

@@ -38,6 +38,7 @@
     <!-- Cerrar sesión -->
     <div class="p-4 border-t border-white/20">
       <button
+        @click="cerrarSesion"
         class="flex items-center gap-3 w-full px-4 py-2 rounded-lg hover:bg-white/10 transition"
       >
         <span class="text-xl">↩</span>
@@ -48,6 +49,8 @@
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router'
+import axios from 'axios'
 defineProps({
   isOpen: {
     type: Boolean,
@@ -55,8 +58,10 @@ defineProps({
   }
 })
 
+const router = useRouter()
+
 const menu = [
-  { name: 'Inicio', route: '/', icon: 'bi bi-house' },
+  { name: 'Inicio', route: '/dashboard', icon: 'bi bi-house' },
   { name: 'Productos', route: '/productos', icon: 'bi bi-box-seam' },
   { name: 'categorias', route: '/categorias', icon: 'bi bi-basket3' },
   { name: 'Ventas', route: '/ventas', icon: 'bi bi-tag' },
@@ -66,4 +71,30 @@ const menu = [
   { name: 'Usuarios', route: '/usuarios', icon: 'bi bi-people' },
   { name: 'Reportes', route: '/reportes', icon: 'bi bi-bar-chart' }
 ]
+
+
+const cerrarSesion = async () => {
+  try {
+    const token = localStorage.getItem('token')
+
+    await axios.post(
+      'http://127.0.0.1:8000/api/auth/logout',
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    )
+  } catch (error) {
+    console.log('Logout error:', error)
+  }
+
+  // eliminar datos locales
+  localStorage.removeItem('token')
+  localStorage.removeItem('user')
+
+  // regresar al login
+  router.push('/')
+}
 </script>

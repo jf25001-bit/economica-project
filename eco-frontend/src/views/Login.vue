@@ -25,16 +25,19 @@
         <p class="text-gray-500 mb-8">
           Ingresa tu usuario para continuar.
         </p>
+        <div
+              v-if="error"
+              class="bg-red-100 text-red-700 px-4 py-3 rounded-xl mb-5">
+              {{ error }}
+        </div>
 
-        <!-- Correo -->
+        <!-- usuario -->
         <div class="mb-5">
           <label class="block text-gray-700 font-medium mb-2">
             Usuario
           </label>
-          <input
-            type="usuario"
-            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
-          />
+          <input v-model="name" type="text" placeholder="Ingrese usuario" class="w-full px-4 py-3 border
+           border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]" />
         </div>
 
         <!-- Contraseña -->
@@ -42,22 +45,85 @@
           <label class="block text-gray-700 font-medium mb-2">
             Contraseña
           </label>
-          <input
-            type="password"
-            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
-          />
+         <input
+          v-model="password"
+          type="password"
+          placeholder="••••••••"
+          @keyup.enter="handleLogin"
+          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
+        />
         </div>
 
         <!-- Botón -->
         <button
-          class="w-full bg-[#46674A] hover:bg-[#3b5740] text-white py-3 rounded-xl font-semibold shadow-md transition"
+          @click="handleLogin"
+          :disabled="loading"
+          class="w-full bg-[#46674A] hover:bg-[#3b5740] text-white py-3 rounded-xl font-semibold shadow-md transition disabled:opacity-50"
         >
-          Ingresar
-        </button>
+          {{ loading ? 'Ingresando...' : 'Ingresar' }}
+      </button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
+
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { login } from '../services/authService'
+
+// Router para redirigir páginas
+const router = useRouter()
+
+// Variables del formulario
+const name = ref('')
+const password = ref('')
+
+// Estados del login
+const error = ref('')
+const loading = ref(false)
+
+// Función para iniciar sesión
+const handleLogin = async () => {
+  // limpiar errores anteriores
+  error.value = ''
+
+  // validar campos vacíos
+  if (!name.value || !password.value) {
+    error.value = 'Completa todos los campos'
+    return
+  }
+
+  loading.value = true
+
+  try {
+    // enviar datos al backend
+    const response = await login({
+      name: name.value,
+      password: password.value
+    })
+
+    // guardar token JWT
+    localStorage.setItem(
+      'token',
+      response.access_token
+    )
+
+    // guardar usuario
+    localStorage.setItem(
+      'user',
+      JSON.stringify(response.user)
+    )
+
+    // redirigir al dashboard
+    router.push('/dashboard')
+
+  } catch (err) {
+    error.value =
+      err.message || 'Credenciales inválidas'
+  } finally {
+    loading.value = false
+  }
+}
 </script>

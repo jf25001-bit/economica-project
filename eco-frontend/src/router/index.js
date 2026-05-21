@@ -15,7 +15,7 @@ import Proveedores from '@/views/Proveedores.vue'
 const routes = [
   {
     path: '/',
-    component: Dashboard
+    component: Login
   },
   {
     path: '/productos',
@@ -53,6 +53,7 @@ const routes = [
     path: '/proveedores',
     component: Proveedores
   }
+  
   
 ]
 
