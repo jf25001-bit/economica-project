@@ -4,62 +4,107 @@ namespace App\Http\Controllers;
 
 use App\Models\Venta;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class VentaController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Mostrar todas las ventas
     public function index()
     {
-        //
+        $ventas = Venta::all();
+        return response()->json($ventas);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
+    // Guardar venta
     public function store(Request $request)
     {
-        //
+        try {
+
+            $validated = $request->validate([
+                'fecha_venta' => 'required|date',
+                'total' => 'required|numeric',
+                'cliente_id' => 'required'
+            ]);
+
+            $venta = Venta::create($validated);
+
+            return response()->json([
+                'message' => 'Venta creada correctamente',
+                'data' => $venta
+            ], 201);
+
+        } catch (ValidationException $e) {
+
+            return response()->json([
+                'errors' => $e->errors()
+            ], 422);
+        }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Venta $venta)
+    // Mostrar una venta
+    public function show($id)
     {
-        //
+        try {
+
+            $venta = Venta::findOrFail($id);
+
+            return response()->json($venta);
+
+        } catch (ModelNotFoundException $e) {
+
+            return response()->json([
+                'message' => 'Venta no encontrada'
+            ], 404);
+        }
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Venta $venta)
+    // Actualizar venta
+    public function update(Request $request, $id)
     {
-        //
+        try {
+
+            $venta = Venta::findOrFail($id);
+
+            $validated = $request->validate([
+                'fecha_venta' => 'sometimes|date',
+                'total' => 'sometimes|numeric',
+                'cliente_id' => 'sometimes'
+            ]);
+
+            $venta->update($validated);
+
+            return response()->json([
+                'message' => 'Venta actualizada correctamente',
+                'data' => $venta
+            ]);
+
+        } catch (ModelNotFoundException $e) {
+
+            return response()->json([
+                'message' => 'Venta no encontrada'
+            ], 404);
+        }
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Venta $venta)
+    // Eliminar venta
+    public function destroy($id)
     {
-        //
-    }
+        try {
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Venta $venta)
-    {
-        //
+            $venta = Venta::findOrFail($id);
+
+            $venta->delete();
+
+            return response()->json([
+                'message' => 'Venta eliminada correctamente'
+            ]);
+
+        } catch (ModelNotFoundException $e) {
+
+            return response()->json([
+                'message' => 'Venta no encontrada'
+            ], 404);
+        }
     }
 }
