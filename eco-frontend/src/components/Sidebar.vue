@@ -28,8 +28,8 @@
         class="flex items-center gap-3 px-4 py-3 mx-2 rounded-lg hover:bg-white/10 transition"
         active-class="bg-white/20"
       >
-       <i :class="item.icon" class="text-xl text-black"></i>
-       <span v-if="isOpen" class="text-black font-medium">
+       <i :class="item.icon" class="text-xl text-white"></i>
+       <span v-if="isOpen" class="text-white font-medium">
   {{ item.name }}
 </span>
       </router-link>
@@ -58,9 +58,11 @@ defineProps({
 const menu = [
   { name: 'Inicio', route: '/', icon: 'bi bi-house' },
   { name: 'Productos', route: '/productos', icon: 'bi bi-box-seam' },
+  { name: 'categorias', route: '/categorias', icon: 'bi bi-basket3' },
   { name: 'Ventas', route: '/ventas', icon: 'bi bi-tag' },
   { name: 'Compras', route: '/compras', icon: 'bi bi-cart' },
   { name: 'Inventario', route: '/inventario', icon: 'bi bi-archive' },
+  { name: 'proveedores', route: '/proveedores', icon: 'bi bi-person' },
   { name: 'Usuarios', route: '/usuarios', icon: 'bi bi-people' },
   { name: 'Reportes', route: '/reportes', icon: 'bi bi-bar-chart' }
 ]
