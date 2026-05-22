@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('categorias', function (Blueprint $table) {
             $table->id();
+            $table->string('nombre', 50)->unique(); // Ej: Bebidas, Limpieza, Snacks
+            $table->string('descripcion', 255)->nullable();
             $table->timestamps();
         });
     }

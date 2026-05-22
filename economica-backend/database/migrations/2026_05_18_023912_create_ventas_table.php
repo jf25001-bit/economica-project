@@ -13,6 +13,14 @@ return new class extends Migration
     {
         Schema::create('ventas', function (Blueprint $table) {
             $table->id();
+            $table->string('cliente', 100)->default('Consumidor Final');
+            $table->decimal('total', 10, 2)->default(0.00);
+
+            // RELACIÓN: El usuario que atiende la venta (conéctalo a la tabla users nativa)
+            $table->foreignId('user_id')
+                  ->constrained('users')
+                  ->onDelete('cascade');
+
             $table->timestamps();
         });
     }
