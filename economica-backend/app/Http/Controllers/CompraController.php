@@ -3,24 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\Compra;
+use App\Models\DetalleCompra;
+use App\Models\Producto;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-
 
 class CompraController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-
-    // Mostrar compra
-
     public function index()
     {
-         $compras = Compra::all();
-
-         return response()->json($compras);
+        $compras = Compra::with(['proveedor', 'usuario', 'detalles.producto'])->get();
+        return response()->json($compras, 200);
     }
 
     /**
@@ -36,44 +30,77 @@ class CompraController extends Controller
      */
     public function store(Request $request)
     {
-        try {
+        $request->validate([
+            'proveedor_id' => 'required|exists:proveedores,id', // Apunta a tu tabla real
+            'user_id' => 'required|exists:users,id',
+            'productos' => 'required|array|min:1',
+            'productos.*.producto_id' => 'required|exists:productos,id',
+            'productos.*.cantidad' => 'required|integer|min:1',
+        ]);
 
-            $validated = $request->validate([
-                'fecha_compra' => 'required|date',
-                'total' => 'required|numeric',
-                'proveedor_id' => 'required|exists:proveedors,id'
+        DB::beginTransaction();
+
+        try {
+            // 1. Crear cabecera de la compra
+            $compra = Compra::create([
+                'proveedor_id' => $request->proveedor_id,
+                'user_id' => $request->user_id,
+                'total' => 0
             ]);
 
-            $compra = Compra::create($validated);
+            $totalCompra = 0;
+
+            // 2. Procesar los productos agregados
+            foreach ($request->productos as $item) {
+                $producto = Producto::find($item['producto_id']);
+
+                // Usamos el precio de compra registrado en el producto
+                $subtotal = $producto->precio_compra * $item['cantidad'];
+                $totalCompra += $subtotal;
+
+                DetalleCompra::create([
+                    'compra_id' => $compra->id,
+                    'producto_id' => $producto->id,
+                    'cantidad' => $item['cantidad'],
+                    'precio_compra' => $producto->precio_compra,
+                    'subtotal' => $subtotal
+                ]);
+
+                // ¡Efecto Inverso!: Incrementamos el stock del inventario
+                $producto->increment('stock', $item['cantidad']);
+            }
+
+            // 3. Guardar el total definitivo de la compra
+            $compra->update(['total' => $totalCompra]);
+
+            DB::commit();
 
             return response()->json([
-                'message' => 'Compra creada exitosamente',
-                'data' => $compra
+                'message' => 'Compra registrada con éxito y stock reabastecido (+)',
+                'data' => $compra->load('detalles')
             ], 201);
 
-        } catch (ValidationException $e) {
-
+        } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json([
-                'errors' => $e->errors()
-            ], 422);
+                'message' => 'Error al registrar la compra',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
-    /**
+     /**
      * Display the specified resource.
      */
     public function show($id)
     {
-          try {
+        $compra = Compra::with(['proveedor', 'usuario', 'detalles.producto'])->find($id);
 
-        $compra = Compra::findOrFail($id);
-        return response()->json($compra);
+        if (!$compra) {
+            return response()->json(['message' => 'Compra no encontrada'], 404);
+        }
 
-    } catch (ModelNotFoundException $e) {
-        return response()->json([
-            'message' => 'Compra no encontrada'
-        ], 404);
-    }
+        return response()->json($compra, 200);
     }
 
     /**

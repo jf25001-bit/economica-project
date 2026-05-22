@@ -13,11 +13,18 @@ return new class extends Migration
     {
         Schema::create('compras', function (Blueprint $table) {
             $table->id();
-            $table->date('fecha_compra');
-            $table->decimal('total', 10, 2);
+
+            $table->date('fecha_compra')->nullable();
+
+            $table->decimal('total', 10, 2)->default(0.00);
+
             $table->foreignId('proveedor_id')
-          ->constrained('proveedors')
-          ->onDelete('cascade');
+                ->constrained('proveedors')
+                ->onDelete('cascade');
+
+            $table->foreignId('user_id')
+                ->constrained('users')
+                ->onDelete('cascade');
 
             $table->timestamps();
         });
