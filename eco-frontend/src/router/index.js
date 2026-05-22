@@ -52,6 +52,10 @@ const routes = [
   {
     path: '/proveedores',
     component: Proveedores
+  },
+  {
+    path: '/dashboard',
+    component: Dashboard
   }
   
   
