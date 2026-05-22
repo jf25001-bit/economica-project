@@ -12,7 +12,6 @@
         </p>
       </div>
 
-      <!-- Botón -->
       <button
         @click="abrirNuevoProveedor"
         class="bg-[#46674A] hover:bg-[#3b5740] text-white px-5 py-3 rounded-xl shadow-md transition"
@@ -30,7 +29,7 @@
             <th class="px-6 py-4 font-semibold">ID</th>
             <th class="px-6 py-4 font-semibold">Nombre</th>
             <th class="px-6 py-4 font-semibold">Teléfono</th>
-            <th class="px-6 py-4 font-semibold">Correo</th>
+            <th class="px-6 py-4 font-semibold">Dirección</th>
             <th class="px-6 py-4 font-semibold">Acciones</th>
           </tr>
         </thead>
@@ -41,27 +40,22 @@
             :key="proveedor.id"
             class="border-t hover:bg-gray-50"
           >
-            <!-- ID -->
             <td class="px-6 py-4 font-semibold">
               {{ proveedor.id }}
             </td>
 
-            <!-- Nombre -->
             <td class="px-6 py-4">
-              {{ proveedor.nombre }}
+              {{ proveedor.nombre_proveedor }}
             </td>
 
-            <!-- Teléfono -->
             <td class="px-6 py-4">
               {{ proveedor.telefono }}
             </td>
 
-            <!-- Correo -->
             <td class="px-6 py-4">
-              {{ proveedor.correo }}
+              {{ proveedor.direccion }}
             </td>
 
-            <!-- Acciones -->
             <td class="px-6 py-4">
               <div class="flex gap-4 text-lg">
 
@@ -133,7 +127,7 @@
           <input
             v-model="nombre"
             type="text"
-            placeholder="Ejemplo: Distribuidora Central"
+            placeholder="Distribuidora Central"
             class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
           />
         </div>
@@ -147,21 +141,21 @@
           <input
             v-model="telefono"
             type="text"
-            placeholder="Ejemplo: 7777-7777"
+            placeholder="7777-7777"
             class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
           />
         </div>
 
-        <!-- Correo -->
+        <!-- Dirección -->
         <div class="mb-6">
           <label class="block text-gray-700 font-medium mb-2">
-            Correo electrónico
+            Dirección
           </label>
 
           <input
-            v-model="correo"
-            type="email"
-            placeholder="correo@empresa.com"
+            v-model="direccion"
+            type="text"
+            placeholder="San Salvador"
             class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
           />
         </div>
@@ -192,84 +186,119 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import {
+  getProveedores,
+  createProveedor,
+  updateProveedor,
+  deleteProveedor
+} from '../services/proveedorService'
 
 const mostrarModal = ref(false)
 
 const nombre = ref('')
 const telefono = ref('')
-const correo = ref('')
+const direccion = ref('')
 
 const editandoId = ref(null)
 
-const proveedores = ref([
-  {
-    id: 1,
-    nombre: 'Distribuidora Central',
-    telefono: '7777-7777',
-    correo: 'central@gmail.com'
-  },
-  {
-    id: 2,
-    nombre: 'Bebidas SV',
-    telefono: '7888-8888',
-    correo: 'bebidas@gmail.com'
-  }
-])
+const proveedores = ref([])
 
+// Cargar proveedores al abrir pantalla
+const cargarProveedores = async () => {
+  try {
+    proveedores.value =
+      await getProveedores()
+  } catch (error) {
+    console.error(error)
+    alert('Error al cargar proveedores')
+  }
+}
+
+onMounted(() => {
+  cargarProveedores()
+})
+
+// Abrir modal nuevo
 function abrirNuevoProveedor() {
+  editandoId.value = null
   mostrarModal.value = true
 }
 
-function guardarProveedor() {
+// Guardar / actualizar
+async function guardarProveedor() {
   if (
-    nombre.value.trim() === '' ||
-    telefono.value.trim() === '' ||
-    correo.value.trim() === ''
+    !nombre.value.trim() ||
+    !telefono.value.trim() ||
+    !direccion.value.trim()
   ) {
     alert('Completa todos los campos')
     return
   }
 
-  if (editandoId.value) {
-    const index = proveedores.value.findIndex(
-      proveedor => proveedor.id === editandoId.value
-    )
-
-    proveedores.value[index] = {
-      ...proveedores.value[index],
-      nombre: nombre.value,
-      telefono: telefono.value,
-      correo: correo.value
-    }
-  } else {
-    proveedores.value.push({
-      id: proveedores.value.length + 1,
-      nombre: nombre.value,
-      telefono: telefono.value,
-      correo: correo.value
-    })
+  const data = {
+    nombre_proveedor: nombre.value,
+    telefono: telefono.value,
+    direccion: direccion.value
   }
 
-  cerrarModal()
+  try {
+    if (editandoId.value) {
+      await updateProveedor(
+        editandoId.value,
+        data
+      )
+    } else {
+      await createProveedor(data)
+    }
+
+    await cargarProveedores()
+    cerrarModal()
+
+  } catch (error) {
+    console.error(error)
+
+    alert(
+      error.response?.data?.message ||
+      'Error al guardar proveedor'
+    )
+  }
 }
 
+// Editar
 function editarProveedor(proveedor) {
   mostrarModal.value = true
 
   editandoId.value = proveedor.id
 
-  nombre.value = proveedor.nombre
-  telefono.value = proveedor.telefono
-  correo.value = proveedor.correo
+  nombre.value =
+    proveedor.nombre_proveedor
+
+  telefono.value =
+    proveedor.telefono
+
+  direccion.value =
+    proveedor.direccion
 }
 
-function eliminarProveedor(id) {
-  proveedores.value = proveedores.value.filter(
-    proveedor => proveedor.id !== id
+// Eliminar
+async function eliminarProveedor(id) {
+  const confirmar = confirm(
+    '¿Eliminar este proveedor?'
   )
+
+  if (!confirmar) return
+
+  try {
+    await deleteProveedor(id)
+    await cargarProveedores()
+  } catch (error) {
+    console.error(error)
+    alert('Error al eliminar')
+  }
 }
 
+// Cerrar modal
 function cerrarModal() {
   mostrarModal.value = false
 
@@ -277,6 +306,6 @@ function cerrarModal() {
 
   nombre.value = ''
   telefono.value = ''
-  correo.value = ''
+  direccion.value = ''
 }
 </script>
