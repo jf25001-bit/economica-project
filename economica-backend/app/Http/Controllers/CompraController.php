@@ -30,7 +30,7 @@ class CompraController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'proveedor_id' => 'required|exists:proveedors,id', // Apunta a tu tabla real
+            'proveedor_id' => 'required|exists:proveedors,id',
             'user_id' => 'required|exists:users,id',
             'productos' => 'required|array|min:1',
             'productos.*.producto_id' => 'required|exists:productos,id',

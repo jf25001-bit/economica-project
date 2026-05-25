@@ -45,7 +45,7 @@ class VentaController extends Controller
     try {
         // 1. Crear el registro principal de la venta
         $venta = Venta::create([
-            'cliente' => $request->input('cliente', 'Consumidor Final'),
+            'cliente' => $request->input('Consumidor Final'),
             'user_id' => $request->user_id,
             'total' => 0
         ]);
