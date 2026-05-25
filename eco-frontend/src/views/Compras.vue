@@ -4,9 +4,6 @@
     <div class="flex items-center justify-between mb-6">
       <div>
         <h1 class="text-3xl font-bold text-gray-800">Compras</h1>
-        <p class="text-gray-600">
-          Administra las compras realizadas a proveedores.
-        </p>
       </div>
 
       <button

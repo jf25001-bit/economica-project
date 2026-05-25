@@ -6,10 +6,6 @@
         <h1 class="text-3xl font-bold text-gray-800">
           Proveedores
         </h1>
-
-        <p class="text-gray-600">
-          Administra los proveedores del minisúper.
-        </p>
       </div>
 
       <button
@@ -90,7 +86,7 @@
           </tr>
         </tbody>
       </table>
-    </div>
+    </div
 
     <!-- Modal -->
     <div
@@ -98,10 +94,10 @@
       class="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
     >
       <div
-        class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6"
+        class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-10"
       >
         <!-- Encabezado -->
-        <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center justify-between mb-2">
           <h2 class="text-2xl font-bold text-gray-800">
             {{
               editandoId
@@ -112,15 +108,15 @@
 
           <button
             @click="cerrarModal"
-            class="text-3xl text-gray-500"
+            class="text-3xl text-red-500"
           >
             &times;
           </button>
         </div>
 
         <!-- Nombre -->
-        <div class="mb-5">
-          <label class="block text-gray-700 font-medium mb-2">
+        <div class="mb-6">
+          <label class="block text-gray-700 font-medium mb-3">
             Nombre del proveedor
           </label>
 
@@ -128,13 +124,13 @@
             v-model="nombre"
             type="text"
             placeholder="Distribuidora Central"
-            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
+            class="w-full px-1 py-3 border border-black-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
           />
         </div>
 
         <!-- Teléfono -->
         <div class="mb-5">
-          <label class="block text-gray-700 font-medium mb-2">
+          <label class="block text-black-700 font-medium mb-2">
             Teléfono
           </label>
 
@@ -142,7 +138,7 @@
             v-model="telefono"
             type="text"
             placeholder="7777-7777"
-            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
+            class="w-full px-1 py-3 border border-black-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
           />
         </div>
 
@@ -156,7 +152,7 @@
             v-model="direccion"
             type="text"
             placeholder="San Salvador"
-            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
+            class="w-full px-1 py-3 border border-black-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
           />
         </div>
 

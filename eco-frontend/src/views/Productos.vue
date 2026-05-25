@@ -4,9 +4,6 @@
     <div class="flex items-center justify-between mb-6">
       <div>
         <h1 class="text-3xl font-bold text-gray-800">Productos</h1>
-        <p class="text-gray-600">
-          Administra los productos y sus categorías.
-        </p>
       </div>
 
       <button
@@ -29,13 +26,13 @@
           <input
             type="text"
             placeholder="Buscar productos..."
-            class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
+            class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-3 focus:ring-[#46674A]"
           />
         </div>
 
         <!-- Categoría -->
         <select
-          class="px-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
+          class="px- py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
         >
           <option>Todas las categorías</option>
           <option>Bebidas</option>
@@ -63,6 +60,7 @@
         <thead class="bg-gray-100">
           <tr class="text-left text-gray-700">
             <th class="px-6 py-4 font-semibold">Código</th>
+            <th class="px-6 py-4 font-semibold">Images</th>
             <th class="px-6 py-4 font-semibold">Producto</th>
             <th class="px-6 py-4 font-semibold">Categoría</th>
             <th class="px-6 py-4 font-semibold">Precio</th>
@@ -73,63 +71,89 @@
           </tr>
         </thead>
 
-        <tbody>
-          <tr
-            v-for="producto in productos"
-            :key="producto.id"
-            class="border-t hover:bg-gray-50"
-          >
-            <td class="px-6 py-4">{{ producto.codigo }}</td>
+       <!-- REEMPLAZA TODO EL <tbody> POR ESTO -->
 
-            <td class="px-6 py-4 font-medium text-gray-800">
-              {{ producto.nombre }}
-            </td>
-
-            <td class="px-6 py-4">
-              <span
-                class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm"
-              >
-                {{ producto.categoria }}
-              </span>
-            </td>
-
-            <td class="px-6 py-4">${{ producto.precio }}</td>
-            <td class="px-6 py-4">{{ producto.stock }}</td>
-            <td class="px-6 py-4">
-  <button
-    class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium hover:bg-indigo-200 transition"
+<tbody>
+  <tr
+    v-for="producto in productos"
+    :key="producto.id"
+    class="border-t hover:bg-gray-50"
   >
-    <i class="bi bi-boxes mr-1"></i>
-    {{ producto.lotes }} 
-  </button>
-</td>
+    <!-- Código -->
+    <td class="px-6 py-4">
+      {{ producto.codigo }}
+    </td>
 
+    <!-- Imagen -->
+    <td class="px-6 py-4">
+      <img
+        :src="producto.imagen"
+        alt="Producto"
+        class="w-16 h-16 object-cover rounded-xl border"
+      />
+    </td>
 
-            <td class="px-6 py-4">
-              <span
-                class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium"
-              >
-                Activo
-              </span>
-            </td>
+    <!-- Producto -->
+    <td class="px-6 py-4 font-medium text-gray-800">
+      {{ producto.nombre }}
+    </td>
 
-            <td class="px-6 py-4">
-              <div class="flex gap-2">
-                <button
-                  class="bg-blue-100 text-blue-600 p-2 rounded-lg hover:bg-blue-200"
-                >
-                  <i class="bi bi-pencil"></i>
-                </button>
+    <!-- Categoría -->
+    <td class="px-6 py-4">
+      <span
+        class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm"
+      >
+        {{ producto.categoria }}
+      </span>
+    </td>
 
-                <button
-                  class="bg-red-100 text-red-600 p-2 rounded-lg hover:bg-red-200"
-                >
-                  <i class="bi bi-trash"></i>
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
+    <!-- Precio -->
+    <td class="px-6 py-4">
+      ${{ producto.precio }}
+    </td>
+
+    <!-- Stock -->
+    <td class="px-6 py-4">
+      {{ producto.stock }}
+    </td>
+
+    <!-- Lotes -->
+    <td class="px-6 py-4">
+      <button
+        class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium hover:bg-indigo-200 transition"
+      >
+        <i class="bi bi-boxes mr-1"></i>
+        {{ producto.lotes }}
+      </button>
+    </td>
+
+    <!-- Estado -->
+    <td class="px-6 py-4">
+      <span
+        class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium"
+      >
+        Activo
+      </span>
+    </td>
+
+    <!-- Acciones -->
+    <td class="px-6 py-4">
+      <div class="flex gap-2">
+        <button
+          class="bg-blue-100 text-blue-600 p-2 rounded-lg hover:bg-blue-200"
+        >
+          <i class="bi bi-pencil"></i>
+        </button>
+
+        <button
+          class="bg-red-100 text-red-600 p-2 rounded-lg hover:bg-red-200"
+        >
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+    </td>
+  </tr>
+</tbody>
       </table>
     </div>
   </div>

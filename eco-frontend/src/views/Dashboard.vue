@@ -6,9 +6,7 @@
     </h1>
 
     <!-- Descripción -->
-    <p class="text-gray-600 mb-8">
-      Selecciona una opción del menú para comenzar.
-    </p>
+    
 
     <!-- Tarjetas de resumen -->
     <div class="grid grid-cols-4 gap-6">
@@ -57,16 +55,7 @@
       </div>
     </div>
 
-    <!-- Mensaje inferior -->
-    <div class="mt-8 bg-white rounded-2xl shadow-md p-6">
-      <h3 class="text-xl font-semibold text-gray-800 mb-2">
-        Sistema Administrativo
-      </h3>
-      <p class="text-gray-600">
-        Administra productos, ventas, compras, inventario, usuarios y reportes
-        desde un solo lugar.
-      </p>
-    </div>
+    <
   </div>
 </template>
 

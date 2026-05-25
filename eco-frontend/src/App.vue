@@ -3,16 +3,19 @@
   <router-view v-if="$route.path === '/' || $route.path === '/login'" />
 
   <!-- Para las demás rutas, mostrar Sidebar + Navbar + contenido -->
-  <div v-else class="flex">
+ <div v-else class="flex w-full">
     <!-- Sidebar -->
     <Sidebar :isOpen="sidebarOpen" />
 
     <!-- Contenido principal -->
     <div
-      :class="[
-        'flex-1 min-h-screen bg-gray-100 transition-all duration-300',
-        sidebarOpen ? 'ml-60' : 'ml-20'
-      ]"
+  :class="[
+    'flex-1 min-h-screen bg-gray-100 transition-all duration-300 overflow-x-hidden',
+    sidebarOpen
+      ? 'md:ml-60 ml-0'
+      : 'md:ml-20 ml-0'
+  ]"
+>
     >
       <!-- Navbar -->
       <Navbar @toggle-sidebar="toggleSidebar" />
