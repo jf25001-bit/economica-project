@@ -13,6 +13,12 @@ return new class extends Migration
     {
         Schema::create('ventas', function (Blueprint $table) {
             $table->id();
+            $table->date('fecha_venta');
+            $table->decimal('total', 10, 2);
+
+            $table->foreignId('cliente_id')
+          ->constrained('clientes')
+          ->onDelete('cascade');
             $table->timestamps();
         });
     }
