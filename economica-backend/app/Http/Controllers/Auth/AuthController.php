@@ -53,7 +53,7 @@ class AuthController extends Controller
           'user' => $user,
           'access_token' => $token,
           'token_type' => 'bearer',
-           'expires_in' => auth()->factory()->getTTL() * 60
+           'expires_in' => JWTAuth::factory()->getTTL() * 60
       ],201);
   }
 
@@ -61,18 +61,18 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
-            'user' => auth()->user(),
-            'expires_in' => auth()->factory()->getTTL() * 60
+            'user' => JWTAuth::user(),
+            'expires_in' => JWTAuth::factory()->getTTL() * 60
         ]);
     }
 
     public function me(){
-  return response()->json(auth()->user());
+  return response()->json(JWTAuth::user());
 }
 
     //método para invalidar un token (logout)
     public function logout(){
-        auth()->logout();
+        JWTAuth::logout();
         return response()->json([
             'message' => 'Sesión cerrada correctamente'
     ]);
@@ -80,7 +80,7 @@ class AuthController extends Controller
 
     //método para refrescar el token
     public function refresh(){
-        return $this->responseWithToken(auth()->refresh());
+        return $this->responseWithToken(JWTAuth::refresh());
     }
 
 
