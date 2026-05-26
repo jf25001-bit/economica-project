@@ -5,13 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Categoria extends Model
+class Rol extends Model
 {
     use HasFactory;
 
-    // Forzamos el nombre de la tabla en español
-    protected $table = 'categorias';
+    // Le indicamos a Laravel que la tabla se llama 'roles'
+    protected $table = 'rols';
 
+    // Campos que permitiremos llenar mediante formularios/API
     protected $fillable = [
         'nombre',
         'descripcion'

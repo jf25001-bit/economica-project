@@ -13,10 +13,24 @@ return new class extends Migration
     {
         Schema::create('productos', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre');
-            $table->string('descripcion');
-            $table->double('precio_venta');
-            $table->foreignId('sub_categoria_id')->constrained();
+            $table->string('codigo_barras', 50)->unique()->nullable();
+            $table->string('nombre', 100)->unique();
+            $table->decimal('precio_compra', 10, 2)->default(0.00);
+            $table->decimal('precio_venta', 10, 2)->default(0.00);
+            $table->integer('stock')->default(0);
+            $table->integer('stock_minimo')->default(5);
+
+            // RELACIONES (Llaves Foráneas)
+            // 1. Relación con sub_categorias
+            $table->foreignId('sub_categoria_id')
+                  ->constrained('sub_categorias')
+                  ->onDelete('cascade');
+
+            // 2. Relación con proveedors (recuerda que tu tabla se llama proveedors)
+            $table->foreignId('proveedor_id')
+                  ->constrained('proveedors')
+                  ->onDelete('cascade');
+
             $table->timestamps();
         });
     }

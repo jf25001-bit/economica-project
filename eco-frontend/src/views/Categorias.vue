@@ -7,9 +7,6 @@
           Categorías
         </h1>
 
-        <p class="text-gray-600">
-          Administra categorías y subcategorías de productos.
-        </p>
       </div>
 
       <!-- Botón -->
@@ -25,8 +22,8 @@
     <!-- Tabla -->
     <div class="bg-white rounded-2xl shadow-md overflow-hidden">
       <table class="w-full">
-        <thead class="bg-gray-100">
-          <tr class="text-left text-gray-700">
+        <thead class="bg-blue-100">
+          <tr class="text-left text-black-700">
             <th class="px-6 py-4 font-semibold">Categoría</th>
             <th class="px-6 py-4 font-semibold">Subcategorías</th>
             <th class="px-6 py-4 font-semibold">Estado</th>
@@ -51,7 +48,7 @@
                 <span
                   v-for="sub in categoria.subcategorias"
                   :key="sub"
-                  class="bg-[#46674A]/10 text-[#46674A] px-3 py-1 rounded-full text-sm"
+                  class="bg-[#46674A]/10 text-[#46674A] px-8 py-1 rounded-full text-sm"
                 >
                   {{ sub }}
                 </span>
@@ -61,7 +58,7 @@
             <!-- Estado -->
             <td class="px-6 py-4">
               <span
-                class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm"
+                class="bg-black-100 text-green-700 px-8 py-1 rounded-full text-sm"
               >
                 Activa
               </span>
@@ -69,7 +66,7 @@
 
             <!-- Acciones -->
             <td class="px-6 py-4">
-              <div class="flex gap-4 text-lg">
+              <div class="flex gap-8 text-lg">
 
                 <!-- Editar -->
                 <button
@@ -114,7 +111,7 @@
       >
         <!-- Encabezado -->
         <div class="flex items-center justify-between mb-6">
-          <h2 class="text-2xl font-bold text-gray-800">
+          <h2 class="text-2xl font-bold text-black-800">
             {{
               editandoId
                 ? 'Editar Categoría'
@@ -124,7 +121,7 @@
 
           <button
             @click="cerrarModal"
-            class="text-3xl text-gray-500"
+            class="text-3xl text-red-500"
           >
             &times;
           </button>
@@ -132,7 +129,7 @@
 
         <!-- Nombre -->
         <div class="mb-5">
-          <label class="block text-gray-700 font-medium mb-2">
+          <label class="block text-black-700 font-medium mb-8">
             Nombre de la categoría
           </label>
 
@@ -140,13 +137,13 @@
             v-model="nombreCategoria"
             type="text"
             placeholder="Ejemplo: Bebidas"
-            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
+            class="w-full px-2 py-3 border borderblack-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
           />
         </div>
 
         <!-- Subcategorías -->
         <div class="mb-5">
-          <label class="block text-gray-700 font-medium mb-2">
+          <label class="block text-black-700 font-medium mb-2">
             Subcategorías
           </label>
 
@@ -155,7 +152,7 @@
               v-model="nuevaSubcategoria"
               type="text"
               placeholder="Ejemplo: Gaseosas"
-              class="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
+              class="flex-1 px-2 py-3 border border-black-300 rounded-xl focus:outline-none focus:ring-8 focus:ring-[#46674A]"
             />
 
             <button

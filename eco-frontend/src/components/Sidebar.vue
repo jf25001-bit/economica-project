@@ -62,12 +62,12 @@ const router = useRouter()
 
 const menu = [
   { name: 'Inicio', route: '/dashboard', icon: 'bi bi-house' },
-  { name: 'Productos', route: '/productos', icon: 'bi bi-box-seam' },
   { name: 'categorias', route: '/categorias', icon: 'bi bi-basket3' },
-  { name: 'Ventas', route: '/ventas', icon: 'bi bi-tag' },
-  { name: 'Compras', route: '/compras', icon: 'bi bi-cart' },
+  { name: 'Productos', route: '/productos', icon: 'bi bi-box-seam' },
   { name: 'Inventario', route: '/inventario', icon: 'bi bi-archive' },
-  { name: 'proveedores', route: '/proveedores', icon: 'bi bi-person' },
+  { name: 'Compras', route: '/compras', icon: 'bi bi-cart' },
+  { name: 'Proveedores', route: '/proveedores', icon: 'bi bi-person' },
+  { name: 'Ventas', route: '/ventas', icon: 'bi bi-tag' },  
   { name: 'Usuarios', route: '/usuarios', icon: 'bi bi-people' },
   { name: 'Reportes', route: '/reportes', icon: 'bi bi-bar-chart' }
 ]

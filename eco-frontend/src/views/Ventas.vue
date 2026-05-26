@@ -4,9 +4,7 @@
     <div class="flex items-center justify-between mb-6">
       <div>
         <h1 class="text-3xl font-bold text-gray-800">Ventas</h1>
-        <p class="text-gray-600">
-          Consulta las ventas realizadas y registra nuevas ventas.
-        </p>
+        
       </div>
 
       <!-- Botón Nueva Venta -->

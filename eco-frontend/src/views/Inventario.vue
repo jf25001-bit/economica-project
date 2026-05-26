@@ -4,9 +4,7 @@
     <div class="flex items-center justify-between mb-6">
       <div>
         <h1 class="text-3xl font-bold text-gray-800">Inventario</h1>
-        <p class="text-gray-600">
-          Consulta el stock actual de todos los productos.
-        </p>
+        
       </div>
 
       <button
