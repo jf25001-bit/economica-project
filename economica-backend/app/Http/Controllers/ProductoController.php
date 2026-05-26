@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Producto;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductoController extends Controller
 {
@@ -39,9 +40,17 @@ class ProductoController extends Controller
             'stock_minimo' => 'required|integer|min:0',
             'sub_categoria_id' => 'required|exists:sub_categorias,id',
             'proveedor_id' => 'required|exists:proveedors,id', // Validando contra tu tabla 'proveedors'
+            'imagen' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        $producto = Producto::create($request->all());
+        $datos = $request->all();
+
+        if ($request->hasFile('imagen')) {
+            $datos['imagen'] = $request->file('imagen')
+                ->store('productos', 'public');
+}
+
+        $producto = Producto::create($datos);
 
         return response()->json([
             'message' => 'Producto creado con éxito',
@@ -76,7 +85,7 @@ class ProductoController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $producto = Producto::find($id);
+        $producto = Producto::findOrFail($id);
 
         if (!$producto) {
             return response()->json(['message' => 'Producto no encontrado'], 404);
@@ -91,9 +100,24 @@ class ProductoController extends Controller
             'stock_minimo' => 'required|integer|min:0',
             'sub_categoria_id' => 'required|exists:sub_categorias,id',
             'proveedor_id' => 'required|exists:proveedors,id',
+            'imagen' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        $producto->update($request->all());
+                $datos = $request->all();
+
+            if ($request->hasFile('imagen')) {
+
+                // eliminar imagen anterior
+                if ($producto->imagen) {
+                    Storage::disk('public')->delete($producto->imagen);
+                }
+
+                // guardar nueva imagen
+                $datos['imagen'] = $request->file('imagen')
+                    ->store('productos', 'public');
+            }
+
+            $producto->update($datos);
 
         return response()->json([
             'message' => 'Producto actualizado con éxito',
@@ -106,11 +130,14 @@ class ProductoController extends Controller
      */
     public function destroy($id)
     {
-        $producto = Producto::find($id);
+        $producto = Producto::findOrFail($id);
 
         if (!$producto) {
             return response()->json(['message' => 'Producto no encontrado'], 404);
         }
+        if ($producto->imagen) {
+             Storage::disk('public')->delete($producto->imagen);
+}
 
         $producto->delete();
 

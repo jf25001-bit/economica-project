@@ -51,7 +51,7 @@ class CompraController extends Controller
 
             // 2. Procesar los productos agregados
             foreach ($request->productos as $item) {
-                $producto = Producto::find($item['producto_id']);
+                $producto = Producto::findOrFile($item['producto_id']);
 
                 // Usamos el precio de compra registrado en el producto
                 $subtotal = $producto->precio_compra * $item['cantidad'];
