@@ -1,46 +1,29 @@
 import { createRouter, createWebHistory } from 'vue-router'
-
-import Dashboard from '../views/Dashboard.vue'
-import Productos from '../views/Productos.vue'
-import Ventas from '../views/Ventas.vue'
-import Compras from '@/views/Compras.vue'
-import Inventario from '@/views/Inventario.vue'
-import Usuarios from '@/views/Usuarios.vue'
-import Reportes from '@/views/Reportes.vue'
-import Login from '@/views/Login.vue'
+import LoginView from '../views/LoginView.vue'
+import CategoriasView from '../views/CategoriasView.vue'
+import ProveedoresView from '../views/ProveedoresView.vue'
+import ProductosView from '../views/ProductosView.vue'
 
 const routes = [
   {
     path: '/',
-    component: Dashboard
+    name: 'login',
+    component: LoginView
+  },
+  {
+    path: '/categorias',
+    name: 'categorias',
+    component: CategoriasView
+  },
+  {
+    path: '/proveedores',
+    name: 'proveedores',
+    component: ProveedoresView
   },
   {
     path: '/productos',
-    component: Productos
-  },
-  {
-    path: '/ventas',
-    component:Ventas
-  },
-  {
-    path: '/compras',
-    component:Compras
-  },
-  {
-    path: '/inventario',
-    component: Inventario
-  },
-  {
-    path: '/usuarios',
-    component:Usuarios
-  },
-  {
-    path: '/reportes',
-    component: Reportes
-  },
-   {
-    path: '/login',
-    component: Login
+    name: 'productos',
+    component: ProductosView
   }
 ]
 
