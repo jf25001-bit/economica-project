@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Imagen;
 
 class Producto extends Model
 {
@@ -37,4 +38,10 @@ class Producto extends Model
     {
         return $this->belongsTo(Proveedor::class, 'proveedor_id');
     }
+
+        public function imagenes()
+    {
+         return $this->hasMany(Imagen::class, 'producto_id');
+    }
+    
 }

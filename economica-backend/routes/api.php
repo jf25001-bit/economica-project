@@ -13,6 +13,8 @@ use App\Http\Controllers\DetalleCompraController;
 use App\Http\Controllers\DetalleVentaController;
 use App\Http\Controllers\Auth\AuthController;
 
+use App\Http\Controllers\ImagenController;
+
 Route::apiResource('roles', RolController::class);
 Route::apiResource('ventas', VentaController::class);
 Route::apiResource('usuarios', UserController::class);
@@ -40,6 +42,7 @@ Route::apiResource('ventas', VentaController::class);
 Route::apiResource('detallecompras', DetalleCompraController::class);
 Route::apiResource('detalleventas', DetalleVentaController::class);
 
+Route::apiResource('imagenes', ImagenController::class);
 
 
 
