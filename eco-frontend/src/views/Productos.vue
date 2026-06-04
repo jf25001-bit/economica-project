@@ -71,7 +71,6 @@
           </tr>
         </thead>
 
-       <!-- REEMPLAZA TODO EL <tbody> POR ESTO -->
 
 <tbody>
   <tr
@@ -79,55 +78,46 @@
     :key="producto.id"
     class="border-t hover:bg-gray-50"
   >
-    <!-- Código -->
     <td class="px-6 py-4">
-      {{ producto.codigo }}
+      {{ producto.codigo_barras }}
     </td>
 
-    <!-- Imagen -->
     <td class="px-6 py-4">
       <img
-        :src="producto.imagen"
+        v-if="producto.imagenes && producto.imagenes.length"
+        :src="`http://127.0.0.1:8000/storage/${producto.imagenes[0].ruta}`"
         alt="Producto"
         class="w-16 h-16 object-cover rounded-xl border"
       />
+
+      <div
+        v-else
+        class="w-16 h-16 border rounded-xl flex items-center justify-center text-xs text-gray-400"
+      >
+        Sin imagen
+      </div>
     </td>
 
-    <!-- Producto -->
     <td class="px-6 py-4 font-medium text-gray-800">
       {{ producto.nombre }}
     </td>
 
-    <!-- Categoría -->
     <td class="px-6 py-4">
-      <span
-        class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm"
-      >
-        {{ producto.categoria }}
-      </span>
+      {{ producto.subcategoria?.categoria?.nombre || 'Sin categoría' }}
     </td>
 
-    <!-- Precio -->
     <td class="px-6 py-4">
-      ${{ producto.precio }}
+      ${{ producto.precio_venta }}
     </td>
 
-    <!-- Stock -->
     <td class="px-6 py-4">
       {{ producto.stock }}
     </td>
 
-    <!-- Lotes -->
     <td class="px-6 py-4">
-      <button
-        class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium hover:bg-indigo-200 transition"
-      >
-        <i class="bi bi-boxes mr-1"></i>
-        {{ producto.lotes }}
-      </button>
+      -
     </td>
 
-    <!-- Estado -->
     <td class="px-6 py-4">
       <span
         class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium"
@@ -136,7 +126,6 @@
       </span>
     </td>
 
-    <!-- Acciones -->
     <td class="px-6 py-4">
       <div class="flex gap-2">
         <button
@@ -160,42 +149,19 @@
 </template>
 
 <script setup>
-const productos = [
-  {
-    id: 1,
-    codigo: 'P001',
-    nombre: 'Coca Cola 600ml',
-    categoria: 'Bebidas',
-    precio: '0.75',
-    stock: 50,
-    lotes: 2
-  },
-  {
-    id: 2,
-    codigo: 'P002',
-    nombre: 'Leche Entera',
-    categoria: 'Lácteos',
-    precio: '1.35',
-    stock: 35,
-    lotes: 3
-  },
-  {
-    id: 3,
-    codigo: 'P003',
-    nombre: 'Pan Bimbo',
-    categoria: 'Panadería',
-    precio: '2.50',
-    stock: 20,
-    lotes: 1
-  },
-  {
-    id: 4,
-    codigo: 'P004',
-    nombre: 'Arroz 1 lb',
-    categoria: 'Granos',
-    precio: '0.90',
-    stock: 80,
-    lotes: 4
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
+
+const productos = ref([])
+
+onMounted(async () => {
+  try {
+    const response = await axios.get('http://127.0.0.1:8000/api/productos')
+    productos.value = response.data
+
+    console.log('Productos:', response.data)
+  } catch (error) {
+    console.error('Error al cargar productos:', error)
   }
-]
+})
 </script>
