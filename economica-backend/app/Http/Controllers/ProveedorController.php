@@ -49,7 +49,7 @@ class ProveedorController extends Controller
      */
     public function show($id)
     {
-        $proveedor = Proveedor::find($id);
+        $proveedor = Proveedor::findOrFile($id);
 
         if (!$proveedor) {
             return response()->json(['message' => 'Proveedor no encontrado'], 404);
@@ -71,7 +71,7 @@ class ProveedorController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $proveedor = Proveedor::find($id);
+        $proveedor = Proveedor::findOrFile($id);
 
         if (!$proveedor) {
             return response()->json(['message' => 'Proveedor no encontrado'], 404);
@@ -97,7 +97,7 @@ class ProveedorController extends Controller
      */
     public function destroy($id)
     {
-        $proveedor = Proveedor::find($id);
+        $proveedor = Proveedor::findOrFile($id);
 
         if (!$proveedor) {
             return response()->json(['message' => 'Proveedor no encontrado'], 404);

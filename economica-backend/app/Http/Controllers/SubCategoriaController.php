@@ -70,7 +70,7 @@ class SubCategoriaController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $subcategoria = SubCategoria::find($id);
+        $subcategoria = SubCategoria::findOrFile($id);
 
         if (!$subcategoria) {
             return response()->json(['message' => 'Subcategoría no encontrada'], 404);
@@ -94,7 +94,7 @@ class SubCategoriaController extends Controller
      */
     public function destroy($id)
     {
-        $subcategoria = SubCategoria::find($id);
+        $subcategoria = SubCategoria::findOrFile($id);
 
         if (!$subcategoria) {
             return response()->json(['message' => 'Subcategoría no encontrada'], 404);

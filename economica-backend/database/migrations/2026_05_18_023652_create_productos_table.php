@@ -19,6 +19,7 @@ return new class extends Migration
             $table->decimal('precio_venta', 10, 2)->default(0.00);
             $table->integer('stock')->default(0);
             $table->integer('stock_minimo')->default(5);
+            $table->string('imagen')->nullable();
 
             // RELACIONES (Llaves Foráneas)
             // 1. Relación con sub_categorias

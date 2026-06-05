@@ -60,7 +60,7 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $usuario = User::find($id);
+        $usuario = User::findOrFile($id);
 
         if (!$usuario) {
             return response()->json(['message' => 'Usuario no encontrado'], 404);
@@ -92,7 +92,7 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        $usuario = User::find($id);
+        $usuario = User::findOrFile($id);
 
         if (!$usuario) {
             return response()->json(['message' => 'Usuario no encontrado'], 404);

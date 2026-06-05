@@ -15,7 +15,7 @@ Route::apiResource('ventas', VentaController::class);
 Route::apiResource('usuarios', UserController::class);
 Route::apiResource('compras', CompraController::class);
 Route::apiResource('productos', ProductoController::class);
-Route::apiResource('proveedors', ProveedorController::class);
+Route::apiResource('proveedores', ProveedorController::class);
 Route::apiResource('categorias', CategoriaController::class);
 Route::apiResource('subcategorias', SubCategoriaController::class);
 

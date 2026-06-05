@@ -54,7 +54,7 @@ class VentaController extends Controller
 
         // 2. Recorrer la lista de productos
         foreach ($request->productos as $item) {
-            $producto = Producto::find($item['producto_id']);
+            $producto = Producto::findOrFail($item['producto_id']);
 
             if ($producto->stock < $item['cantidad']) {
                 return response()->json([
