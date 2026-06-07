@@ -1,310 +1,311 @@
 <template>
   <div class="p-6">
-    <!-- Encabezado -->
-    <div class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-800">
-          Categorías
-        </h1>
 
-      </div>
+    <!-- HEADER -->
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold">Categorías</h1>
 
-      <!-- Botón -->
       <button
         @click="abrirNuevaCategoria"
-        class="bg-[#46674A] hover:bg-[#3b5740] text-white px-5 py-3 rounded-xl shadow-md transition"
+        class="bg-green-700 text-white px-4 py-2 rounded"
       >
-        <i class="bi bi-plus-lg mr-2"></i>
         Nueva Categoría
       </button>
     </div>
 
-    <!-- Tabla -->
-    <div class="bg-white rounded-2xl shadow-md overflow-hidden">
-      <table class="w-full">
-        <thead class="bg-blue-100">
-          <tr class="text-left text-black-700">
-            <th class="px-6 py-4 font-semibold">Categoría</th>
-            <th class="px-6 py-4 font-semibold">Subcategorías</th>
-            <th class="px-6 py-4 font-semibold">Estado</th>
-            <th class="px-6 py-4 font-semibold">Acciones</th>
-          </tr>
-        </thead>
+    <!-- LISTA -->
+    <table class="w-full bg-white shadow rounded">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="p-3 text-left">Nombre</th>
+          <th class="p-3 text-left">Subcategorías</th>
+          <th class="p-3 text-left">Acciones</th>
+        </tr>
+      </thead>
 
-        <tbody>
-          <tr
-            v-for="categoria in categorias"
-            :key="categoria.id"
-            class="border-t hover:bg-gray-50"
-          >
-            <!-- Nombre -->
-            <td class="px-6 py-4 font-semibold">
-              {{ categoria.nombre }}
-            </td>
+      <tbody>
+        <tr v-for="cat in categorias" :key="cat.id" class="border-t">
 
-            <!-- Subcategorías -->
-            <td class="px-6 py-4">
-              <div class="flex flex-wrap gap-2">
-                <span
-                  v-for="sub in categoria.subcategorias"
-                  :key="sub"
-                  class="bg-[#46674A]/10 text-[#46674A] px-8 py-1 rounded-full text-sm"
-                >
-                  {{ sub }}
-                </span>
-              </div>
-            </td>
+          <td class="p-3 font-semibold">
+            {{ cat.nombre }}
+          </td>
 
-            <!-- Estado -->
-            <td class="px-6 py-4">
-              <span
-                class="bg-black-100 text-green-700 px-8 py-1 rounded-full text-sm"
-              >
-                Activa
-              </span>
-            </td>
-
-            <!-- Acciones -->
-            <td class="px-6 py-4">
-              <div class="flex gap-8 text-lg">
-
-                <!-- Editar -->
-                <button
-                  @click="editarCategoria(categoria)"
-                  class="text-blue-500 hover:text-blue-700"
-                >
-                  <i class="bi bi-pencil-square"></i>
-                </button>
-
-                <!-- Eliminar -->
-                <button
-                  @click="eliminarCategoria(categoria.id)"
-                  class="text-red-500 hover:text-red-700"
-                >
-                  <i class="bi bi-trash"></i>
-                </button>
-
-              </div>
-            </td>
-          </tr>
-
-          <!-- Vacío -->
-          <tr v-if="categorias.length === 0">
-            <td
-              colspan="4"
-              class="text-center py-8 text-gray-500"
+          <td class="p-3">
+            <span
+              v-for="sub in cat.subcategorias"
+              :key="sub.id"
+              class="bg-gray-200 px-2 py-1 rounded mr-1"
             >
-              No hay categorías registradas.
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+              {{ sub.nombre }}
+            </span>
+          </td>
 
-    <!-- Modal -->
-    <div
-      v-if="mostrarModal"
-      class="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-    >
-      <div
-        class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6"
-      >
-        <!-- Encabezado -->
-        <div class="flex items-center justify-between mb-6">
-          <h2 class="text-2xl font-bold text-black-800">
-            {{
-              editandoId
-                ? 'Editar Categoría'
-                : 'Nueva Categoría'
-            }}
-          </h2>
+          <td class="p-3">
+            <button
+              @click="editarCategoria(cat)"
+              class="text-blue-600 mr-3"
+            >
+              Editar
+            </button>
 
-          <button
-            @click="cerrarModal"
-            class="text-3xl text-red-500"
-          >
-            &times;
-          </button>
-        </div>
+            <button
+              @click="eliminarCategoria(cat.id)"
+              class="text-red-600"
+            >
+              Eliminar
+            </button>
+          </td>
 
-        <!-- Nombre -->
-        <div class="mb-5">
-          <label class="block text-black-700 font-medium mb-8">
-            Nombre de la categoría
-          </label>
+        </tr>
+      </tbody>
+    </table>
 
-          <input
-            v-model="nombreCategoria"
-            type="text"
-            placeholder="Ejemplo: Bebidas"
-            class="w-full px-2 py-3 border borderblack-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
-          />
-        </div>
+    <!-- MODAL -->
+    <div v-if="modal" class="fixed inset-0 bg-black/40 flex items-center justify-center">
 
-        <!-- Subcategorías -->
-        <div class="mb-5">
-          <label class="block text-black-700 font-medium mb-2">
-            Subcategorías
-          </label>
+      <div class="bg-white p-5 rounded w-[450px]">
 
-          <div class="flex gap-3">
+        <h2 class="text-xl font-bold mb-3">
+          {{ editando ? 'Editar Categoría' : 'Nueva Categoría' }}
+        </h2>
+
+        <!-- NOMBRE -->
+        <input
+          v-model="nombre"
+          class="w-full border p-2 mb-4"
+          placeholder="Nombre categoría"
+        />
+
+        <!-- SOLO EN EDICIÓN -->
+        <div v-if="editando">
+
+          <p class="font-semibold mb-2">Subcategorías</p>
+
+          <!-- EXISTENTES -->
+          <div class="mb-3">
+            <span
+              v-for="(sub, i) in subExistentes"
+              :key="sub.id"
+              class="bg-gray-200 px-2 py-1 rounded mr-1"
+            >
+              {{ sub.nombre }}
+
+              <button
+                @click="eliminarSubBD(sub.id, i)"
+                class="text-red-600 ml-1"
+              >
+                ✕
+              </button>
+            </span>
+          </div>
+
+          <!-- AGREGAR NUEVAS -->
+          <div class="flex gap-2 mb-3">
             <input
-              v-model="nuevaSubcategoria"
-              type="text"
-              placeholder="Ejemplo: Gaseosas"
-              class="flex-1 px-2 py-3 border border-black-300 rounded-xl focus:outline-none focus:ring-8 focus:ring-[#46674A]"
+              v-model="nuevaSub"
+              class="border p-2 flex-1"
+              placeholder="Nueva subcategoría"
             />
 
             <button
-              @click="agregarSubcategoria"
-              class="bg-[#46674A] text-white px-4 rounded-xl"
+              @click="agregarSub"
+              class="bg-green-600 text-white px-3"
             >
-              Agregar
+              +
             </button>
           </div>
-        </div>
 
-        <!-- Lista -->
-        <div class="flex flex-wrap gap-2 mb-6">
-          <span
-            v-for="(sub, index) in subcategorias"
-            :key="index"
-            class="bg-[#46674A]/10 text-[#46674A] px-3 py-2 rounded-full flex items-center gap-2"
-          >
-            {{ sub }}
-
-            <button
-              @click="eliminarSubcategoria(index)"
-              class="text-red-500"
+          <!-- NUEVAS -->
+          <div>
+            <span
+              v-for="(sub, i) in subNuevas"
+              :key="i"
+              class="bg-blue-100 px-2 py-1 rounded mr-1"
             >
-              <i class="bi bi-x-lg"></i>
-            </button>
-          </span>
+              {{ sub.nombre }}
+
+              <button
+                @click="subNuevas.splice(i,1)"
+                class="text-red-600 ml-1"
+              >
+                ✕
+              </button>
+            </span>
+          </div>
+
         </div>
 
-        <!-- Botones -->
-        <div class="flex justify-end gap-3">
-          <button
-            @click="cerrarModal"
-            class="px-5 py-3 border border-gray-300 rounded-xl"
-          >
+        <!-- BOTONES -->
+        <div class="flex justify-end gap-2 mt-4">
+
+          <button @click="cerrar" class="px-3 py-1 border">
             Cancelar
           </button>
 
-          <button
-            @click="guardarCategoria"
-            class="bg-[#46674A] hover:bg-[#3b5740] text-white px-5 py-3 rounded-xl"
-          >
-            {{
-              editandoId
-                ? 'Actualizar'
-                : 'Guardar Categoría'
-            }}
-          </button>
+              <button
+        @click="guardar"
+        :disabled="guardando"
+        class="bg-green-700 text-white px-3 py-1 disabled:opacity-50"
+      >
+        {{ guardando ? 'Guardando...' : 'Guardar' }}
+      </button>
+
         </div>
+
       </div>
+
     </div>
+
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
-const mostrarModal = ref(false)
+import {
+  getCategorias,
+  createCategoria,
+  updateCategoria,
+  deleteCategoria
+} from '@/services/categoriaService'
 
-const nombreCategoria = ref('')
-const nuevaSubcategoria = ref('')
-const subcategorias = ref([])
+import {
+  createSubcategoria,
+  deleteSubcategoria
+} from '@/services/subcategoriaService'
 
-const editandoId = ref(null)
+const categorias = ref([])
 
-const categorias = ref([
-  {
-    id: 1,
-    nombre: 'Bebidas',
-    subcategorias: ['Gaseosas', 'Jugos', 'Agua']
-  },
-  {
-    id: 2,
-    nombre: 'Snacks',
-    subcategorias: ['Papas', 'Galletas']
-  }
-])
+const modal = ref(false)
+const editando = ref(false)
 
-/* Abrir modal */
+const id = ref(null)
+const nombre = ref('')
+
+const subExistentes = ref([])
+const subNuevas = ref([])
+const nuevaSub = ref('')
+const guardando = ref(false)
+
+onMounted(() => cargar())
+
+async function cargar() {
+  categorias.value = await getCategorias()
+}
+
+/* =====================
+   NUEVA CATEGORIA
+===================== */
 function abrirNuevaCategoria() {
-  mostrarModal.value = true
+  modal.value = true
+  editando.value = false
+
+  id.value = null
+  nombre.value = ''
+
+  subExistentes.value = []
+  subNuevas.value = []
 }
 
-/* Agregar subcategoría */
-function agregarSubcategoria() {
-  if (nuevaSubcategoria.value.trim() === '') return
+/* =====================
+   EDITAR
+===================== */
+function editarCategoria(cat) {
+  modal.value = true
+  editando.value = true
 
-  subcategorias.value.push(nuevaSubcategoria.value)
+  id.value = cat.id
+  nombre.value = cat.nombre
 
-  nuevaSubcategoria.value = ''
+  subExistentes.value = [...(cat.subcategorias || [])]
+  subNuevas.value = []
 }
 
-/* Eliminar subcategoría */
-function eliminarSubcategoria(index) {
-  subcategorias.value.splice(index, 1)
+/* =====================
+   AGREGAR SUB NUEVA
+===================== */
+function agregarSub() {
+  if (!nuevaSub.value.trim()) return
+
+  subNuevas.value.push({ nombre: nuevaSub.value })
+  nuevaSub.value = ''
 }
 
-/* Guardar */
-function guardarCategoria() {
-  if (nombreCategoria.value.trim() === '') {
-    alert('Ingresa un nombre de categoría')
-    return
-  }
+/* =====================
+   BORRAR SUB BD
+===================== */
+async function eliminarSubBD(subId, index) {
+  await deleteSubcategoria(subId)
+  subExistentes.value.splice(index, 1)
+}
 
-  if (editandoId.value) {
-    const index = categorias.value.findIndex(
-      categoria => categoria.id === editandoId.value
-    )
+/* =====================
+   GUARDAR
+===================== */
+async function guardar() {
 
-    categorias.value[index] = {
-      ...categorias.value[index],
-      nombre: nombreCategoria.value,
-      subcategorias: [...subcategorias.value]
+  if (guardando.value) return
+
+  guardando.value = true
+
+  try {
+
+    if (!nombre.value.trim()) return
+
+    let res
+
+    if (editando.value) {
+      res = await updateCategoria(id.value, {
+        nombre: nombre.value
+      })
+    } else {
+      res = await createCategoria({
+        nombre: nombre.value
+      })
     }
-  } else {
-    categorias.value.push({
-      id: Date.now(),
-      nombre: nombreCategoria.value,
-      subcategorias: [...subcategorias.value]
-    })
+
+    const catId =
+      res.data?.data?.id || res.data?.id
+
+    for (const s of subNuevas.value) {
+      await createSubcategoria({
+        nombre: s.nombre,
+        categoria_id: catId
+      })
+    }
+
+    await cargar()
+    cerrar()
+
+  } catch (error) {
+    console.error(error)
+  } finally {
+    guardando.value = false
   }
-
-  cerrarModal()
 }
 
-/* Editar */
-function editarCategoria(categoria) {
-  mostrarModal.value = true
+/* =====================
+   ELIMINAR CATEGORIA
+===================== */
+async function eliminarCategoria(catId) {
+  if (!confirm('¿Eliminar categoría?')) return
 
-  editandoId.value = categoria.id
-
-  nombreCategoria.value = categoria.nombre
-
-  subcategorias.value = [
-    ...categoria.subcategorias
-  ]
+  await deleteCategoria(catId)
+  await cargar()
+  
 }
 
-/* Eliminar */
-function eliminarCategoria(id) {
-  categorias.value = categorias.value.filter(
-    categoria => categoria.id !== id
-  )
-}
+/* =====================
+   CERRAR
+===================== */
+function cerrar() {
+  modal.value = false
+  editando.value = false
 
-/* Cerrar */
-function cerrarModal() {
-  mostrarModal.value = false
+  nombre.value = ''
+  id.value = null
 
-  editandoId.value = null
-  nombreCategoria.value = ''
-  nuevaSubcategoria.value = ''
-  subcategorias.value = []
+  subExistentes.value = []
+  subNuevas.value = []
 }
 </script>
