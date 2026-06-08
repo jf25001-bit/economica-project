@@ -1,314 +1,227 @@
 <template>
-  <div class="p-6">
-    <!-- Encabezado -->
-    <div class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-800">Ventas</h1>
-        
+  <div class="p-6 space-y-4">
+
+    <h1 class="text-3xl font-bold"> Ventas (POS)</h1>
+<p>sesión de ventas</p>
+    <!-- FORMULARIO -->
+    <div class="bg-white p-4 rounded-2xl shadow space-y-4">
+
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+
+        <input v-model="cliente"
+          placeholder="Cliente"
+          class="border p-3 rounded-xl"
+        />
+
+        <input v-model="codigo"
+          placeholder="Código"
+          @keyup.enter="buscarProducto"
+          class="border p-3 rounded-xl"
+        />
+
+        <input v-model="producto.nombre"
+          placeholder="Producto"
+          disabled
+          class="border p-3 rounded-xl bg-gray-100"
+        />
+
+        <input v-model="producto.precio"
+          placeholder="Precio"
+          disabled
+          class="border p-3 rounded-xl bg-gray-100"
+        />
+
       </div>
 
-      <!-- Botón Nueva Venta -->
-      <button
-        @click="mostrarNuevaVenta = true"
-        class="bg-[#46674A] hover:bg-[#3b5740] text-white px-5 py-3 rounded-xl shadow-md transition font-medium"
-      >
-        <i class="bi bi-plus-lg mr-2"></i>
-        Nueva Venta
-      </button>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+
+        <input v-model.number="cantidad"
+          type="number"
+          min="1"
+          class="border p-3 rounded-xl"
+          placeholder="Cantidad"
+        />
+
+        <button
+          @click="agregarProducto"
+          class="bg-[#46674A] text-white rounded-xl py-3"
+        >
+          Agregar
+        </button>
+
+        <button
+          @click="limpiar"
+          class="border rounded-xl py-3"
+        >
+          Limpiar
+        </button>
+
+      </div>
+
     </div>
 
-    <!-- Tabla de Ventas Realizadas -->
-    <div class="bg-white rounded-2xl shadow-md overflow-hidden">
-      <div class="p-6 border-b">
-        <h2 class="text-2xl font-bold text-gray-800">
-          Ventas Realizadas
-        </h2>
-      </div>
+    <!-- TABLA -->
+    <div class="bg-white p-4 rounded-2xl shadow">
 
       <table class="w-full">
         <thead class="bg-gray-100">
-          <tr class="text-left text-gray-700">
-            <th class="px-6 py-4 font-semibold">Factura</th>
-            <th class="px-6 py-4 font-semibold">Cliente</th>
-            <th class="px-6 py-4 font-semibold">Fecha</th>
-            <th class="px-6 py-4 font-semibold">Total</th>
-            <th class="px-6 py-4 font-semibold">Estado</th>
+          <tr>
+            <th class="p-2">Producto</th>
+            <th class="p-2">Precio</th>
+            <th class="p-2">Cantidad</th>
+            <th class="p-2">Subtotal</th>
+            <th class="p-2">Acción</th>
           </tr>
         </thead>
 
         <tbody>
-          <tr
-            v-for="venta in ventas"
-            :key="venta.id"
-            class="border-t hover:bg-gray-50"
-          >
-            <td class="px-6 py-4 font-medium">
-              {{ venta.factura }}
+          <tr v-for="item in carrito" :key="item.codigo" class="border-t">
+            <td class="p-2">{{ item.nombre }}</td>
+            <td class="p-2">${{ item.precio }}</td>
+            <td class="p-2">{{ item.cantidad }}</td>
+            <td class="p-2 font-bold">
+              ${{ (item.precio * item.cantidad).toFixed(2) }}
             </td>
-            <td class="px-6 py-4">
-              {{ venta.cliente }}
-            </td>
-            <td class="px-6 py-4">
-              {{ venta.fecha }}
-            </td>
-            <td class="px-6 py-4 font-semibold">
-              ${{ venta.total }}
-            </td>
-            <td class="px-6 py-4">
-              <span
-                class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium"
-              >
-                Completada
-              </span>
+            <td class="p-2">
+              <button @click="eliminar(item.codigo)" class="text-red-500">
+                🗑
+              </button>
             </td>
           </tr>
 
-          <tr v-if="ventas.length === 0">
-            <td colspan="5" class="text-center py-6 text-gray-500">
-              No hay ventas registradas.
+          <tr v-if="carrito.length === 0">
+            <td colspan="5" class="text-center py-4 text-gray-500">
+              Sin productos
             </td>
           </tr>
         </tbody>
       </table>
+
     </div>
 
-    <!-- MODAL: VENTA QUE SE ESTÁ REALIZANDO -->
-    <div
-      v-if="mostrarNuevaVenta"
-      class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
-    >
-      <div
-        class="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-y-auto"
-      >
-        <!-- Encabezado del modal -->
-        <div class="flex items-center justify-between p-6 border-b">
-          <h2 class="text-2xl font-bold text-gray-800">
-            Venta en Proceso
-          </h2>
+    <!-- TOTAL + ACCIONES -->
+    <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow">
 
-          <button
-            @click="cerrarModal"
-            class="text-gray-500 hover:text-gray-700 text-3xl"
-          >
-            &times;
-          </button>
-        </div>
-
-        <div class="p-6">
-          <!-- Código de barras -->
-          <div class="mb-6">
-            <label class="block text-gray-700 font-medium mb-2">
-              Código de Barras
-            </label>
-
-            <input
-              v-model="codigo"
-              @keyup.enter="agregarProducto"
-              type="text"
-              placeholder="Escanee o escriba el código de barras"
-              class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
-              autofocus
-            />
-          </div>
-
-          <!-- Productos de la venta actual -->
-          <div class="bg-white border rounded-2xl overflow-hidden mb-6">
-            <div class="p-4 border-b bg-gray-50">
-              <h3 class="text-xl font-bold text-gray-800">
-                Productos Agregados
-              </h3>
-            </div>
-
-            <table class="w-full">
-              <thead class="bg-gray-100">
-                <tr class="text-left text-gray-700">
-                  <th class="px-4 py-3 font-semibold">Producto</th>
-                  <th class="px-4 py-3 font-semibold">Precio</th>
-                  <th class="px-4 py-3 font-semibold">Cantidad</th>
-                  <th class="px-4 py-3 font-semibold">Subtotal</th>
-                  <th class="px-4 py-3 font-semibold">Acciones</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                <tr
-                  v-for="item in carrito"
-                  :key="item.codigo"
-                  class="border-t hover:bg-gray-50"
-                >
-                  <td class="px-4 py-3">{{ item.nombre }}</td>
-                  <td class="px-4 py-3">
-                    ${{ item.precio.toFixed(2) }}
-                  </td>
-                  <td class="px-4 py-3">{{ item.cantidad }}</td>
-                  <td class="px-4 py-3 font-semibold">
-                    ${{ (item.precio * item.cantidad).toFixed(2) }}
-                  </td>
-                  <td class="px-4 py-3">
-                    <button
-                      @click="eliminarProducto(item.codigo)"
-                      class="text-red-500 hover:text-red-700"
-                    >
-                      <i class="bi bi-trash"></i>
-                    </button>
-                  </td>
-                </tr>
-
-                <tr v-if="carrito.length === 0">
-                  <td
-                    colspan="5"
-                    class="text-center py-8 text-gray-500"
-                  >
-                    No hay productos agregados a esta venta.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Total -->
-          <div class="flex justify-end mb-6">
-            <div class="bg-gray-100 rounded-xl px-6 py-4 min-w-[220px]">
-              <p class="text-gray-600 text-sm">Total de la Venta</p>
-              <p class="text-3xl font-bold text-[#46674A]">
-                ${{ total.toFixed(2) }}
-              </p>
-            </div>
-          </div>
-
-          <!-- Botones -->
-          <div class="flex justify-end gap-3">
-            <button
-              @click="cerrarModal"
-              class="px-5 py-3 border border-gray-300 rounded-xl hover:bg-gray-50"
-            >
-              Cancelar
-            </button>
-
-            <button
-              @click="finalizarVenta"
-              class="bg-[#46674A] hover:bg-[#3b5740] text-white px-5 py-3 rounded-xl font-semibold"
-            >
-              Finalizar Venta
-            </button>
-          </div>
-        </div>
+      <div>
+        <p>Total</p>
+        <p class="text-3xl font-bold text-green-600">
+          ${{ total.toFixed(2) }}
+        </p>
       </div>
+
+      <div class="flex gap-3">
+
+        <button
+          @click="finalizarVenta"
+          class="bg-green-600 text-white px-4 py-2 rounded-xl"
+        >
+          Guardar Venta
+        </button>
+
+        <button
+          @click="limpiar"
+          class="bg-red-500 text-white px-4 py-2 rounded-xl"
+        >
+          Cancelar
+        </button>
+
+      </div>
+
     </div>
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
+import axios from 'axios'
 
-const mostrarNuevaVenta = ref(false)
+const cliente = ref('')
 const codigo = ref('')
+const cantidad = ref(1)
+
+const producto = ref({
+  codigo: '',
+  nombre: '',
+  precio: 0
+})
+
 const carrito = ref([])
 
-/* Productos de ejemplo */
-const productos = [
-  {
-    codigo: '7501000123456',
-    nombre: 'Coca Cola 600ml',
-    precio: 0.75
-  },
-  {
-    codigo: '7501000123457',
-    nombre: 'Leche Entera',
-    precio: 1.35
-  },
-  {
-    codigo: '7501000123458',
-    nombre: 'Pan Bimbo',
-    precio: 2.50
-  },
-  {
-    codigo: '7501000123459',
-    nombre: 'Arroz 1 lb',
-    precio: 0.90
-  }
-]
+const API = "http://127.0.0.1:8000/api"
 
-/* Ventas realizadas */
-const ventas = ref([
-  {
-    id: 1,
-    factura: 'F001',
-    cliente: 'Consumidor Final',
-    fecha: '20/05/2026',
-    total: '12.50'
-  },
-  {
-    id: 2,
-    factura: 'F002',
-    cliente: 'Juan Pérez',
-    fecha: '20/05/2026',
-    total: '8.75'
-  }
-])
-
-function agregarProducto() {
-  const producto = productos.find(
-    p => p.codigo === codigo.value.trim()
-  )
-
-  if (!producto) {
+/* BUSCAR EN BASE DE DATOS */
+async function buscarProducto() {
+  try {
+    const res = await axios.get(`${API}/productos/${codigo.value}`)
+    producto.value = res.data
+  } catch (error) {
     alert('Producto no encontrado')
-    codigo.value = ''
+    producto.value = { codigo: '', nombre: '', precio: 0 }
+  }
+}
+
+/* AGREGAR */
+function agregarProducto() {
+  if (!producto.value.codigo) {
+    alert('Producto no encontrado')
     return
   }
 
-  const existente = carrito.value.find(
-    item => item.codigo === producto.codigo
-  )
+  const item = carrito.value.find(i => i.codigo === producto.value.codigo)
 
-  if (existente) {
-    existente.cantidad++
+  if (item) {
+    item.cantidad += cantidad.value
   } else {
     carrito.value.push({
-      ...producto,
-      cantidad: 1
+      ...producto.value,
+      cantidad: cantidad.value
     })
   }
 
   codigo.value = ''
+  producto.value = { codigo: '', nombre: '', precio: 0 }
+  cantidad.value = 1
 }
 
-function eliminarProducto(codigoProducto) {
-  carrito.value = carrito.value.filter(
-    item => item.codigo !== codigoProducto
-  )
+/* ELIMINAR */
+function eliminar(codigo) {
+  carrito.value = carrito.value.filter(i => i.codigo !== codigo)
 }
 
-const total = computed(() => {
-  return carrito.value.reduce(
-    (suma, item) => suma + item.precio * item.cantidad,
-    0
-  )
-})
-
-function cerrarModal() {
-  mostrarNuevaVenta.value = false
-  codigo.value = ''
+/* LIMPIAR */
+function limpiar() {
   carrito.value = []
+  codigo.value = ''
+  producto.value = { codigo: '', nombre: '', precio: 0 }
+  cantidad.value = 1
 }
 
-function finalizarVenta() {
+/* TOTAL */
+const total = computed(() =>
+  carrito.value.reduce((sum, i) => sum + i.precio * i.cantidad, 0)
+)
+
+/* GUARDAR VENTA EN LARAVEL */
+async function finalizarVenta() {
   if (carrito.value.length === 0) {
-    alert('Agrega al menos un producto')
+    alert('No hay productos')
     return
   }
 
-  const numero = ventas.value.length + 1
+  try {
+    await axios.post(`${API}/ventas`, {
+      cliente: cliente.value,
+      productos: carrito.value,
+      total: total.value
+    })
 
-  ventas.value.unshift({
-    id: Date.now(),
-    factura: `F${String(numero).padStart(3, '0')}`,
-    cliente: 'Consumidor Final',
-    fecha: new Date().toLocaleDateString(),
-    total: total.value.toFixed(2)
-  })
+    alert('Venta guardada ✔')
+    limpiar()
 
-  cerrarModal()
+  } catch (error) {
+    console.log(error)
+    alert('Error al guardar venta')
+  }
 }
 </script>
