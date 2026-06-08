@@ -1,48 +1,63 @@
 <template>
   <aside
     :class="[
-      'bg-[#405c44]  text-white h-screen fixed left-0 top-0 transition-all duration-300 shadow-lg flex flex-col',
+      'bg-[#405c44] text-white h-screen fixed left-0 top-0 transition-all duration-300 shadow-xl flex flex-col z-40 border-r border-white/5',
       isOpen ? 'w-60' : 'w-20'
     ]"
   >
-    <!-- Encabezado -->
-    <div class="p-1 border-b border-white/20 flex items-center gap-3">
+    <!-- Encabezado / Logo -->
+    <div 
+      :class="[
+        'p-4 border-b border-white/10 flex items-center gap-3 transition-all duration-300',
+        isOpen ? 'justify-start' : 'justify-center'
+      ]"
+    >
       <img
         src="/logo.jpeg"
         alt="Logo"
-        class="w-15 h-16 rounded"
+        class="w-12 h-12 rounded-xl object-cover shadow-md shrink-0 border border-white/10"
       />
 
-      <div v-if="isOpen">
-        <h1 class="font-bold text-lg">La Económica</h1>
-        <p class="text-sm text-white/80">Admin</p>
+      <div v-if="isOpen" class="overflow-hidden whitespace-nowrap transition-all duration-300">
+        <h1 class="font-bold text-base tracking-wide text-white leading-tight">La Económica</h1>
+        
       </div>
     </div>
 
-    <!-- Menú -->
-    <nav class="flex-1 py-4">
+    <!-- Menú de Navegación -->
+    <nav class="flex-1 py-0 space-y-1 overflow-y-auto custom-scrollbar">
       <router-link
         v-for="item in menu"
         :key="item.name"
         :to="item.route"
-        class="flex items-center gap-3 px-4 py-3 mx-2 rounded-lg hover:bg-white/10 transition"
-        active-class="bg-white/20"
+        class="flex items-center gap-8 px-3 py-3 mx-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all duration-200 group"
+        active-class="bg-white/15 text-white font-semibold shadow-inner border-1-4 border-white !rounded-l-none"
+        :title="!isOpen ? item.name : ''"
       >
-       <i :class="item.icon" class="text-xl text-white"></i>
-       <span v-if="isOpen" class="text-white font-medium">
-  {{ item.name }}
-</span>
+        <i :class="[item.icon, 'text-xl transition-transform group-hover:scale-110 shrink-0']"></i>
+        <span 
+          v-if="isOpen" 
+          class="text-sm tracking-wide transition-all duration-300"
+        >
+          {{ item.name }}
+        </span>
       </router-link>
     </nav>
 
     <!-- Cerrar sesión -->
-    <div class="p-4 border-t border-white/20">
+    <div class="p-3 border-t border-white/10 bg-black/10">
       <button
         @click="cerrarSesion"
-        class="flex items-center gap-3 w-full px-4 py-2 rounded-lg hover:bg-white/10 transition"
+        class="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-black/70 hover:text-red-200 hover:bg-red-500/20 transition-all duration-200 group"
+        :title="!isOpen ? 'Cerrar sesión' : ''"
       >
-        <span class="text-xl">↩</span>
-        <span v-if="isOpen">Cerrar sesión</span>
+        <i class="bi bi-box-arrow-left text-xl transition-transform group-hover:-translate-x-0.5 shrink-0"></i>
+        <span 
+          v-if="isOpen" 
+          class="text-sm font-medium tracking-wide"
+        >
+          Cerrar sesión
+        </span>
       </button>
     </div>
   </aside>
@@ -51,6 +66,7 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+
 defineProps({
   isOpen: {
     type: Boolean,
@@ -61,18 +77,16 @@ defineProps({
 const router = useRouter()
 
 const menu = [
-  { name: 'Inicio', route: '/dashboard', icon: 'bi bi-house' },
-  { name: 'categorias', route: '/categorias', icon: 'bi bi-basket3' },
-  { name: 'Productos', route: '/productos', icon: 'bi bi-box-seam' },
-  { name: 'Inventario', route: '/inventario', icon: 'bi bi-archive' },
-  { name: 'Compras', route: '/compras', icon: 'bi bi-cart' },
-  { name: 'Proveedores', route: '/proveedores', icon: 'bi bi-person' },
-  { name: 'Ventas', route: '/ventas', icon: 'bi bi-tag' },  
-  { name: 'Usuarios', route: '/usuarios', icon: 'bi bi-people' },
-  { name: 'Reportes', route: '/reportes', icon: 'bi bi-bar-chart' }
+  { name: 'Inicio', route: '/dashboard', icon: 'bi bi-house-door-fill' },
+  { name: 'Categorias', route: '/categorias', icon: 'bi bi-grid-3x3-gap-fill' },
+  { name: 'Productos', route: '/productos', icon: 'bi bi-box-seam-fill' },
+  { name: 'Inventario', route: '/inventario', icon: 'bi bi-archive-fill' },
+  { name: 'Compras', route: '/compras', icon: 'bi bi-basket2-fill' },
+  { name: 'Proveedores', route: '/proveedores', icon: 'bi bi-building' },
+  { name: 'Ventas', route: '/ventas', icon: 'bi bi-cash-coin' },
+  { name: 'Usuarios', route: '/usuarios', icon: 'bi bi-person-badge-fill' },
+  { name: 'Reportes', route: '/reportes', icon: 'bi bi-bar-chart-line-fill' }
 ]
-
-
 const cerrarSesion = async () => {
   try {
     const token = localStorage.getItem('token')
@@ -98,3 +112,17 @@ const cerrarSesion = async () => {
   router.push('/')
 }
 </script>
+
+<style scoped>
+/* Opcional: Estilo sutil para la barra de scroll interna del menú si hay muchas opciones */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+</style>
