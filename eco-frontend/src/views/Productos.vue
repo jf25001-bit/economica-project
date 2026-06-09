@@ -20,7 +20,6 @@
     </div>
 
     <div class="content-layout-flex flex gap-6 items-start w-full">
-      
       <div class="left-content-panel w-3/4 bg-white rounded-2xl shadow-md p-6">
         <div class="section-header-row flex justify-between items-center mb-6">
           <div class="title-block">
@@ -48,8 +47,8 @@
               <tr class="text-gray-700 text-sm font-semibold">
                 <th class="px-6 py-4" style="width: 15%;">SKU / Código</th>
                 <th class="px-6 py-4" style="width: 15%;">Imagen</th>
-                <th class="px-6 py-4" style="width: 30%;">Producto</th>
-                <th class="px-6 py-4" style="width: 15%;">Categoría</th>
+                <th class="px-6 py-4" style="width: 25%;">Producto</th>
+                <th class="px-6 py-4" style="width: 20%;">Categoría / Subcategoría</th>
                 <th class="px-6 py-4" style="width: 10%;">Stock</th>
                 <th class="px-6 py-4" style="width: 15%;">Precio Venta</th>
                 <th class="px-6 py-4 text-right" style="width: 10%;">Acciones</th>
@@ -57,14 +56,11 @@
             </thead>
             <tbody>
               <tr v-for="producto in productos" :key="producto.id" class="border-t border-gray-200 hover:bg-gray-50 text-sm">
-                <td class="px-6 py-4 font-mono text-gray-600">
-                  {{ producto.codigo_barras || 'Sin SKU' }}
-                </td>
-
+                <td class="px-6 py-4 font-mono text-gray-600">{{ producto.codigo_barras || 'Sin SKU' }}</td>
                 <td class="px-6 py-4">
                   <img
                     v-if="producto.imagenes && producto.imagenes.length"
-                    :src="`http://127.0.0.1:8000/storage/${producto.imagenes[0].ruta}`"
+                    :src="obtenerUrlImagen(producto.imagenes[0].ruta)"
                     alt="Producto"
                     class="w-12 h-12 object-cover rounded-xl border shadow-sm"
                   />
@@ -72,13 +68,11 @@
                     Sin foto
                   </div>
                 </td>
-
-                <td class="px-6 py-4 font-medium text-gray-800">
-                  {{ producto.nombre }}
-                </td>
-
-                <td class="px-6 py-4 text-gray-600">
-                  {{ producto.subcategoria?.categoria?.nombre || 'General' }}
+                <td class="px-6 py-4 font-medium text-gray-800">{{ producto.nombre }}</td>
+                
+                <td class="px-6 py-4 flex flex-col justify-center">
+                  <span class="font-medium text-gray-800">{{ producto.subcategoria?.categoria?.nombre || 'General' }}</span>
+                  <span class="text-xs text-gray-400 mt-0.5">{{ producto.subcategoria?.nombre || 'Sin subcategoría' }}</span>
                 </td>
 
                 <td class="px-6 py-4">
@@ -86,11 +80,7 @@
                     {{ producto.stock }}
                   </span>
                 </td>
-
-                <td class="px-6 py-4 font-medium text-gray-900">
-                  ${{ producto.precio_venta }}
-                </td>
-
+                <td class="px-6 py-4 font-medium text-gray-900">${{ producto.precio_venta }}</td>
                 <td class="px-6 py-4 text-right">
                   <div class="flex gap-2 justify-end">
                     <button class="bg-blue-50 text-blue-600 p-2 rounded-lg hover:bg-blue-100 transition" @click="editarProducto(producto)">
@@ -113,21 +103,18 @@
       <div class="right-widgets-panel w-1/4 flex flex-col gap-4">
         <div class="inventory-card-widget bg-white rounded-2xl shadow-md p-4 border border-gray-100">
           <h2 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-4">Resumen de Inventario</h2>
-          
           <div class="widget-metric-row flex justify-between items-center p-3 bg-gray-50 rounded-xl mb-2">
             <div>
               <span class="block text-xs text-gray-500">Total ítems</span>
               <span class="text-xl font-bold text-gray-800">{{ resumen.total }}</span>
             </div>
           </div>
-
           <div class="widget-metric-row flex justify-between items-center p-3 bg-green-50 rounded-xl mb-2">
             <div>
               <span class="block text-xs text-green-600">Disponibles</span>
               <span class="text-xl font-bold text-green-700">{{ resumen.disponibles }}</span>
             </div>
           </div>
-
           <div class="widget-metric-row flex justify-between items-center p-3 bg-amber-50 rounded-xl">
             <div>
               <span class="block text-xs text-amber-600">Bajo Stock</span>
@@ -138,7 +125,7 @@
       </div>
     </div>
 
-    <div v-if="mostrarModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div v-if="mostrarModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-40 p-4">
       <div class="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
         <div class="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
           <h3 class="font-bold text-gray-800 text-lg">
@@ -147,7 +134,35 @@
           <button class="text-gray-400 hover:text-gray-600" @click="cerrarModal"><i class="bi bi-x-lg"></i></button>
         </div>
         
-        <form @submit.prevent="guardarProducto" class="p-6 flex flex-col gap-4 max-h-[80vh] overflow-y-auto">
+        <form @submit.prevent="guardarProducto" class="p-6 flex flex-col gap-4 max-h-[80vh] overflow-y-auto" enctype="multipart/form-data">
+          
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Imagen del Producto</label>
+            <div class="flex items-center gap-4 mt-1">
+              <div class="relative w-20 h-20 border rounded-xl overflow-hidden bg-gray-50 flex items-center justify-center flex-shrink-0">
+                <img v-if="imagenPreview" :src="imagenPreview" alt="Preview" class="w-full h-full object-cover" />
+                <i v-else class="bi bi-image text-gray-300 text-2xl"></i>
+                <button 
+                  v-if="imagenPreview" 
+                  type="button" 
+                  @click="removerImagen" 
+                  class="absolute top-0 right-0 bg-red-500 text-white rounded-bl p-1 leading-none shadow-md hover:bg-red-600 transition"
+                  title="Quitar imagen"
+                >
+                  <i class="bi bi-x text-xs"></i>
+                </button>
+              </div>
+
+              <div class="w-full">
+                <label class="w-full flex flex-col items-center justify-center px-4 py-3 bg-white text-gray-500 rounded-xl border border-gray-300 border-dashed cursor-pointer hover:bg-gray-50 hover:text-gray-700 transition text-center">
+                  <i class="bi bi-cloud-upload text-lg mb-0.5 text-[#46674A]"></i>
+                  <span class="text-xs font-medium">Seleccionar imagen archivo</span>
+                  <input type="file" ref="fileInput" accept="image/*" class="hidden" @change="manejarCambioImagen" />
+                </label>
+              </div>
+            </div>
+          </div>
+
           <div>
             <label class="block text-xs font-semibold text-gray-600 mb-1">Nombre del Producto</label>
             <input type="text" v-model="nuevoProducto.nombre" required placeholder="Ej. MacBook Pro M3" class="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-[#46674A] outline-none" />
@@ -160,12 +175,18 @@
 
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-semibold text-gray-600 mb-1">Subcategoría (ID)</label>
-              <input type="number" v-model="nuevoProducto.sub_categoria_id" required placeholder="Ej. 1" class="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-[#46674A] outline-none" />
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Subcategoría</label>
+              <button type="button" @click="abrirBuscador('subcategoria')" class="w-full flex justify-between items-center px-4 py-2 border rounded-xl text-left text-sm bg-gray-50 hover:bg-gray-100 transition truncate">
+                <span class="truncate">{{ nombreSubcategoriaSeleccionada || 'Seleccionar...' }}</span>
+                <i class="bi bi-search text-gray-400 ml-1"></i>
+              </button>
             </div>
             <div>
-              <label class="block text-xs font-semibold text-gray-600 mb-1">Proveedor (ID)</label>
-              <input type="number" v-model="nuevoProducto.proveedor_id" required placeholder="Ej. 1" class="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-[#46674A] outline-none" />
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Proveedor</label>
+              <button type="button" @click="abrirBuscador('proveedor')" class="w-full flex justify-between items-center px-4 py-2 border rounded-xl text-left text-sm bg-gray-50 hover:bg-gray-100 transition truncate">
+                <span class="truncate">{{ nombreProveedorSeleccionado || 'Seleccionar...' }}</span>
+                <i class="bi bi-search text-gray-400 ml-1"></i>
+              </button>
             </div>
           </div>
 
@@ -194,28 +215,81 @@
           </div>
 
           <div class="flex justify-end gap-3 mt-4 border-t pt-4">
-            <button type="button" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200" @click="cerrarModal">Cancelar</button>
-            <button type="submit" class="px-4 py-2 bg-[#46674A] text-white rounded-xl hover:bg-[#3b5740]">
-              {{ esEditando ? 'Actualizar Producto' : 'Guardar Producto' }}
+            <button type="button" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200" :disabled="guardando" @click="cerrarModal">Cancelar</button>
+            <button type="submit" class="px-4 py-2 bg-[#46674A] text-white rounded-xl hover:bg-[#3b5740] flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" :disabled="guardando">
+              <span v-if="guardando" class="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
+              {{ guardando ? 'Procesando...' : (esEditando ? 'Actualizar Producto' : 'Guardar Producto') }}
             </button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <div v-if="mostrarBuscador" class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden border">
+        <div class="px-5 py-4 border-b flex justify-between items-center bg-gray-50">
+          <h4 class="font-bold text-gray-800 text-base">
+            Buscar {{ tipoBuscador === 'subcategoria' ? 'Subcategoría' : 'Proveedor' }}
+          </h4>
+          <button type="button" class="text-gray-400 hover:text-gray-600" @click="cerrarBuscador"><i class="bi bi-x-lg"></i></button>
+        </div>
+        
+        <div class="p-4 flex flex-col gap-3">
+          <div class="relative flex items-center">
+            <i class="bi bi-search absolute left-3 text-gray-400 text-sm"></i>
+            <input
+              v-model="filtroBuscadorInterno"
+              type="text"
+              placeholder="Filtrar por nombre..."
+              class="w-full pl-9 pr-4 py-2 border text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-[#46674A]"
+            />
+          </div>
+
+          <div class="max-h-[250px] overflow-y-auto border border-gray-100 rounded-xl bg-gray-50 flex flex-col divide-y">
+            <button
+              type="button"
+              v-for="item in listaFiltradaBuscador"
+              :key="item.id"
+              @click="seleccionarItemBuscador(item)"
+              class="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#46674A] font-medium transition flex justify-between items-center"
+            >
+              <span class="truncate">{{ tipoBuscador === 'subcategoria' ? item.nombre : item.nombre_proveedor }}</span>
+              <span class="text-[10px] bg-gray-200 text-gray-500 px-2 py-0.5 rounded-md font-mono">ID: {{ item.id }}</span>
+            </button>
+            <div v-if="listaFiltradaBuscador.length === 0" class="text-center py-6 text-xs text-gray-400 italic">
+              No hay coincidencias.
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 
-// --- ESTADOS REACTIVOS ---
 const productos = ref([])
-const categorias = ref([])
+const categorias = ref([]) 
+const subcategorias = ref([]) 
+const proveedores = ref([]) 
 const total = ref(0)
 const mostrarModal = ref(false)
-const esEditando = ref(false) // Define si el modal guarda nuevo o edita existente
-const productoIdSeleccionado = ref(null) // Rastrea qué ID de producto estamos editando
+const esEditando = ref(false)
+const productoIdSeleccionado = ref(null)
+const guardando = ref(false) 
+
+// Gestión de Archivos / Imágenes
+const fileInput = ref(null)
+const imagenSeleccionada = ref(null)
+const imagenPreview = ref(null)
+
+const mostrarBuscador = ref(false)
+const tipoBuscador = ref('') 
+const filtroBuscadorInterno = ref('')
+const nombreSubcategoriaSeleccionada = ref('')
+const nombreProveedorSeleccionado = ref('')
 
 const resumen = ref({
   total: 0,
@@ -240,7 +314,80 @@ const modeloProductoLimpio = () => ({
 
 const nuevoProducto = ref(modeloProductoLimpio())
 
-// --- FUNCIONES API ---
+// Helper para limpiar y formatear las URLs evitando duplicados de carpetas
+const obtenerUrlImagen = (ruta) => {
+  if (!ruta) return ''
+  // Si la ruta ya empieza con 'imagenes/' o 'storage/', evitamos concatenar texto extra roto
+  const rutaLimpia = ruta.startsWith('/') ? ruta.substring(1) : ruta
+  return `http://127.0.0.1:8000/storage/${rutaLimpia}`
+}
+
+const manejarCambioImagen = (e) => {
+  const file = e.target.files[0]
+  if (file) {
+    imagenSeleccionada.value = file
+    imagenPreview.value = URL.createObjectURL(file) // Preview local síncrono
+  }
+}
+
+const removerImagen = () => {
+  imagenSeleccionada.value = null
+  imagenPreview.value = null
+  if (fileInput.value) {
+    fileInput.value.value = ''
+  }
+}
+
+const listaFiltradaBuscador = computed(() => {
+  const query = filtroBuscadorInterno.value.toLowerCase().trim()
+  if (tipoBuscador.value === 'subcategoria') {
+    return subcategorias.value.filter(sc => sc.nombre.toLowerCase().includes(query))
+  } else if (tipoBuscador.value === 'proveedor') {
+    return proveedores.value.filter(p => {
+      const nombre = (p.nombre_proveedor || '').toLowerCase()
+      return nombre.includes(query)
+    })
+  }
+  return []
+})
+
+const abrirBuscador = (tipo) => {
+  tipoBuscador.value = tipo
+  filtroBuscadorInterno.value = ''
+  mostrarBuscador.value = true
+}
+
+const cerrarBuscador = () => {
+  mostrarBuscador.value = false
+  tipoBuscador.value = ''
+}
+
+const seleccionarItemBuscador = (item) => {
+  if (tipoBuscador.value === 'subcategoria') {
+    nuevoProducto.value.sub_categoria_id = item.id
+    nombreSubcategoriaSeleccionada.value = item.nombre
+  } else if (tipoBuscador.value === 'proveedor') {
+    nuevoProducto.value.proveedor_id = item.id
+    nombreProveedorSeleccionado.value = item.nombre_proveedor
+  }
+  cerrarBuscador()
+}
+
+const cargarAuxiliaresFormulario = async () => {
+  try {
+    const [resCat, resSub, resProv] = await Promise.all([
+      axios.get('http://127.0.0.1:8000/api/categorias').catch(() => ({ data: [] })),
+      axios.get('http://127.0.0.1:8000/api/subcategorias').catch(() => ({ data: [] })),
+      axios.get('http://127.0.0.1:8000/api/proveedores').catch(() => ({ data: [] }))
+    ])
+    categorias.value = resCat.data.data || resCat.data
+    subcategorias.value = resSub.data.data || resSub.data
+    proveedores.value = resProv.data.data || resProv.data
+  } catch (err) {
+    console.error('Error cargando catálogos auxiliares:', err)
+  }
+}
+
 const cargarProductos = async () => {
   try {
     const response = await axios.get('http://127.0.0.1:8000/api/productos', {
@@ -259,22 +406,61 @@ const cargarProductos = async () => {
 }
 
 const guardarProducto = async () => {
+  if (guardando.value) return 
+  
+  if (!nuevoProducto.value.sub_categoria_id || !nuevoProducto.value.proveedor_id) {
+    alert('Por favor selecciona una Subcategoría y un Proveedor válidos usando los buscadores.')
+    return
+  }
+
+  guardando.value = true 
+  
+  const productoData = {
+    codigo_barras: nuevoProducto.value.codigo_barras,
+    nombre: nuevoProducto.value.nombre,
+    sub_categoria_id: nuevoProducto.value.sub_categoria_id,
+    proveedor_id: nuevoProducto.value.proveedor_id,
+    stock: nuevoProducto.value.stock,
+    stock_minimo: nuevoProducto.value.stock_minimo,
+    precio_compra: nuevoProducto.value.precio_compra,
+    precio_venta: nuevoProducto.value.precio_venta
+  }
+
   try {
+    let url = 'http://127.0.0.1:8000/api/productos'
+    let resProducto
+    
     if (esEditando.value) {
-      // Petición PUT para actualizar los cambios
-      await axios.put(`http://127.0.0.1:8000/api/productos/${productoIdSeleccionado.value}`, nuevoProducto.value)
+      url += `/${productoIdSeleccionado.value}`
+      resProducto = await axios.put(url, productoData)
     } else {
-      // Petición POST para guardar un producto nuevo
-      await axios.post('http://127.0.0.1:8000/api/productos', nuevoProducto.value)
+      resProducto = await axios.post(url, productoData)
     }
+
+    // Subida asíncrona de la imagen
+    if (imagenSeleccionada.value) {
+      const productoId = esEditando.value 
+        ? productoIdSeleccionado.value 
+        : (resProducto.data.data?.id || resProducto.data.id)
+
+      if (productoId) {
+        const formDataImagen = new FormData()
+        formDataImagen.append('imagen', imagenSeleccionada.value)
+        formDataImagen.append('producto_id', productoId)
+
+        await axios.post('http://127.0.0.1:8000/api/imagenes', formDataImagen, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        })
+      }
+    }
+
     cerrarModal()
-    cargarProductos()
+    await cargarProductos() // Forzar reactividad del grid con los nuevos datos relacionales de Laravel
   } catch (error) {
-    console.error('Error al procesar producto:', error)
-    if (error.response && error.response.status === 422) {
-      alert('Error de validación: Asegúrate de que los campos sean únicos y que los IDs de Proveedor o Subcategoría existan en el sistema.');
-      console.log('Detalles de validación del backend:', error.response.data.errors);
-    }
+    console.error('Error al guardar el producto o imagen:', error)
+    alert('Ocurrió un error. Verifica los datos o revisa la consola.')
+  } finally {
+    guardando.value = false 
   }
 }
 
@@ -294,9 +480,11 @@ const calcularResumenLocal = () => {
   resumen.value.bajo_stock = productos.value.filter(p => p.stock <= (p.stock_minimo || 5)).length
 }
 
-// --- ACCIONES MODAL ---
 const abrirModalForm = () => { 
   esEditando.value = false
+  nombreSubcategoriaSeleccionada.value = ''
+  nombreProveedorSeleccionado.value = ''
+  removerImagen()
   mostrarModal.value = true 
 }
 
@@ -304,15 +492,19 @@ const cerrarModal = () => {
   mostrarModal.value = false
   esEditando.value = false
   productoIdSeleccionado.value = null
+  nombreSubcategoriaSeleccionada.value = ''
+  nombreProveedorSeleccionado.value = ''
+  removerImagen()
   nuevoProducto.value = modeloProductoLimpio()
 }
 
-// NUEVO: Método para rellenar los datos preexistentes en el modal completo
 const editarProducto = (producto) => {
   esEditando.value = true
   productoIdSeleccionado.value = producto.id
   
-  // Clonamos el objeto para evitar modificar la tabla directamente antes de guardar
+  nombreSubcategoriaSeleccionada.value = producto.subcategoria?.nombre || 'ID: ' + producto.sub_categoria_id
+  nombreProveedorSeleccionado.value = producto.proveedor?.nombre_proveedor || 'ID: ' + producto.proveedor_id
+
   nuevoProducto.value = {
     codigo_barras: producto.codigo_barras || '',
     nombre: producto.nombre || '',
@@ -323,12 +515,21 @@ const editarProducto = (producto) => {
     precio_compra: producto.precio_compra || 0,
     precio_venta: producto.precio_venta || 0
   }
+
+  // Previsualización de la imagen guardada en el Servidor Laravel usando la función Helper modular
+  if (producto.imagenes && producto.imagenes.length) {
+    imagenPreview.value = obtenerUrlImagen(producto.imagenes[0].ruta)
+  } else {
+    imagenPreview.value = null
+  }
+  imagenSeleccionada.value = null
   
   mostrarModal.value = true
 }
 
 onMounted(() => {
   cargarProductos()
+  cargarAuxiliaresFormulario()
 })
 </script>
 

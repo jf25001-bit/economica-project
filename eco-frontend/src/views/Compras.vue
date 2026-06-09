@@ -68,13 +68,6 @@
 
         <h2 class="text-xl font-bold mb-4">Nueva Compra</h2>
 
-        <div class="mb-4 border p-3 rounded bg-gray-50">
-          <label class="text-sm font-semibold block mb-2">
-            Documento de facturación
-          </label>
-          <input type="file" class="w-full border p-2 bg-white" />
-        </div>
-
         <div class="max-h-[350px] overflow-y-auto mb-4">
 
           <div
@@ -175,16 +168,32 @@
 
         <h2 class="text-xl font-bold mb-2">Detalles de compra #{{ compraSeleccionada?.id }}</h2>
 
-        <div class="mb-4 p-3 border rounded bg-blue-50/50 flex flex-col gap-1 w-full max-w-xs">
-          <label class="text-xs font-bold text-gray-700 uppercase tracking-wide">
-            Fecha de llegada de la compra:
-          </label>
-          <input
-            v-model="fechaLlegada"
-            type="date"
-            class="border p-2 rounded text-sm bg-white text-gray-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-75 disabled:bg-gray-100"
-            :disabled="!esPendiente || cargando"
-          />
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div class="p-3 border rounded bg-blue-50/50 flex flex-col gap-1 w-full">
+            <label class="text-xs font-bold text-gray-700 uppercase tracking-wide">
+              Fecha de llegada de la compra:
+            </label>
+            <input
+              v-model="fechaLlegada"
+              type="date"
+              class="border p-2 rounded text-sm bg-white text-gray-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-75 disabled:bg-gray-100"
+              :disabled="!esPendiente || cargando"
+            />
+          </div>
+
+          <div 
+            v-if="compraSeleccionada?.estado !== 'cancelada'" 
+            class="p-3 border rounded bg-gray-50 flex flex-col gap-1 w-full"
+          >
+            <label class="text-xs font-bold text-gray-700 uppercase tracking-wide">
+              Documento de facturación (Maquetado)
+            </label>
+            <input 
+              type="file" 
+              class="border p-1.5 rounded text-sm bg-white text-gray-800 shadow-sm focus:outline-none file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-gray-200 file:text-gray-700 hover:file:bg-gray-300" 
+              :disabled="cargando"
+            />
+          </div>
         </div>
 
         <div class="max-h-[300px] overflow-y-auto border rounded mb-4">
@@ -365,7 +374,7 @@ function getProductoPrecio(id) {
 /* GUARDAR NUEVA COMPRA */
 async function guardar() {
   if (detalles.value.length === 0) return alert('Debes agregar al menos un producto')
-  if (cargando.value) return // Doble seguridad
+  if (cargando.value) return 
 
   cargando.value = true
   try {
@@ -379,7 +388,7 @@ async function guardar() {
     alert('Error al crear la compra.')
     console.error(error)
   } finally {
-    cargando.value = false // Se libera el botón pase lo que pase
+    cargando.value = false 
   }
 }
 
