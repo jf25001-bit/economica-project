@@ -339,17 +339,13 @@ async function eliminarSubBD(subId, index) {
    GUARDAR
 ===================== */
 async function guardar() {
-
   if (guardando.value) return
+  if (!nombre.value.trim()) return
 
   guardando.value = true
 
   try {
-
-    if (!nombre.value.trim()) return
-
     let res
-
     if (editando.value) {
       res = await updateCategoria(id.value, {
         nombre: nombre.value
@@ -360,17 +356,32 @@ async function guardar() {
       })
     }
 
-    const catId =
-      res.data?.data?.id || res.data?.id
+    const catId = res?.data?.data?.id || res?.data?.id || res?.id || id.value
 
+    const creadas = []
     for (const s of subNuevas.value) {
-      await createSubcategoria({
+      const subRes = await createSubcategoria({
         nombre: s.nombre,
         categoria_id: catId
       })
+      creadas.push(subRes?.data || subRes || { nombre: s.nombre, id: Date.now() })
     }
 
     await cargar()
+
+    const actual = categorias.value.find(c => c.id === catId)
+    if (actual) {
+      if (!actual.subcategorias) {
+        actual.subcategorias = []
+      }
+      
+      if (editando.value) {
+        actual.subcategorias = [...subExistentes.value, ...creadas]
+      } else {
+        actual.subcategorias = creadas
+      }
+    }
+
     cerrar()
 
   } catch (error) {
