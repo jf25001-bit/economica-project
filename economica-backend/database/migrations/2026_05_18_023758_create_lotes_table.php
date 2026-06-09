@@ -13,6 +13,35 @@ return new class extends Migration
     {
         Schema::create('lotes', function (Blueprint $table) {
             $table->id();
+
+            // De qué detalle de compra nació
+            $table->foreignId('detalle_compra_id')
+                ->nullable()
+                ->constrained('detalle_compras')
+                ->nullOnDelete();
+
+            // Producto del lote
+            $table->foreignId('producto_id')
+                ->nullable()
+                ->constrained('productos')
+                ->nullOnDelete();
+
+            // Código o número de lote
+            $table->string('codigo_lote')
+                ->nullable();
+
+            // Cantidad original comprada
+            $table->integer('cantidad_inicial')
+                ->nullable();
+
+            // Cantidad restante (esta baja con ventas)
+            $table->integer('cantidad_actual')
+                ->nullable();
+
+            // Fecha de vencimiento del lote
+            $table->date('fecha_expiracion')
+                ->nullable();
+
             $table->timestamps();
         });
     }

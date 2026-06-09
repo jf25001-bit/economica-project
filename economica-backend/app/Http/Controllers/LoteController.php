@@ -7,59 +7,115 @@ use Illuminate\Http\Request;
 
 class LoteController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        try {
+
+            $lotes = Lote::with([
+                'producto'
+            ])->get();
+
+            return response()->json(
+                $lotes
+            );
+
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'message' =>
+                    'Error al obtener lotes',
+
+                'error' =>
+                    $e->getMessage()
+            ], 500);
+        }
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function show($id)
     {
-        //
+        try {
+
+            $lote = Lote::with([
+                'producto'
+            ])->findOrFail($id);
+
+            return response()->json(
+                $lote
+            );
+
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'message' =>
+                    'Lote no encontrado'
+            ], 404);
+        }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
+    public function update(
+        Request $request,
+        $id
+    ) {
+        try {
+
+            $lote =
+                Lote::findOrFail($id);
+
+            $request->validate([
+                'numero_lote' =>
+                    'nullable|string|max:100',
+
+                'fecha_expiracion' =>
+                    'nullable|date',
+
+                'cantidad_actual' =>
+                    'nullable|integer|min:0'
+            ]);
+
+            $lote->update(
+                $request->all()
+            );
+
+            return response()->json([
+                'message' =>
+                    'Lote actualizado',
+
+                'data' =>
+                    $lote
+            ]);
+
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'message' =>
+                    'Error al actualizar lote',
+
+                'error' =>
+                    $e->getMessage()
+            ], 500);
+        }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Lote $lote)
+    public function destroy($id)
     {
-        //
-    }
+        try {
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Lote $lote)
-    {
-        //
-    }
+            $lote =
+                Lote::findOrFail($id);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Lote $lote)
-    {
-        //
-    }
+            $lote->delete();
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Lote $lote)
-    {
-        //
+            return response()->json([
+                'message' =>
+                    'Lote eliminado'
+            ]);
+
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'message' =>
+                    'Error al eliminar lote'
+            ], 500);
+        }
     }
 }
