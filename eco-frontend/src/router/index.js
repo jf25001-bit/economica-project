@@ -11,8 +11,16 @@ import Login from '@/views/Login.vue'
 import Categorias from '@/views/Categorias.vue'
 import Proveedores from '@/views/Proveedores.vue'
 
+import Imagenes from '../views/Imagenes.vue'
+
 
 const routes = [
+
+  {
+    path: '/imagenes',
+    name: 'imagenes',
+    component: Imagenes
+  },
   {
     path: '/',
     component: Login

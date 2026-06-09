@@ -13,7 +13,7 @@ class ProductoController extends Controller
     public function index()
     {
         // Trae el producto con su proveedor, su subcategoría y la categoría de esa subcategoría
-        $productos = Producto::with(['subcategoria.categoria', 'proveedor'])->get();
+        $productos = Producto::with([ 'subcategoria.categoria','proveedor','imagenes'])->get();
         return response()->json($productos, 200);
     }
 
@@ -90,7 +90,7 @@ class ProductoController extends Controller
             'stock' => 'required|integer|min:0',
             'stock_minimo' => 'required|integer|min:0',
             'sub_categoria_id' => 'required|exists:sub_categorias,id',
-            'proveedor_id' => 'required|exists:proveedores,id',
+            'proveedor_id' => 'required|exists:proveedores,id'
         ]);
 
         $producto->update($request->all());

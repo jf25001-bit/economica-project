@@ -4,7 +4,6 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-
 return new class extends Migration
 {
     /**
@@ -12,15 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('proveedores', function (Blueprint $table) {
-           
+        Schema::create('imagenes', function (Blueprint $table) {
             $table->id();
-
-            $table->string('nombre_proveedor', 80)->unique();
-
-            $table->string('telefono');
-
-            $table->string('direccion');
+            $table->string('ruta');
+            $table->foreignId('producto_id')
+          ->constrained('productos')
+          ->onDelete('cascade');
 
             $table->timestamps();
         });
@@ -31,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('proveedores');
+        Schema::dropIfExists('imagenes');
     }
 };

@@ -22,19 +22,18 @@ class Producto extends Model
         'proveedor_id'
     ];
 
-    /**
-     * Relación: El producto pertenece a una Subcategoría.
-     */
     public function subcategoria()
     {
         return $this->belongsTo(SubCategoria::class, 'sub_categoria_id');
     }
 
-    /**
-     * Relación: El producto es surtido por un Proveedor.
-     */
     public function proveedor()
     {
         return $this->belongsTo(Proveedor::class, 'proveedor_id');
+    }
+
+    public function imagenes()
+    {
+        return $this->hasMany(Imagen::class, 'producto_id');
     }
 }

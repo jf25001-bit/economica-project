@@ -13,6 +13,7 @@ use App\Http\Controllers\SubCategoriaController;
 use App\Http\Controllers\DetalleCompraController;
 use App\Http\Controllers\DetalleVentaController;
 use App\Http\Controllers\LoteController;
+use App\Http\Controllers\ImagenController;
 
 Route::apiResource('roles', RolController::class);
 Route::apiResource('usuarios', UserController::class);
@@ -25,6 +26,7 @@ Route::apiResource('subcategorias', SubCategoriaController::class);
 Route::apiResource('detallecompras', DetalleCompraController::class);
 Route::apiResource('detalleventas', DetalleVentaController::class);
 Route::apiResource('lotes', LoteController::class);
+Route::apiResource('imagenes', ImagenController::class);
 
 Route::prefix('auth')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
