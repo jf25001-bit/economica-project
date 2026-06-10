@@ -17,6 +17,10 @@ class Venta extends Model
         'user_id'
     ];
 
+    protected $casts = [
+        'total' => 'decimal:2',
+    ];
+
     // Relación: Una venta pertenece a un usuario/empleado
     public function usuario()
     {

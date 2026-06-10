@@ -20,12 +20,16 @@ return new class extends Migration
             $table->integer('stock')->default(0);
             $table->integer('stock_minimo')->default(5);
             $table->string('imagen')->nullable();
+            $table->foreignId('categoria_id')
+                  ->constrained('categorias')
+                  ->onDelete('cascade');
 
             // RELACIONES (Llaves Foráneas)
             // 1. Relación con sub_categorias
             $table->foreignId('sub_categoria_id')
+                  ->nullable()
                   ->constrained('sub_categorias')
-                  ->onDelete('cascade');
+                  ->nullOnDelete();
 
             // 2. Relación con proveedors (recuerda que tu tabla se llama proveedors)
             $table->foreignId('proveedor_id')

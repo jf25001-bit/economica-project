@@ -10,15 +10,18 @@ class Compra extends Model
     use HasFactory;
 
     protected $table = 'compras';
-    protected $fillable = ['total', 'proveedor_id', 'user_id'];
+    protected $fillable = [
+        'fecha_compra',
+        'fecha_llegada',
+        'estado',
+        'total'
+    ];
 
-    public function proveedor() {
-        return $this->belongsTo(Proveedor::class, 'proveedor_id');
-    }
-
-    public function usuario() {
-        return $this->belongsTo(User::class, 'user_id');
-    }
+    protected $casts = [
+        'fecha_compra' => 'date',
+        'fecha_llegada' => 'date',
+        'total' => 'decimal:2',
+    ];
 
     public function detalles() {
         return $this->hasMany(DetalleCompra::class, 'compra_id');

@@ -13,18 +13,26 @@ return new class extends Migration
     {
         Schema::create('detalle_compras', function (Blueprint $table) {
     $table->id();
-    $table->integer('cantidad');
-    $table->decimal('precio_compra', 10, 2);
-    $table->decimal('subtotal', 10, 2);
-
+     // Compra a la que pertenece
     $table->foreignId('compra_id')
           ->constrained('compras')
-          ->onDelete('cascade');
-
+->cascadeOnDelete();
+// Producto comprado
     $table->foreignId('producto_id')
+      ->nullable()
           ->constrained('productos')
-          ->onDelete('cascade');
 
+->nullOnDelete();
+
+            // Registro histórico fijo
+            $table->integer('cantidad')
+                ->nullable();
+
+            $table->decimal('precio_compra', 10, 2)
+                ->nullable();
+
+            $table->decimal('subtotal', 10, 2)
+                ->nullable();
     $table->timestamps();
 });
     }

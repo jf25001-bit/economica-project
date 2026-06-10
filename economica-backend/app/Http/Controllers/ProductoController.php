@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Producto;
+use App\Models\SubCategoria;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -11,11 +12,64 @@ class ProductoController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+public function index(Request $request)
     {
-        // Trae el producto con su proveedor, su subcategoría y la categoría de esa subcategoría
-        $productos = Producto::with(['subcategoria.categoria', 'proveedor'])->get();
-        return response()->json($productos, 200);
+        // 1. Inicializamos la consulta
+        $query = Producto::query();
+
+        // 2. Filtros de búsqueda
+        if ($request->search) {
+            $query->where('nombre', 'like', '%' . $request->search . '%');
+        }
+
+        if ($request->categoria) {
+            $query->where('categoria_id', $request->categoria);
+        }
+
+        if ($request->sub_categoria) {
+            $query->where('sub_categoria_id', $request->sub_categoria);
+        }
+
+        if ($request->estado === 'bajo_stock') {
+            $query->whereRaw('stock <= stock_minimo');
+        }
+
+        if ($request->estado === 'disponible') {
+            $query->whereRaw('stock > stock_minimo');
+        }
+
+        // 3. Lógica de ordenamiento (Movida adentro de index antes del return)
+        switch ($request->ordenar) {
+            case 'nombre':
+                $query->orderBy('nombre');
+                break;
+
+            case 'precio':
+                $query->orderBy('precio_venta');
+                break;
+
+            default:
+                $query->latest(); // Esto es lo mismo que ->orderBy('created_at', 'desc')
+                break;
+        }
+
+        // 4. Ejecutar la consulta y retornar la paginación
+        $perPage = min((int) $request->input('per_page', 10), 1000);
+
+        return $query->paginate($perPage);
+    }
+
+    public function resumen()
+    {
+        return response()->json([
+            'total' => Producto::count(),
+
+            'disponibles' => Producto::whereColumn('stock', '>', 'stock_minimo')
+                ->count(),
+
+            'bajo_stock' => Producto::whereColumn('stock', '<=', 'stock_minimo')
+                ->count(),
+        ]);
     }
 
     /**
@@ -31,6 +85,12 @@ class ProductoController extends Controller
      */
     public function store(Request $request)
     {
+        $request->merge([
+            'sub_categoria_id' => $request->filled('sub_categoria_id')
+                ? $request->sub_categoria_id
+                : null,
+        ]);
+
         $request->validate([
             'codigo_barras' => 'nullable|string|max:50|unique:productos,codigo_barras',
             'nombre' => 'required|string|max:100|unique:productos,nombre',
@@ -38,17 +98,28 @@ class ProductoController extends Controller
             'precio_venta' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'stock_minimo' => 'required|integer|min:0',
-            'sub_categoria_id' => 'required|exists:sub_categorias,id',
+            'categoria_id' => 'required|exists:categorias,id',
+            'sub_categoria_id' => 'nullable|exists:sub_categorias,id',
             'proveedor_id' => 'required|exists:proveedors,id', // Validando contra tu tabla 'proveedors'
             'imagen' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         $datos = $request->all();
 
+        if ($datos['sub_categoria_id']) {
+            $subcategoria = SubCategoria::find($datos['sub_categoria_id']);
+
+            if ((int) $subcategoria->categoria_id !== (int) $datos['categoria_id']) {
+                return response()->json([
+                    'message' => 'La subcategoría no pertenece a la categoría seleccionada'
+                ], 422);
+            }
+        }
+
         if ($request->hasFile('imagen')) {
             $datos['imagen'] = $request->file('imagen')
                 ->store('productos', 'public');
-}
+        }
 
         $producto = Producto::create($datos);
 
@@ -63,7 +134,7 @@ class ProductoController extends Controller
      */
     public function show($id)
     {
-        $producto = Producto::with(['subcategoria.categoria', 'proveedor'])->find($id);
+        $producto = Producto::with(['categoria', 'subcategoria.categoria', 'proveedor'])->find($id);
 
         if (!$producto) {
             return response()->json(['message' => 'Producto no encontrado'], 404);
@@ -84,12 +155,19 @@ class ProductoController extends Controller
      * Update the specified resource in storage.
      */
     public function update(Request $request, $id)
-    {
+     {
+        $producto = Producto::find($id);
         $producto = Producto::findOrFail($id);
 
         if (!$producto) {
             return response()->json(['message' => 'Producto no encontrado'], 404);
         }
+
+        $request->merge([
+            'sub_categoria_id' => $request->filled('sub_categoria_id')
+                ? $request->sub_categoria_id
+                : null,
+        ]);
 
         $request->validate([
             'codigo_barras' => 'nullable|string|max:50|unique:productos,codigo_barras,' . $id,
@@ -98,12 +176,23 @@ class ProductoController extends Controller
             'precio_venta' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'stock_minimo' => 'required|integer|min:0',
-            'sub_categoria_id' => 'required|exists:sub_categorias,id',
+            'categoria_id' => 'required|exists:categorias,id',
+            'sub_categoria_id' => 'nullable|exists:sub_categorias,id',
             'proveedor_id' => 'required|exists:proveedors,id',
             'imagen' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-                $datos = $request->all();
+            $datos = $request->all();
+
+            if ($datos['sub_categoria_id']) {
+                $subcategoria = SubCategoria::find($datos['sub_categoria_id']);
+
+                if ((int) $subcategoria->categoria_id !== (int) $datos['categoria_id']) {
+                    return response()->json([
+                        'message' => 'La subcategoría no pertenece a la categoría seleccionada'
+                    ], 422);
+                }
+            }
 
             if ($request->hasFile('imagen')) {
 
@@ -125,11 +214,13 @@ class ProductoController extends Controller
         ], 200);
     }
 
+
     /**
      * Remove the specified resource from storage.
      */
     public function destroy($id)
     {
+        $producto = Producto::find($id);
         $producto = Producto::findOrFail($id);
 
         if (!$producto) {

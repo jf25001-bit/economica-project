@@ -13,7 +13,7 @@ class CategoriaController extends Controller
      */
    public function index()
     {
-        $categorias = Categoria::all();
+       $categorias = Categoria::with('subcategorias')->get();
         return response()->json($categorias, 200);
     }
 
@@ -48,7 +48,7 @@ class CategoriaController extends Controller
      */
     public function show($id)
     {
-        $categoria = Categoria::findOrFile($id);
+        $categoria = Categoria::with('subcategorias')->find($id);
 
         if (!$categoria) {
             return response()->json(['message' => 'Categoría no encontrada'], 404);

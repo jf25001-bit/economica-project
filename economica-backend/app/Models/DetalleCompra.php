@@ -20,16 +20,26 @@ class DetalleCompra extends Model
         'compra_id',
         'producto_id'
     ];
-
-    // RELACIÓN: El renglón del detalle pertenece a una compra madre
     public function compra()
     {
-        return $this->belongsTo(Compra::class, 'compra_id');
+        return $this->belongsTo(
+            Compra::class,
+            'compra_id'
+        );
     }
 
-    // RELACIÓN: El detalle corresponde a un producto específico del catálogo
     public function producto()
     {
-        return $this->belongsTo(Producto::class, 'producto_id');
+        return $this->belongsTo(
+            Producto::class,
+            'producto_id'
+        );
+    }
+     public function lotes()
+    {
+        return $this->hasMany(
+            Lote::class,
+            'detalle_compra_id'
+        );
     }
 }
