@@ -15,7 +15,6 @@
       ? 'md:ml-60 ml-0'
       : 'md:ml-20 ml-0'
   ]"
->
     >
       <!-- Navbar -->
       <Navbar @toggle-sidebar="toggleSidebar" />

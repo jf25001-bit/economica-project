@@ -1,399 +1,405 @@
 <template>
-  <div class="main-interface-container">
-    
-    <div class="top-strict-navbar">
-      <div class="search-wrapper">
-        <i class="bi bi-search search-icon"></i>
+  <div class="min-h-screen bg-gray-100 p-4">
+    <div class="mb-4 flex h-12 items-center justify-between rounded-lg border border-gray-200 bg-white px-4">
+      <div class="relative w-full max-w-md">
+        <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
         <input
           v-model="buscar"
-          @keyup="cargarProductos"
+          @input="cargarProductos"
           type="text"
           placeholder="Buscar producto..."
-        class="search-input-field"
-      />
+          class="h-9 w-full rounded-md bg-gray-100 pl-9 pr-3 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[#46674A]/20"
+        />
       </div>
-      
-      <div class="top-right-actions">
-        <button class="action-icon-btn">
+
+      <div class="hidden items-center gap-2 md:flex">
+        <button class="text-gray-500 transition hover:text-[#46674A]">
           <i class="bi bi-chat-left-text"></i>
         </button>
-        <button class="action-icon-btn position-relative">
+        <button class="relative text-gray-500 transition hover:text-[#46674A]">
           <i class="bi bi-bell"></i>
-          <span class="notification-dot-badge"></span>
+          <span class="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-red-500"></span>
         </button>
       </div>
     </div>
 
-    <div class="content-layout-flex">
-      
-      <div class="left-content-panel">
-        
-        <div class="section-header-row">
-          <div class="title-block">
-            <h1 class="main-title-text">Gestión de Productos</h1>
-            <p class="subtitle-text">
-  Vista General y Listado ({{ total }} productos)
-</p>
+    <div class="grid gap-4 xl:grid-cols-[1fr_356px]">
+      <main>
+        <div class="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 class="text-xl font-bold text-gray-950">Gestion de Productos</h1>
+            <p class="text-sm text-gray-500">
+              Vista General y Listado ({{ total }} productos)
+            </p>
           </div>
-          <div class="header-buttons-group">
-           <button class="btn-action-primary">
-  <i class="bi bi-plus-lg"></i> Nuevo Producto
-</button>
-          </div>
+
+          <button
+            @click="abrirModal"
+            class="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-[#46674A] px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#3b5740]"
+          >
+            <i class="bi bi-plus-lg"></i>
+            Nuevo Producto
+          </button>
         </div>
 
-        <div class="filter-strip-container">
-          <div class="filter-controls-left">
-            <div class="filter-select-group">
-              <label class="filter-label">Categoría</label>
+        <div class="mb-3 rounded-lg border border-gray-200 bg-white p-3">
+          <div class="flex flex-wrap items-center gap-3">
+            <div class="flex items-center gap-2">
+              <label class="text-sm text-gray-600">Categoria</label>
               <select
-  v-model="categoria"
-  @change="cargarProductos"
-  class="filter-dropdown"
->
-  <option value="">Todas</option>
-  <option
-    v-for="cat in categorias"
-    :key="cat.id"
-    :value="cat.id"
-  >
-    {{ cat.nombre }}
-  </option>
-</select>
+                v-model="categoriaFiltro"
+                @change="cargarProductos"
+                class="h-8 rounded-md border border-gray-200 bg-gray-50 px-2 text-sm outline-none focus:ring-2 focus:ring-[#46674A]/20"
+              >
+                <option value="">Todas</option>
+                <option
+                  v-for="cat in categorias"
+                  :key="cat.id"
+                  :value="cat.id"
+                >
+                  {{ cat.nombre }}
+                </option>
+              </select>
             </div>
-            <div class="filter-select-group">
-              <label class="filter-label">Estado</label>
+
+            <div class="flex items-center gap-2">
+              <label class="text-sm text-gray-600">Estado</label>
               <select
-  v-model="estado"
-  @change="cargarProductos"
-  class="filter-dropdown"
->
-  <option value="">Todos</option>
-  <option value="disponible">Disponible</option>
-  <option value="bajo_stock">Bajo Stock</option>
-</select>
+                v-model="estado"
+                @change="cargarProductos"
+                class="h-8 rounded-md border border-gray-200 bg-gray-50 px-2 text-sm outline-none focus:ring-2 focus:ring-[#46674A]/20"
+              >
+                <option value="">Todos</option>
+                <option value="disponible">Disponible</option>
+                <option value="bajo_stock">Bajo Stock</option>
+              </select>
             </div>
-            <div class="filter-select-group">
-              <label class="filter-label">Fecha</label>
-              <select class="filter-dropdown"><option>All</option></select>
+
+            <div class="flex items-center gap-2">
+              <label class="text-sm text-gray-600">Fecha</label>
+              <select class="h-8 rounded-md border border-gray-200 bg-gray-50 px-2 text-sm outline-none">
+                <option>All</option>
+              </select>
             </div>
-            <div class="filter-select-group">
-              <label class="filter-label">Ordenar</label>
+
+            <div class="flex items-center gap-2">
+              <label class="text-sm text-gray-600">Ordenar</label>
               <select
-  v-model="ordenar"
-  @change="cargarProductos"
-  class="filter-dropdown-sort"
->
-  <option value="recientes">Recientes</option>
-  <option value="nombre">Nombre</option>
-  <option value="precio">Precio</option>
-</select>
+                v-model="ordenar"
+                @change="cargarProductos"
+                class="h-8 rounded-md border border-gray-200 bg-gray-50 px-2 text-sm outline-none focus:ring-2 focus:ring-[#46674A]/20"
+              >
+                <option value="recientes">Recientes</option>
+                <option value="nombre">Nombre</option>
+                <option value="precio">Precio</option>
+              </select>
             </div>
           </div>
         </div>
 
-        <div class="table-card-wrapper">
-          <table class="strict-data-table">
-            <thead>
-              <tr>
-                <th style="width: 5%; text-align: center;"><input type="checkbox" class="strict-checkbox-input" /></th>
-                <th style="width: 12%;">SKU</th>
-                <th style="width: 35%;">Nombre del Producto</th>
-                <th style="width: 13%;">Categoría</th>
-                <th style="width: 12%;">Estado</th>
-                <th style="width: 8%;">Stock</th>
-                <th style="width: 15%;">Precio Base</th>
-                <th style="width: 10%; text-align: right;">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-  <tr
-    v-for="producto in productos"
-    :key="producto.id"
-  >
-    <td style="text-align:center">
-      <input
-        type="checkbox"
-        class="strict-checkbox-input"
-      />
-    </td>
+        <div class="overflow-hidden rounded-lg border border-gray-200 bg-white">
+          <div class="overflow-x-auto">
+            <table class="w-full min-w-[960px] table-fixed">
+              <thead class="bg-gray-50">
+                <tr class="text-left text-xs font-semibold uppercase text-gray-600">
+                  <th class="w-[5%] px-4 py-3 text-center">
+                    <input type="checkbox" class="h-4 w-4" />
+                  </th>
+                  <th class="w-[13%] px-4 py-3">SKU</th>
+                  <th class="w-[28%] px-4 py-3">Nombre del Producto</th>
+                  <th class="w-[16%] px-4 py-3">Categoria</th>
+                  <th class="w-[12%] px-4 py-3">Estado</th>
+                  <th class="w-[8%] px-4 py-3">Stock</th>
+                  <th class="w-[12%] px-4 py-3">Precio Base</th>
+                  <th class="w-[10%] px-4 py-3 text-right">Acciones</th>
+                </tr>
+              </thead>
 
-    <td class="sku-cell-text">
-      {{ producto.codigo_barras }}
-    </td>
+              <tbody class="divide-y divide-gray-100">
+                <tr
+                  v-for="producto in productos"
+                  :key="producto.id"
+                  class="text-sm transition hover:bg-green-50"
+                >
+                  <td class="px-4 py-4 text-center">
+                    <input type="checkbox" class="h-4 w-4" />
+                  </td>
 
-    <td>
-      <div class="product-info-cell">
+                  <td class="truncate px-4 py-4 font-medium text-gray-800">
+                    {{ producto.codigo_barras || 'Sin codigo' }}
+                  </td>
 
-        <img
-          src="https://via.placeholder.com/40"
-          class="product-thumb-img"
-          alt=""
-        />
+                  <td class="px-4 py-4">
+                    <div class="flex items-center gap-3">
+                      <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-gray-100 text-[#46674A]">
+                        <i class="bi bi-box-seam"></i>
+                      </div>
+                      <div class="min-w-0">
+                        <p class="truncate font-semibold text-blue-600">{{ producto.nombre }}</p>
+                        <p class="truncate text-xs text-gray-500">
+                          Codigo: {{ producto.codigo_barras || 'Sin codigo' }}
+                        </p>
+                      </div>
+                    </div>
+                  </td>
 
-        <div class="product-meta-text">
+                  <td class="px-4 py-4 text-gray-700">
+                    <p class="truncate">{{ nombreCategoriaProducto(producto) }}</p>
+                    <p
+                      v-if="producto.sub_categoria_id"
+                      class="truncate text-xs text-gray-500"
+                    >
+                      {{ nombreSubcategoriaPorId(producto.sub_categoria_id) }}
+                    </p>
+                  </td>
 
-          <span class="product-title-link">
-            {{ producto.nombre }}
-          </span>
+                  <td class="px-4 py-4">
+                    <span
+                      class="rounded-full px-3 py-1 text-xs font-semibold"
+                      :class="producto.stock <= producto.stock_minimo ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'"
+                    >
+                      {{ producto.stock <= producto.stock_minimo ? 'Bajo Stock' : 'Disponible' }}
+                    </span>
+                  </td>
 
-          <span class="product-desc-truncate">
-            Código: {{ producto.codigo_barras }}
-          </span>
+                  <td class="px-4 py-4 font-semibold text-gray-800">
+                    {{ producto.stock }}
+                  </td>
 
-        </div>
+                  <td class="px-4 py-4 font-semibold">
+                    ${{ formatoPrecio(producto.precio_venta) }}
+                  </td>
 
-      </div>
-    </td>
+                  <td class="px-4 py-4 text-right">
+                    <button class="mr-1 text-gray-500 hover:text-blue-600" title="Ver">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                    <button class="mr-1 text-gray-500 hover:text-blue-600" title="Editar">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button
+                      @click="eliminarProducto(producto.id)"
+                      class="text-gray-500 hover:text-red-500"
+                      title="Eliminar"
+                    >
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </td>
+                </tr>
 
-    <td>
-      {{ producto.sub_categoria_id }}
-    </td>
-
-    <td>
-      <span
-        class="status-badge"
-        :class="
-          producto.stock <= producto.stock_minimo
-            ? 'status-low-stock'
-            : 'status-available'
-        "
-      >
-        {{
-          producto.stock <= producto.stock_minimo
-            ? 'Bajo Stock'
-            : 'Disponible'
-        }}
-      </span>
-    </td>
-
-    <td>
-      {{ producto.stock }}
-    </td>
-
-    <td>
-      ${{ producto.precio_venta }}
-    </td>
-
-    <td class="actions-cell-right">
-
-      <button class="row-action-btn">
-        <i class="bi bi-eye"></i>
-      </button>
-
-      <button class="row-action-btn">
-        <i class="bi bi-pencil"></i>
-      </button>
-
-      <button class="row-action-btn">
-        <i class="bi bi-trash"></i>
-      </button>
-    </td>
-
-  </tr>
-</tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="right-widgets-panel">
-        <div class="inventory-card-widget">
-          <h2 class="widget-title-text">Resumen de Inventario</h2>
-          
-          <div class="widget-metric-row">
-            <div class="metric-info">
-              <span class="metric-label">Total Productos</span>
-              <span class="metric-number">
-                  {{ resumen.total }}
-              </span>
-            </div>
-            <div class="metric-sparkline">
-              <svg viewBox="0 0 50 20" class="sparkline-svg"><path d="M0,15 Q10,5 20,12 T40,4 L50,8" fill="none" stroke="#2563eb" stroke-width="2"/></svg>
-            </div>
-          </div>
-
-          <div class="widget-metric-row">
-            <div class="metric-info">
-              <span class="metric-label">Disponible</span>
-              <span class="metric-number">
-  {{ resumen.disponibles }}
-</span>
-            </div>
-            <div class="metric-sparkline">
-              <svg viewBox="0 0 50 20" class="sparkline-svg"><path d="M0,10 Q12,14 25,6 T50,4" fill="none" stroke="#10b981" stroke-width="2"/></svg>
-            </div>
-          </div>
-
-          <div class="widget-metric-row">
-            <div class="metric-info">
-              <span class="metric-label">Bajo Stock</span>
-              <span class="metric-number">
-  {{ resumen.bajo_stock }}
-</span>
-            </div>
-            <div class="metric-sparkline">
-              <svg viewBox="0 0 50 20" class="sparkline-svg"><path d="M0,5 Q15,15 30,5 T50,15" fill="none" stroke="#f59e0b" stroke-width="2"/></svg>
-            </div>
+                <tr v-if="productos.length === 0">
+                  <td colspan="8" class="py-14 text-center text-gray-400">
+                    <i class="bi bi-box text-4xl"></i>
+                    <p class="mt-2">No hay productos registrados</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
-      </div>
+      </main>
 
+      <aside>
+        <div class="rounded-lg border border-gray-200 bg-white p-3">
+          <h2 class="mb-3 text-sm font-bold text-gray-950">Resumen de Inventario</h2>
+
+          <div class="mb-2 flex items-center justify-between rounded-md border border-gray-100 px-3 py-3">
+            <div>
+              <span class="text-xs text-gray-500">Total Productos</span>
+              <span class="ml-0.5 text-lg font-bold">{{ resumen.total }}</span>
+            </div>
+            <svg viewBox="0 0 50 20" class="h-5 w-11">
+              <path d="M0,15 Q10,5 20,12 T40,4 L50,8" fill="none" stroke="#2563eb" stroke-width="2" />
+            </svg>
+          </div>
+
+          <div class="mb-2 flex items-center justify-between rounded-md border border-gray-100 px-3 py-3">
+            <div>
+              <span class="text-xs text-gray-500">Disponible</span>
+              <span class="ml-0.5 text-lg font-bold">{{ resumen.disponibles }}</span>
+            </div>
+            <svg viewBox="0 0 50 20" class="h-5 w-11">
+              <path d="M0,10 Q12,14 25,6 T50,4" fill="none" stroke="#10b981" stroke-width="2" />
+            </svg>
+          </div>
+
+          <div class="flex items-center justify-between rounded-md border border-gray-100 px-3 py-3">
+            <div>
+              <span class="text-xs text-gray-500">Bajo Stock</span>
+              <span class="ml-0.5 text-lg font-bold">{{ resumen.bajo_stock }}</span>
+            </div>
+            <svg viewBox="0 0 50 20" class="h-5 w-11">
+              <path d="M0,5 Q15,15 30,5 T50,15" fill="none" stroke="#f59e0b" stroke-width="2" />
+            </svg>
+          </div>
+        </div>
+      </aside>
     </div>
-    <div v-if="mostrarModal" class="modal-overlay-backdrop">
-      <div class="modal-surface-card">
-        <div class="modal-header-container">
-          <h3 class="modal-title">Agregar Nuevo Producto</h3>
-          <button class="modal-close-x" @click="cerrarModal"><i class="bi bi-x-lg"></i></button>
-        </div>
-        
-        <form @submit.prevent="guardarProducto" class="modal-form-body">
-          <div class="form-row-grid">
-            <div class="form-field-group">
-              <label>Nombre del Producto</label>
-              <input type="text" v-model="nuevoProducto.nombre" required placeholder="Ej. iPhone 15 Pro" />
-            </div>
-            <div class="form-field-group">
-              <label>SKU Único</label>
-              <input type="text" v-model="nuevoProducto.sku" required placeholder="Ej. APP-IPH15" />
-            </div>
+
+    <div
+      v-if="mostrarModal"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+    >
+      <div class="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl">
+        <div class="flex items-center justify-between bg-[#46674A] px-6 py-4 text-white">
+          <div>
+            <h3 class="text-xl font-bold">Nuevo Producto</h3>
+            <p class="text-xs text-white/75">Completa los datos principales del producto</p>
           </div>
 
-          <div class="form-field-group">
-            <label>Descripción Corta</label>
-            <input type="text" v-model="nuevoProducto.descripcion" placeholder="Breve detalle..." />
-          </div>
-
-          <div class="form-row-grid rows-three">
-            <div class="form-field-group">
-              <label>Categoría</label>
-              <input type="text" v-model="nuevoProducto.categoria" required placeholder="Ej. Tecnología" />
-            </div>
-            <div class="form-field-group">
-              <label>Precio Base ($)</label>
-              <input type="number" step="0.01" v-model="nuevoProducto.precio" required placeholder="0.00" />
-            </div>
-            <div class="form-field-group">
-              <label>Stock Inicial</label>
-              <input type="number" v-model="nuevoProducto.stock" required placeholder="0" />
-            </div>
-          </div>
-
-          <div class="form-field-group">
-            <label>Estado Inicial</label>
-            <select v-model="nuevoProducto.estado">
-              <option value="Disponible">Disponible</option>
-              <option value="Bajo Stock">Bajo Stock</option>
-              <option value="Agotado">Agotado</option>
-            </select>
-          </div>
-
-          <div class="modal-actions-footer">
-            <button type="button" class="btn-secondary" @click="cerrarModal">Cancelar</button>
-            <button type="submit" class="btn-primary-submit">Guardar Producto</button>
-          </div>
-        </form>
-      </div>
-    </div>
-    <div v-if="mostrarModal" class="modal-overlay-backdrop">
-      <div class="modal-surface-card">
-        <div class="modal-header-container">
-          <h3 class="modal-title">Agregar Nuevo Producto</h3>
-          <button class="modal-close-x" @click="cerrarModal"><i class="bi bi-x-lg"></i></button>
-        </div>
-        
-        <form @submit.prevent="guardarProducto" class="modal-form-body">
-          <div class="form-row-grid">
-            <div class="form-field-group">
-              <label>Nombre del Producto</label>
-              <input type="text" v-model="nuevoProducto.nombre" required placeholder="Ej. Coca Cola 600ml" />
-            </div>
-            <div class="form-field-group">
-              <label>SKU (Código de Barras)</label>
-              <input type="text" v-model="nuevoProducto.codigo_barras" required placeholder="Ej. 7501055300075" />
-            </div>
-          </div>
-
-          <div class="form-field-group">
-            <label>Descripción Corta</label>
-            <input type="text" v-model="nuevoProducto.descripcion" placeholder="Breve detalle..." />
-          </div>
-
-          <div class="form-row-grid rows-three">
-            <div class="form-field-group">
-              <label>Categoría (ID)</label>
-              <input type="text" v-model="nuevoProducto.sub_categoria_id" required placeholder="Ej. 1" />
-            </div>
-            <div class="form-field-group">
-              <label>Precio Venta ($)</label>
-              <input type="number" step="0.01" v-model="nuevoProducto.precio_venta" required placeholder="0.00" />
-            </div>
-            <div class="form-field-group">
-              <label>Stock Inicial</label>
-              <input type="number" v-model="nuevoProducto.stock" required placeholder="0" />
-            </div>
-          </div>
-
-          <div class="form-field-group">
-            <label>Stock Mínimo (Alerta)</label>
-            <input type="number" v-model="nuevoProducto.stock_minimo" required placeholder="Ej. 10" />
-          </div>
-
-          <div class="modal-actions-footer">
-            <button type="button" class="btn-secondary" @click="cerrarModal">Cancelar</button>
-            <button type="submit" class="btn-primary-submit">Guardar Producto</button>
-          </div>
-        </form>
-      </div>
-    </div>
-    <div v-if="mostrarModal" class="modal-overlay-backdrop">
-      <div class="modal-surface-card">
-        <div class="modal-header-container">
-          <h3 class="modal-title">Agregar Nuevo Producto</h3>
-          <button type="button" class="modal-close-x" @click="cerrarModal">
+          <button
+            type="button"
+            @click="cerrarModal"
+            class="flex h-8 w-8 items-center justify-center rounded-full transition hover:bg-white/20"
+          >
             <i class="bi bi-x-lg"></i>
           </button>
         </div>
-        
-        <form @submit.prevent="guardarProducto" class="modal-form-body">
-          <div class="form-row-grid">
-            <div class="form-field-group">
-              <label>Nombre del Producto</label>
-              <input type="text" v-model="nuevoProducto.nombre" required placeholder="Ej. MacBook Pro" />
+
+        <form
+          @submit.prevent="guardarProducto"
+          class="max-h-[72vh] overflow-y-auto p-6"
+        >
+          <div class="grid gap-4 md:grid-cols-2">
+            <div>
+              <label class="mb-1.5 block text-sm font-semibold text-gray-700">Nombre del producto</label>
+              <input
+                v-model="nuevoProducto.nombre"
+                required
+                type="text"
+                placeholder="Ej. Coca Cola 600ml"
+                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-[#46674A] focus:ring-2 focus:ring-[#46674A]/20"
+              />
             </div>
-            <div class="form-field-group">
-              <label>SKU (Código de Barras)</label>
-              <input type="text" v-model="nuevoProducto.codigo_barras" required placeholder="Ej. M3 M3" />
+
+            <div>
+              <label class="mb-1.5 block text-sm font-semibold text-gray-700">Codigo de barras</label>
+              <input
+                v-model="nuevoProducto.codigo_barras"
+                type="text"
+                placeholder="Ej. 7501055300075"
+                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-[#46674A] focus:ring-2 focus:ring-[#46674A]/20"
+              />
+            </div>
+
+            <div>
+              <label class="mb-1.5 block text-sm font-semibold text-gray-700">Categoria</label>
+              <select
+                v-model="nuevoProducto.categoria_id"
+                @change="alCambiarCategoriaProducto"
+                required
+                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-[#46674A] focus:ring-2 focus:ring-[#46674A]/20"
+              >
+                <option value="">Seleccione una categoria</option>
+                <option
+                  v-for="cat in categorias"
+                  :key="cat.id"
+                  :value="cat.id"
+                >
+                  {{ cat.nombre }}
+                </option>
+              </select>
+            </div>
+
+            <div v-if="subcategoriasDeCategoria.length > 0">
+              <label class="mb-1.5 block text-sm font-semibold text-gray-700">Subcategoria</label>
+              <select
+                v-model="nuevoProducto.sub_categoria_id"
+                required
+                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-[#46674A] focus:ring-2 focus:ring-[#46674A]/20"
+              >
+                <option value="">Seleccione una subcategoria</option>
+                <option
+                  v-for="sub in subcategoriasDeCategoria"
+                  :key="sub.id"
+                  :value="sub.id"
+                >
+                  {{ sub.nombre }}
+                </option>
+              </select>
+            </div>
+
+            <div>
+              <label class="mb-1.5 block text-sm font-semibold text-gray-700">Proveedor</label>
+              <select
+                v-model="nuevoProducto.proveedor_id"
+                required
+                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-[#46674A] focus:ring-2 focus:ring-[#46674A]/20"
+              >
+                <option value="">Seleccione un proveedor</option>
+                <option
+                  v-for="proveedor in proveedores"
+                  :key="proveedor.id"
+                  :value="proveedor.id"
+                >
+                  {{ proveedor.nombre }}
+                </option>
+              </select>
+            </div>
+
+            <div>
+              <label class="mb-1.5 block text-sm font-semibold text-gray-700">Stock inicial</label>
+              <input
+                v-model.number="nuevoProducto.stock"
+                required
+                min="0"
+                type="number"
+                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-[#46674A] focus:ring-2 focus:ring-[#46674A]/20"
+              />
+            </div>
+
+            <div>
+              <label class="mb-1.5 block text-sm font-semibold text-gray-700">Stock minimo</label>
+              <input
+                v-model.number="nuevoProducto.stock_minimo"
+                required
+                min="0"
+                type="number"
+                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-[#46674A] focus:ring-2 focus:ring-[#46674A]/20"
+              />
+            </div>
+
+            <div>
+              <label class="mb-1.5 block text-sm font-semibold text-gray-700">Precio compra</label>
+              <input
+                v-model.number="nuevoProducto.precio_compra"
+                required
+                min="0"
+                step="0.01"
+                type="number"
+                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-[#46674A] focus:ring-2 focus:ring-[#46674A]/20"
+              />
+            </div>
+
+            <div>
+              <label class="mb-1.5 block text-sm font-semibold text-gray-700">Precio venta</label>
+              <input
+                v-model.number="nuevoProducto.precio_venta"
+                required
+                min="0"
+                step="0.01"
+                type="number"
+                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-[#46674A] focus:ring-2 focus:ring-[#46674A]/20"
+              />
             </div>
           </div>
 
-          <div class="form-field-group">
-            <label>Descripción Corta</label>
-            <input type="text" v-model="nuevoProducto.descripcion" placeholder="Detalles..." />
-          </div>
+          <div class="mt-5 flex justify-end gap-3 border-t border-gray-100 pt-4">
+            <button
+              type="button"
+              @click="cerrarModal"
+              class="h-10 rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+            >
+              Cancelar
+            </button>
 
-          <div class="form-row-grid rows-three">
-            <div class="form-field-group">
-              <label>Categoría (ID)</label>
-              <input type="text" v-model="nuevoProducto.sub_categoria_id" required placeholder="Ej. 1" />
-            </div>
-            <div class="form-field-group">
-              <label>Precio Venta ($)</label>
-              <input type="number" step="0.01" v-model="nuevoProducto.precio_venta" required placeholder="0.00" />
-            </div>
-            <div class="form-field-group">
-              <label>Stock Inicial</label>
-              <input type="number" v-model="nuevoProducto.stock" required placeholder="0" />
-            </div>
-          </div>
-
-          <div class="form-field-group">
-            <label>Stock Mínimo</label>
-            <input type="number" v-model="nuevoProducto.stock_minimo" required placeholder="10" />
-          </div>
-
-          <div class="modal-actions-footer">
-            <button type="button" class="btn-secondary" @click="cerrarModal">Cancelar</button>
-            <button type="submit" class="btn-primary-submit">Guardar Producto</button>
+            <button
+              type="submit"
+              :disabled="guardando"
+              class="h-10 rounded-lg bg-[#46674A] px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#3b5740] disabled:opacity-50"
+            >
+              {{ guardando ? 'Guardando...' : 'Guardar Producto' }}
+            </button>
           </div>
         </form>
       </div>
@@ -402,432 +408,208 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import { computed, onMounted, ref } from 'vue'
+import Swal from 'sweetalert2'
+import {
+  createProducto,
+  deleteProducto as borrarProducto,
+  getProductos,
+  getResumenProductos
+} from '@/services/productoService'
+import { getCategorias } from '@/services/categoriaService'
+import { getProveedores } from '@/services/proveedorService'
+import { getSubcategorias } from '@/services/subcategoriaService'
 
-// --- ESTADOS REACTIVOS DEL BACKEND ---
 const productos = ref([])
-const resumen = ref({ total: 0, disponibles: 0, bajo_stock: 0, agotado: 0 })
+const categorias = ref([])
+const subcategorias = ref([])
+const proveedores = ref([])
+const resumen = ref({ total: 0, disponibles: 0, bajo_stock: 0 })
 
-// --- ESTADOS REACTIVOS DE LOS FILTROS (Faltaban y causaban errores) ---
 const buscar = ref('')
-const categoria = ref('')
+const categoriaFiltro = ref('')
 const estado = ref('')
 const ordenar = ref('recientes')
 const total = ref(0)
-const categorias = ref([]) // Para el v-for de categorías en tu HTML
-
-// --- CONTROL DE INVENTARIO (BACKEND) ---
-const cargarProductos = async () => {
-    try {
-        const response = await axios.get(
-            'http://localhost:8000/api/productos',
-            {
-                params: {
-                    search: buscar.value
-                }
-            }
-        )
-        productos.value = response.data.data
-        total.value = productos.value.length
-    } catch (error) {
-        console.error(error)
-    }
-}
-
-const cargarResumen = async () => {
-    try {
-        const response = await axios.get(
-            'http://localhost:8000/api/productos/resumen'
-        )
-        resumen.value = response.data
-    } catch (error) {
-        console.error(error)
-    }
-}
-
-const eliminarProducto = async (id) => {
-    if (!confirm('¿Eliminar producto?')) return
-    try {
-        await axios.delete(
-            `http://localhost:8000/api/productos/${id}`
-        )
-        cargarProductos()
-        cargarResumen()
-    } catch (error) {
-        console.error(error)
-    }
-}
-
-onMounted(() => {
-    cargarProductos()
-    cargarResumen()
-})
-
-// --- LÓGICA DEL MODAL (CORREGIDA SIN IMPORTS DUPLICADOS) ---
 const mostrarModal = ref(false)
+const guardando = ref(false)
 
 const modeloProductoLimpio = () => ({
   codigo_barras: '',
   nombre: '',
-  descripcion: '',
-  sub_categoria_id: '',
+  precio_compra: 0,
+  precio_venta: 0,
   stock: 0,
-  stock_minimo: 10,
-  precio_venta: 0
+  stock_minimo: 5,
+  categoria_id: '',
+  sub_categoria_id: '',
+  proveedor_id: ''
 })
 
 const nuevoProducto = ref(modeloProductoLimpio())
 
-const cerrarModal = () => {
+const categoriasPorId = computed(() => {
+  return Object.fromEntries(categorias.value.map(cat => [Number(cat.id), cat]))
+})
+
+const subcategoriasPorId = computed(() => {
+  return Object.fromEntries(subcategorias.value.map(sub => [Number(sub.id), sub]))
+})
+
+const proveedoresPorId = computed(() => {
+  return Object.fromEntries(proveedores.value.map(proveedor => [Number(proveedor.id), proveedor]))
+})
+
+const subcategoriasDeCategoria = computed(() => {
+  if (!nuevoProducto.value.categoria_id) return []
+
+  return subcategorias.value.filter(sub =>
+    Number(sub.categoria_id) === Number(nuevoProducto.value.categoria_id)
+  )
+})
+
+onMounted(async () => {
+  await Promise.all([
+    cargarCatalogos(),
+    cargarProductos(),
+    cargarResumen()
+  ])
+})
+
+async function cargarCatalogos() {
+  const [categoriasRes, subcategoriasRes, proveedoresRes] = await Promise.all([
+    getCategorias(),
+    getSubcategorias(),
+    getProveedores()
+  ])
+
+  categorias.value = categoriasRes || []
+  subcategorias.value = subcategoriasRes || []
+  proveedores.value = proveedoresRes || []
+}
+
+async function cargarProductos() {
+  try {
+    const response = await getProductos({
+      search: buscar.value,
+      categoria: categoriaFiltro.value,
+      estado: estado.value,
+      ordenar: ordenar.value
+    })
+
+    productos.value = response.data || response || []
+    total.value = response.total || productos.value.length
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+async function cargarResumen() {
+  try {
+    resumen.value = await getResumenProductos()
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+function abrirModal() {
+  nuevoProducto.value = modeloProductoLimpio()
+  mostrarModal.value = true
+}
+
+function cerrarModal() {
   mostrarModal.value = false
   nuevoProducto.value = modeloProductoLimpio()
 }
 
-// Guarda temporalmente en la tabla y actualiza contadores
-const guardarProducto = () => {
-  productos.value.unshift({
-    id: Date.now(),
-    ...nuevoProducto.value
-  })
-  
-  if (resumen.value) {
-    resumen.value.total = productos.value.length
-    resumen.value.disponibles = productos.value.filter(p => p.stock > p.stock_minimo).length
-    resumen.value.bajo_stock = productos.value.filter(p => p.stock <= p.stock_minimo).length
-  }
-  total.value = productos.value.length
+function alCambiarCategoriaProducto() {
+  nuevoProducto.value.sub_categoria_id = ''
+}
 
-  cerrarModal()
+async function guardarProducto() {
+  if (guardando.value) return
+  guardando.value = true
+
+  try {
+    await createProducto({
+      ...nuevoProducto.value,
+      categoria_id: Number(nuevoProducto.value.categoria_id),
+      sub_categoria_id: nuevoProducto.value.sub_categoria_id
+        ? Number(nuevoProducto.value.sub_categoria_id)
+        : null,
+      proveedor_id: Number(nuevoProducto.value.proveedor_id)
+    })
+
+    await Promise.all([
+      cargarProductos(),
+      cargarResumen()
+    ])
+
+    cerrarModal()
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Producto guardado',
+      timer: 1400,
+      showConfirmButton: false
+    })
+  } catch (error) {
+    Swal.fire(
+      'Error',
+      error?.response?.data?.message || 'No se pudo guardar el producto',
+      'error'
+    )
+  } finally {
+    guardando.value = false
+  }
+}
+
+async function eliminarProducto(id) {
+  const result = await Swal.fire({
+    title: 'Eliminar producto?',
+    text: 'Esta accion no se puede deshacer',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#46674A',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Si, eliminar'
+  })
+
+  if (!result.isConfirmed) return
+
+  try {
+    await borrarProducto(id)
+    await Promise.all([
+      cargarProductos(),
+      cargarResumen()
+    ])
+  } catch (error) {
+    Swal.fire(
+      'Error',
+      error?.response?.data?.message || 'No se pudo eliminar el producto',
+      'error'
+    )
+  }
+}
+
+function nombreCategoriaProducto(producto) {
+  if (producto.categoria_id) {
+    return categoriasPorId.value[Number(producto.categoria_id)]?.nombre || 'Sin categoria'
+  }
+
+  const sub = subcategoriasPorId.value[Number(producto.sub_categoria_id)]
+  return sub ? categoriasPorId.value[Number(sub.categoria_id)]?.nombre || 'Sin categoria' : 'Sin categoria'
+}
+
+function nombreSubcategoriaPorId(id) {
+  return subcategoriasPorId.value[Number(id)]?.nombre || 'Sin subcategoria'
+}
+
+function nombreProveedorPorId(id) {
+  return proveedoresPorId.value[Number(id)]?.nombre || 'Sin proveedor'
+}
+
+function formatoPrecio(valor) {
+  return Number(valor || 0).toFixed(2)
 }
 </script>
-<style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-/* CONTENEDOR ELÁSTICO SIN ANCHOS ESTÁTICOS */
-.main-interface-container {
-  box-sizing: border-box !important;
-  font-family: 'Inter', sans-serif !important;
-  background-color: #f3f4f6 !important;
-  width: 100% !important; 
-  min-height: 100% !important;
-  padding: 16px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 16px !important;
-}
-
-/* NAVBAR FLUIDO */
-.top-strict-navbar {
-  box-sizing: border-box !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  background-color: #ffffff !important;
-  border: 1px solid #e5e7eb !important;
-  border-radius: 8px !important;
-  padding: 0 16px !important;
-  height: 50px !important;
-  width: 100% !important;
-}
-
-.search-wrapper {
-  position: relative !important;
-  display: flex !important;
-  align-items: center !important;
-  flex: 1 !important;
-  max-width: 400px !important;
-}
-
-.search-icon {
-  position: absolute !important;
-  left: 12px !important;
-  color: #9ca3af !important;
-}
-
-.search-input-field {
-  width: 100% !important;
-  height: 34px !important;
-  background-color: #f3f4f6 !important;
-  border: none !important;
-  border-radius: 6px !important;
-  padding-left: 36px !important;
-  font-size: 0.85rem !important;
-  outline: none !important;
-}
-
-.top-right-actions {
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-}
-
-.action-icon-btn {
-  background: none !important;
-  border: none !important;
-  color: #4b5563 !important;
-  font-size: 1.1rem !important;
-  cursor: pointer !important;
-}
-
-.notification-dot-badge {
-  position: absolute !important;
-  top: 2px !important;
-  right: 2px !important;
-  width: 6px !important;
-  height: 6px !important;
-  background-color: #ef4444 !important;
-  border-radius: 50% !important;
-}
-
-/* DISTRIBUCIÓN EN FILA FLEXIBLE */
-.content-layout-flex {
-  display: flex !important;
-  gap: 16px !important;
-  width: 100% !important;
-  align-items: start !important;
-}
-
-.left-content-panel {
-  flex: 0 0 78% !important; /* Asegura un control total del espacio izquierdo */
-  width: 78% !important;
-}
-
-.right-widgets-panel {
-  flex: 0 0 22% !important; /* Rellena perfectamente el costado derecho */
-  width: 22% !important;
-}
-
-/* FILTROS Y ENCABEZADO */
-.section-header-row {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  margin-bottom: 12px !important;
-  width: 100% !important;
-}
-
-.main-title-text {
-  font-size: 1.25rem !important;
-  font-weight: 700 !important;
-  margin: 0 !important;
-}
-
-.subtitle-text {
-  font-size: 0.8rem !important;
-  color: #6b7280 !important;
-  margin: 0 !important;
-}
-
-.header-buttons-group {
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-}
-
-.btn-action-primary {
-  background-color: #2563eb !important;
-  color: #ffffff !important;
-  border: none !important;
-  padding: 0 12px !important;
-  height: 34px !important;
-  font-size: 0.82rem !important;
-  border-radius: 6px !important;
-  cursor: pointer !important;
-}
-
-.time-display-widget {
-  background-color: #ffffff !important;
-  border: 1px solid #e5e7eb !important;
-  font-size: 0.8rem !important;
-  padding: 0 10px !important;
-  height: 34px !important;
-  border-radius: 6px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-}
-
-.filter-strip-container {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  background-color: #ffffff !important;
-  border: 1px solid #e5e7eb !important;
-  border-radius: 8px !important;
-  padding: 0 12px !important;
-  height: 48px !important;
-  margin-bottom: 12px !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-}
-
-.filter-controls-left {
-  display: flex !important;
-  align-items: center !important;
-  gap: 12px !important;
-}
-
-.filter-select-group {
-  display: flex !important;
-  align-items: center !important;
-  gap: 4px !important;
-}
-
-.filter-label {
-  font-size: 0.8rem !important;
-  color: #4b5563 !important;
-}
-
-.filter-dropdown, .filter-dropdown-sort {
-  background-color: #f9fafb !important;
-  border: 1px solid #e5e7eb !important;
-  border-radius: 6px !important;
-  height: 28px !important;
-  font-size: 0.8rem !important;
-}
-
-/* PAGINADOR */
-.pagination-right-block {
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-}
-
-.pagination-counter-text {
-  font-size: 0.8rem !important;
-  color: #6b7280 !important;
-}
-
-.pagination-box-controls {
-  display: flex !important;
-  border: 1px solid #e5e7eb !important;
-  border-radius: 6px !important;
-  height: 28px !important;
-}
-
-.pag-arrow-btn, .pag-number-active, .pag-number-inactive {
-  width: 28px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  font-size: 0.8rem !important;
-  background: none !important;
-  border: none !important;
-}
-
-.pag-number-active {
-  background-color: #eff6ff !important;
-  color: #2563eb !important;
-  font-weight: 700 !important;
-}
-
-/* TABLA DINÁMICA PERFECTA */
-.table-card-wrapper {
-  background-color: #ffffff !important;
-  border: 1px solid #e5e7eb !important;
-  border-radius: 8px !important;
-  width: 100% !important;
-  overflow: hidden !important;
-}
-
-.strict-data-table {
-  width: 100% !important;
-  border-collapse: collapse !important;
-  table-layout: fixed !important; /* Reparte los % de las columnas de forma matemática */
-}
-
-.strict-data-table thead th {
-  background-color: #f9fafb !important;
-  padding: 10px 12px !important;
-  font-size: 0.78rem !important;
-  font-weight: 600;
-  color: #4b5563 !important;
-  border-bottom: 1px solid #e5e7eb !important;
-}
-
-.strict-data-table tbody td {
-  padding: 10px 12px !important;
-  font-size: 0.82rem !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-}
-
-.strict-checkbox-input {
-  width: 14px !important;
-  height: 14px !important;
-  cursor: pointer !important;
-}
-
-.product-info-cell {
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-}
-
-.product-thumb-img {
-  width: 32px !important;
-  height: 32px !important;
-  border-radius: 4px !important;
-  object-fit: cover !important;
-}
-
-.product-meta-text {
-  display: flex !important;
-  flex-direction: column !important;
-  overflow: hidden !important;
-}
-
-.product-title-link {
-  font-weight: 600 !important;
-  color: #2563eb !important;
-}
-
-.product-desc-truncate {
-  font-size: 0.72rem !important;
-  color: #6b7280 !important;
-}
-
-.custom-pill-tag, .status-badge {
-  padding: 2px 8px !important;
-  border-radius: 9999px !important;
-  font-size: 0.75rem !important;
-}
-
-.status-available { background-color: #dcfce7 !important; color: #15803d !important; }
-.status-low-stock { background-color: #fef3c7 !important; color: #d97706 !important; }
-
-.actions-cell-right { text-align: right !important; }
-.row-action-btn { background: none !important; border: none !important; color: #6b7280 !important; cursor: pointer !important; font-size: 0.9rem !important; margin-left: 4px !important;}
-
-/* WIDGETS RESUMEN DERECHO */
-.inventory-card-widget {
-  background-color: #ffffff !important;
-  border: 1px solid #e5e7eb !important;
-  border-radius: 8px !important;
-  padding: 12px !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-}
-
-.widget-title-text {
-  font-size: 0.82rem !important;
-  font-weight: 700 !important;
-  margin: 0 0 12px 0 !important;
-}
-
-.widget-metric-row {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  border: 1px solid #f3f4f6 !important;
-  border-radius: 6px !important;
-  padding: 8px 10px !important;
-  margin-bottom: 8px !important;
-}
-
-.metric-label { font-size: 0.7rem !important; color: #6b7280 !important; }
-.metric-number { font-size: 1.1rem !important; font-weight: 700 !important; }
-.metric-sparkline { width: 40px !important; height: 18px !important; }
-.sparkline-svg { width: 100% !important; height: 100% !important; }
-</style>
