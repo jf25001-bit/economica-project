@@ -5,7 +5,6 @@
         <i class="bi bi-search search-icon absolute left-4 text-gray-400"></i>
         <input
           v-model="buscar"
-          @input="cargarProductos"
           type="text"
           placeholder="Buscar producto por nombre o SKU..."
           class="search-input-field w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
@@ -24,19 +23,25 @@
         <div class="section-header-row flex justify-between items-center mb-6">
           <div class="title-block">
             <h1 class="text-2xl font-bold text-gray-800">Gestión de Productos</h1>
-            <p class="text-sm text-gray-500">Vista General y Listado ({{ total }} productos)</p>
+            <p class="text-sm text-gray-500">Vista General y Listado ({{ total }} productos encontrados)</p>
           </div>
 
-          <div class="filter-controls-left flex gap-4">
-            <select v-model="filtroCategoria" @change="cargarProductos" class="px-4 py-2 border border-gray-300 rounded-xl text-sm">
+          <div class="filter-controls-left flex flex-wrap gap-3">
+            <select v-model="filtroCategoria" class="px-4 py-2 border border-gray-300 rounded-xl text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-[#46674A]/20">
               <option value="">Todas las categorías</option>
               <option v-for="cat in categorias" :key="cat.id" :value="cat.id">{{ cat.nombre }}</option>
             </select>
 
-            <select v-model="filtroEstado" @change="cargarProductos" class="px-4 py-2 border border-gray-300 rounded-xl text-sm">
+            <select v-model="filtroEstado" class="px-4 py-2 border border-gray-300 rounded-xl text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-[#46674A]/20">
               <option value="">Todos los estados</option>
               <option value="disponible">Disponible</option>
               <option value="bajo_stock">Bajo Stock</option>
+            </select>
+
+            <select v-model="filtroOrdenar" class="px-4 py-2 border border-gray-300 rounded-xl text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-[#46674A]/20">
+              <option value="recientes">Recientes</option>
+              <option value="nombre">Nombre</option>
+              <option value="precio">Precio</option>
             </select>
           </div>
         </div>
@@ -55,7 +60,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="producto in productos" :key="producto.id" class="border-t border-gray-200 hover:bg-gray-50 text-sm">
+              <tr v-for="producto in productosFiltrados" :key="producto.id" class="border-t border-gray-200 hover:bg-gray-50 text-sm">
                 <td class="px-6 py-4 font-mono text-gray-600">{{ producto.codigo_barras || 'Sin SKU' }}</td>
                 <td class="px-6 py-4">
                   <img
@@ -81,19 +86,20 @@
                   </span>
                 </td>
                 <td class="px-6 py-4 font-medium text-gray-900">${{ producto.precio_venta }}</td>
+                
                 <td class="px-6 py-4 text-right">
                   <div class="flex gap-2 justify-end">
-                    <button class="bg-blue-50 text-blue-600 p-2 rounded-lg hover:bg-blue-100 transition" @click="editarProducto(producto)">
+                    <button class="bg-blue-50 text-blue-600 p-2 rounded-lg hover:bg-blue-100 transition" @click="editarProducto(producto)" title="Editar producto">
                       <i class="bi bi-pencil"></i>
                     </button>
-                    <button class="bg-red-50 text-red-600 p-2 rounded-lg hover:bg-red-100 transition" @click="eliminarProducto(producto.id)">
+                    <button class="bg-red-50 text-red-600 p-2 rounded-lg hover:bg-red-100 transition" @click="eliminarProducto(producto.id)" title="Eliminar producto">
                       <i class="bi bi-trash"></i>
                     </button>
                   </div>
                 </td>
               </tr>
-              <tr v-if="productos.length === 0">
-                <td colspan="7" class="text-center py-8 text-gray-400 italic">No se encontraron productos en el sistema.</td>
+              <tr v-if="productosFiltrados.length === 0">
+                <td colspan="7" class="text-center py-8 text-gray-400 italic">No se encontraron productos con los filtros seleccionados.</td>
               </tr>
             </tbody>
           </table>
@@ -135,7 +141,6 @@
         </div>
         
         <form @submit.prevent="guardarProducto" class="p-6 flex flex-col gap-4 max-h-[80vh] overflow-y-auto" enctype="multipart/form-data">
-          
           <div>
             <label class="block text-xs font-semibold text-gray-600 mb-1">Imagen del Producto</label>
             <div class="flex items-center gap-4 mt-1">
@@ -270,17 +275,16 @@
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 
-const productos = ref([])
+const productos = ref([]) 
 const categorias = ref([]) 
 const subcategorias = ref([]) 
 const proveedores = ref([]) 
-const total = ref(0)
+
 const mostrarModal = ref(false)
 const esEditando = ref(false)
 const productoIdSeleccionado = ref(null)
 const guardando = ref(false) 
 
-// Gestión de Archivos / Imágenes
 const fileInput = ref(null)
 const imagenSeleccionada = ref(null)
 const imagenPreview = ref(null)
@@ -291,15 +295,10 @@ const filtroBuscadorInterno = ref('')
 const nombreSubcategoriaSeleccionada = ref('')
 const nombreProveedorSeleccionado = ref('')
 
-const resumen = ref({
-  total: 0,
-  disponibles: 0,
-  bajo_stock: 0
-})
-
 const buscar = ref('')
 const filtroCategoria = ref('')
 const filtroEstado = ref('')
+const filtroOrdenar = ref('recientes')
 
 const modeloProductoLimpio = () => ({
   codigo_barras: '',
@@ -314,10 +313,59 @@ const modeloProductoLimpio = () => ({
 
 const nuevoProducto = ref(modeloProductoLimpio())
 
-// Helper para limpiar y formatear las URLs evitando duplicados de carpetas
+const productosFiltrados = computed(() => {
+  let resultado = [...productos.value]
+
+  if (buscar.value.trim()) {
+    const query = buscar.value.toLowerCase().trim()
+    resultado = resultado.filter(p => 
+      (p.nombre || '').toLowerCase().includes(query) || 
+      (p.codigo_barras || '').toLowerCase().includes(query)
+    )
+  }
+
+  if (filtroCategoria.value) {
+    resultado = resultado.filter(p => {
+      const idCat = p.subcategoria?.categoria?.id || p.subcategoria?.categoria_id || p.categoria_id
+      return String(idCat) === String(filtroCategoria.value)
+    })
+  }
+
+  if (filtroEstado.value) {
+    resultado = resultado.filter(p => {
+      const limiteMinimo = Number(p.stock_minimo) || 5
+      const esBajoStock = Number(p.stock) <= limiteMinimo
+      
+      if (filtroEstado.value === 'bajo_stock') return esBajoStock
+      if (filtroEstado.value === 'disponible') return !esBajoStock
+      return true
+    })
+  }
+
+  if (filtroOrdenar.value === 'nombre') {
+    resultado.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''))
+  } else if (filtroOrdenar.value === 'precio') {
+    resultado.sort((a, b) => Number(a.precio_venta) - Number(b.precio_venta))
+  } else if (filtroOrdenar.value === 'recientes') {
+    resultado.sort((a, b) => Number(b.id) - Number(a.id))
+  }
+
+  return resultado
+})
+
+const total = computed(() => productosFiltrados.value.length)
+
+const resumen = computed(() => {
+  const listaCompleta = productos.value
+  return {
+    total: listaCompleta.length,
+    disponibles: listaCompleta.filter(p => Number(p.stock) > (Number(p.stock_minimo) || 5)).length,
+    bajo_stock: listaCompleta.filter(p => Number(p.stock) <= (Number(p.stock_minimo) || 5)).length
+  }
+})
+
 const obtenerUrlImagen = (ruta) => {
   if (!ruta) return ''
-  // Si la ruta ya empieza con 'imagenes/' o 'storage/', evitamos concatenar texto extra roto
   const rutaLimpia = ruta.startsWith('/') ? ruta.substring(1) : ruta
   return `http://127.0.0.1:8000/storage/${rutaLimpia}`
 }
@@ -326,7 +374,7 @@ const manejarCambioImagen = (e) => {
   const file = e.target.files[0]
   if (file) {
     imagenSeleccionada.value = file
-    imagenPreview.value = URL.createObjectURL(file) // Preview local síncrono
+    imagenPreview.value = URL.createObjectURL(file)
   }
 }
 
@@ -343,10 +391,7 @@ const listaFiltradaBuscador = computed(() => {
   if (tipoBuscador.value === 'subcategoria') {
     return subcategorias.value.filter(sc => sc.nombre.toLowerCase().includes(query))
   } else if (tipoBuscador.value === 'proveedor') {
-    return proveedores.value.filter(p => {
-      const nombre = (p.nombre_proveedor || '').toLowerCase()
-      return nombre.includes(query)
-    })
+    return proveedores.value.filter(p => (p.nombre_proveedor || '').toLowerCase().includes(query))
   }
   return []
 })
@@ -390,18 +435,10 @@ const cargarAuxiliaresFormulario = async () => {
 
 const cargarProductos = async () => {
   try {
-    const response = await axios.get('http://127.0.0.1:8000/api/productos', {
-      params: {
-        search: buscar.value,
-        categoria: filtroCategoria.value,
-        estado: filtroEstado.value
-      }
-    })
+    const response = await axios.get('http://127.0.0.1:8000/api/productos')
     productos.value = response.data.data || response.data
-    total.value = productos.value.length
-    calcularResumenLocal()
   } catch (error) {
-    console.error('Error cargando productos:', error)
+    console.error('Error cargando productos desde el servidor:', error)
   }
 }
 
@@ -437,7 +474,6 @@ const guardarProducto = async () => {
       resProducto = await axios.post(url, productoData)
     }
 
-    // Subida asíncrona de la imagen
     if (imagenSeleccionada.value) {
       const productoId = esEditando.value 
         ? productoIdSeleccionado.value 
@@ -455,7 +491,7 @@ const guardarProducto = async () => {
     }
 
     cerrarModal()
-    await cargarProductos() // Forzar reactividad del grid con los nuevos datos relacionales de Laravel
+    await cargarProductos()
   } catch (error) {
     console.error('Error al guardar el producto o imagen:', error)
     alert('Ocurrió un error. Verifica los datos o revisa la consola.')
@@ -472,12 +508,6 @@ const eliminarProducto = async (id) => {
   } catch (error) {
     console.error('Error al eliminar:', error)
   }
-}
-
-const calcularResumenLocal = () => {
-  resumen.value.total = productos.value.length
-  resumen.value.disponibles = productos.value.filter(p => p.stock > (p.stock_minimo || 5)).length
-  resumen.value.bajo_stock = productos.value.filter(p => p.stock <= (p.stock_minimo || 5)).length
 }
 
 const abrirModalForm = () => { 
@@ -516,7 +546,6 @@ const editarProducto = (producto) => {
     precio_venta: producto.precio_venta || 0
   }
 
-  // Previsualización de la imagen guardada en el Servidor Laravel usando la función Helper modular
   if (producto.imagenes && producto.imagenes.length) {
     imagenPreview.value = obtenerUrlImagen(producto.imagenes[0].ruta)
   } else {
