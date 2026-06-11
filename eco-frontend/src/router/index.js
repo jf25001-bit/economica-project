@@ -97,26 +97,19 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach((to, from, next) => {
-
+router.beforeEach((to) => {
   const token = localStorage.getItem('token')
-
-  const user = JSON.parse(
-    localStorage.getItem('user')
-  )
+  const user = JSON.parse(localStorage.getItem('user'))
 
   if (to.meta.requiresAuth && !token) {
-    return next('/login')
+    return '/login'
   }
 
-  if (
-    to.meta.adminOnly &&
-    user?.rol?.nombre === 'Cajero'
-  ) {
-    return next('/dashboard')
+  if (to.meta.adminOnly && user?.rol?.nombre === 'Cajero') {
+    return '/dashboard'
   }
 
-  next()
+  return true
 })
 
 export default router

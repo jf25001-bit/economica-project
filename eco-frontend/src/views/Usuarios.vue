@@ -72,7 +72,7 @@
               </span>
             </td>
 
-            <!-- ACCIONES REDONDAS -->
+            <!-- ACCIONES -->
             <td class="px-6 py-4">
               <div class="flex items-center gap-2">
 
@@ -84,7 +84,7 @@
                 </button>
 
                 <button
-                  @click="eliminar(u.id)"
+                  @click="abrirEliminar(u)"
                   class="w-9 h-9 flex items-center justify-center rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition"
                 >
                   <i class="bi bi-trash"></i>
@@ -105,9 +105,10 @@
     </div>
 
     <!-- MODAL USUARIO -->
-   <div v-if="modal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 overflow-hidden">
+    <div v-if="modal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
 
-     <div class="bg-white rounded-3xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden">
+      <div class="bg-white rounded-3xl w-full max-w-xl flex flex-col">
+
         <!-- HEADER -->
         <div class="bg-[#46674A] text-white px-6 py-5 flex justify-between items-center">
           <h2 class="text-xl font-bold">
@@ -115,56 +116,57 @@
           </h2>
 
           <button
-            @click="cerrar"
-            class="w-9 h-9 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition"
-          >
-            ✖
-          </button>
+  @click="cerrar"
+  class="w-9 h-9 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition text-white"
+>
+  ✖
+</button>
         </div>
 
         <!-- BODY -->
-        <div class="p-6 space-y-4 overflow-y-auto flex-1">
+        <div class="p-6 space-y-2">
 
           <input
             v-model="form.name"
             placeholder="Nombre"
-            class="w-full px-1 py-3 border rounded-2xl"
+            class="w-full px-1 py-2 border rounded-xl"
           />
+          <p v-if="errores.name" class="text-red-500 text-sm">{{ errores.name }}</p>
 
           <input
             v-model="form.password"
             type="password"
             placeholder="Contraseña"
-            class="w-full px-1 py-3 border rounded-2xl"
+            class="w-full px-1 py-2 border rounded-xl"
           />
+          <p v-if="errores.password" class="text-red-500 text-sm">{{ errores.password }}</p>
 
           <select
             v-model="form.rol_id"
-            class="w-full px-3 py-3 border rounded-2xl"
+            class="w-full px-3 py-2 border rounded-xl"
           >
             <option value="">Selecciona rol</option>
             <option v-for="r in roles" :key="r.id" :value="r.id">
               {{ r.nombre }}
             </option>
           </select>
+          <p v-if="errores.rol_id" class="text-red-500 text-sm">{{ errores.rol_id }}</p>
 
         </div>
 
         <!-- FOOTER -->
-      <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3 flex-wrap">
+        <div class="flex justify-end gap-3 p-4">
 
-          <button
-            @click="cerrar"
-            class="px-5 py-2 border rounded-xl"
-          >
+          <button @click="cerrar" class="px-4 py-2 border rounded-xl">
             Cancelar
           </button>
 
           <button
             @click="guardar"
-            class="px-5 py-2 bg-[#46674A] text-white rounded-xl"
+            :disabled="loading"
+            class="px-4 py-2 bg-[#46674A] text-white rounded-xl disabled:opacity-50"
           >
-            Guardar
+            {{ loading ? 'Guardando...' : 'Guardar' }}
           </button>
 
         </div>
@@ -172,11 +174,45 @@
       </div>
     </div>
 
+    <!-- MODAL ELIMINAR -->
+    <div v-if="modalEliminar" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+
+      <div class="bg-white p-6 w-[420px] rounded shadow-lg">
+
+        <h2 class="text-xl font-bold mb-3">Eliminar usuario</h2>
+
+        <p class="text-gray-600 mb-6">
+          ¿Seguro que deseas eliminar este usuario?
+        </p>
+
+        <div class="flex justify-end gap-3">
+
+          <button
+            @click="modalEliminar = false"
+            class="px-4 py-2 border rounded hover:bg-gray-50"
+          >
+            Cancelar
+          </button>
+
+          <button
+            @click="confirmarEliminar"
+            class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+          >
+            Eliminar
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import Swal from 'sweetalert2'
 import { getUsuarios, createUsuario, updateUsuario, deleteUsuario } from '@/services/usuarioService'
 import { getRoles } from '@/services/rolService'
 
@@ -189,6 +225,8 @@ const filtroRol = ref('')
 const modal = ref(false)
 const editando = ref(false)
 
+const loading = ref(false)
+
 const form = ref({
   id: null,
   name: '',
@@ -196,6 +234,13 @@ const form = ref({
   rol_id: ''
 })
 
+const errores = ref({
+  name: '',
+  password: '',
+  rol_id: ''
+})
+
+/* CARGA */
 const cargar = async () => {
   usuarios.value = await getUsuarios()
   roles.value = await getRoles()
@@ -203,6 +248,7 @@ const cargar = async () => {
 
 onMounted(cargar)
 
+/* FILTRO */
 const usuariosFiltrados = computed(() => {
   return usuarios.value.filter(u => {
     const nombre = u.name?.toLowerCase() || ''
@@ -212,35 +258,134 @@ const usuariosFiltrados = computed(() => {
   })
 })
 
+/* MODAL */
 const abrirModal = () => {
   modal.value = true
   editando.value = false
   form.value = { id: null, name: '', password: '', rol_id: '' }
+  errores.value = { name: '', password: '', rol_id: '' }
 }
 
-const cerrar = () => modal.value = false
+const cerrar = () => {
+  modal.value = false
+}
 
-const guardar = async () => {
-  if (editando.value) {
-    await updateUsuario(form.value.id, form.value)
-  } else {
-    await createUsuario(form.value)
+/* VALIDACIÓN */
+const validar = () => {
+  errores.value = { name: '', password: '', rol_id: '' }
+  let ok = true
+
+  if (!form.value.name.trim()) {
+    errores.value.name = 'El nombre es obligatorio'
+    ok = false
   }
-  cerrar()
-  cargar()
+
+  if (!editando.value) {
+    if (!form.value.password || form.value.password.length < 8) {
+      errores.value.password = 'La contraseña debe tener mínimo 8 caracteres'
+      ok = false
+    }
+  } else {
+    if (form.value.password && form.value.password.length < 8) {
+      errores.value.password = 'La contraseña debe tener mínimo 8 caracteres'
+      ok = false
+    }
+  }
+
+  if (!form.value.rol_id) {
+    errores.value.rol_id = 'Selecciona un rol'
+    ok = false
+  }
+
+  return ok
 }
 
+/* GUARDAR */
+const guardar = async () => {
+  if (!validar()) return
+
+  loading.value = true
+
+  // 🔥 ALERTA DE CARGA
+  Swal.fire({
+    title: editando.value ? 'Actualizando usuario...' : 'Creando usuario...',
+    text: 'Por favor espera',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading()
+    }
+  })
+
+  try {
+    if (editando.value) {
+      await updateUsuario(form.value.id, form.value)
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Usuario actualizado',
+        timer: 1500,
+        showConfirmButton: false
+      })
+
+    } else {
+      await createUsuario(form.value)
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Usuario creado correctamente',
+        timer: 1500,
+        showConfirmButton: false
+      })
+    }
+
+    cerrar()
+    await cargar()
+
+  } catch (error) {
+    Swal.fire('Error', 'No se pudo guardar el usuario', 'error')
+  } finally {
+    loading.value = false
+  }
+}
+
+/* EDITAR */
 const editar = (u) => {
   form.value = { ...u, password: '' }
   editando.value = true
   modal.value = true
 }
 
-const eliminar = async (id) => {
-  await deleteUsuario(id)
-  cargar()
+/* ELIMINAR (SWEETALERT como categorías) */
+const abrirEliminar = async (u) => {
+  const result = await Swal.fire({
+    title: '¿Eliminar usuario?',
+    text: 'Esta acción no se puede deshacer',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#46674A',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Sí, eliminar'
+  })
+
+  if (!result.isConfirmed) return
+
+  try {
+    await deleteUsuario(u.id)
+    await cargar()
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Usuario eliminado',
+      timer: 1500,
+      showConfirmButton: false
+    })
+
+  } catch (error) {
+    Swal.fire('Error', 'No se pudo eliminar el usuario', 'error')
+  }
 }
 
+/* TOGGLE ESTADO */
 const toggleEstado = async (u) => {
   await updateUsuario(u.id, {
     ...u,

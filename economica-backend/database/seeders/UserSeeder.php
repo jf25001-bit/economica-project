@@ -2,22 +2,33 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\User;
+use App\Models\Rol;
 use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
+        $admin = Rol::where('nombre', 'Administrador')->first();
+        $cajero = Rol::where('nombre', 'Cajero')->first();
+
         User::updateOrCreate(
-            ['name' => 'administrador'], 
+            ['name' => 'administrador'],
             [
-                'password' => Hash::make('clave1234') 
+                'password' => Hash::make('clave1234'),
+                'rol_id' => $admin?->id,
+                'activo' => true
+            ]
+        );
+
+        User::updateOrCreate(
+            ['name' => 'cajero'],
+            [
+                'password' => Hash::make('clave1234'),
+                'rol_id' => $cajero?->id,
+                'activo' => true
             ]
         );
     }
