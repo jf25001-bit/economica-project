@@ -15,7 +15,7 @@ class ProductoController extends Controller
 public function index(Request $request)
     {
         // 1. Inicializamos la consulta
-        $query = Producto::query();
+        $query = Producto::with(['categoria', 'subcategoria', 'proveedor']);
 
         // 2. Filtros de búsqueda
         if ($request->search) {
@@ -36,6 +36,14 @@ public function index(Request $request)
 
         if ($request->estado === 'disponible') {
             $query->whereRaw('stock > stock_minimo');
+        }
+
+        if ($request->filled('fecha_inicio')) {
+            $query->whereDate('created_at', '>=', $request->fecha_inicio);
+        }
+
+        if ($request->filled('fecha_fin')) {
+            $query->whereDate('created_at', '<=', $request->fecha_fin);
         }
 
         // 3. Lógica de ordenamiento (Movida adentro de index antes del return)

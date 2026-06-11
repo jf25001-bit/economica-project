@@ -7,25 +7,26 @@ use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request)
     {
-        $usuarios = User::with('rol')->get();
-        return response()->json($usuarios, 200);
+        $query = User::with('rol');
+
+        if ($request->filled('search')) {
+            $query->where('name', 'like', '%' . $request->search . '%');
+        }
+
+        return response()->json($query->latest()->get(), 200);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:6',
-            'rol_id' => 'required|exists:rols,id',
+            'rol_id' => 'nullable|exists:rols,id',
+            'activo' => 'nullable|boolean',
+            'permisos' => 'nullable|array',
         ]);
 
         $usuario = User::create([
@@ -33,17 +34,16 @@ class UserController extends Controller
             'email' => $request->email,
             'password' => bcrypt($request->password),
             'rol_id' => $request->rol_id,
+            'activo' => $request->boolean('activo', true),
+            'permisos' => $request->permisos ?? [],
         ]);
 
         return response()->json([
-            'message' => 'Usuario creado con éxito',
-            'data' => $usuario
+            'message' => 'Usuario creado con exito',
+            'data' => $usuario->load('rol'),
         ], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show($id)
     {
         $usuario = User::with('rol')->find($id);
@@ -55,12 +55,9 @@ class UserController extends Controller
         return response()->json($usuario, 200);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, $id)
     {
-        $usuario = User::findOrFile($id);
+        $usuario = User::find($id);
 
         if (!$usuario) {
             return response()->json(['message' => 'Usuario no encontrado'], 404);
@@ -70,10 +67,12 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $id,
             'password' => 'nullable|string|min:6',
-            'rol_id' => 'required|exists:rols,id',
+            'rol_id' => 'nullable|exists:rols,id',
+            'activo' => 'nullable|boolean',
+            'permisos' => 'nullable|array',
         ]);
 
-        $data = $request->only(['name', 'email', 'rol_id']);
+        $data = $request->only(['name', 'email', 'rol_id', 'activo', 'permisos']);
 
         if ($request->filled('password')) {
             $data['password'] = bcrypt($request->password);
@@ -82,24 +81,21 @@ class UserController extends Controller
         $usuario->update($data);
 
         return response()->json([
-            'message' => 'Usuario actualizado con éxito',
-            'data' => $usuario
+            'message' => 'Usuario actualizado con exito',
+            'data' => $usuario->fresh('rol'),
         ], 200);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy($id)
     {
-        $usuario = User::findOrFile($id);
+        $usuario = User::find($id);
 
         if (!$usuario) {
             return response()->json(['message' => 'Usuario no encontrado'], 404);
         }
 
-        $usuario->delete();
+        $usuario->update(['activo' => false]);
 
-        return response()->json(['message' => 'Usuario eliminado con éxito'], 200);
+        return response()->json(['message' => 'Usuario desactivado con exito'], 200);
     }
 }

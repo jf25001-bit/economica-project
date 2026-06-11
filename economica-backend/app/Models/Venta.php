@@ -14,11 +14,15 @@ class Venta extends Model
     protected $fillable = [
         'cliente',
         'total',
+        'efectivo_recibido',
+        'cambio',
         'user_id'
     ];
 
     protected $casts = [
         'total' => 'decimal:2',
+        'efectivo_recibido' => 'decimal:2',
+        'cambio' => 'decimal:2',
     ];
 
     // Relación: Una venta pertenece a un usuario/empleado

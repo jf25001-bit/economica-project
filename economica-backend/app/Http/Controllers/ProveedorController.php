@@ -10,9 +10,25 @@ class ProveedorController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $proveedores = Proveedor::all();
+        $query = Proveedor::query();
+
+        if ($request->filled('search')) {
+            $query->where('nombre', 'like', '%' . $request->search . '%')
+                ->orWhere('telefono', 'like', '%' . $request->search . '%')
+                ->orWhere('email', 'like', '%' . $request->search . '%');
+        }
+
+        if ($request->filled('fecha_inicio')) {
+            $query->whereDate('created_at', '>=', $request->fecha_inicio);
+        }
+
+        if ($request->filled('fecha_fin')) {
+            $query->whereDate('created_at', '<=', $request->fecha_fin);
+        }
+
+        $proveedores = $query->latest()->get();
         return response()->json($proveedores, 200);
     }
 
@@ -49,7 +65,7 @@ class ProveedorController extends Controller
      */
     public function show($id)
     {
-        $proveedor = Proveedor::findOrFile($id);
+        $proveedor = Proveedor::find($id);
 
         if (!$proveedor) {
             return response()->json(['message' => 'Proveedor no encontrado'], 404);
@@ -71,7 +87,7 @@ class ProveedorController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $proveedor = Proveedor::findOrFile($id);
+        $proveedor = Proveedor::find($id);
 
         if (!$proveedor) {
             return response()->json(['message' => 'Proveedor no encontrado'], 404);
@@ -97,7 +113,7 @@ class ProveedorController extends Controller
      */
     public function destroy($id)
     {
-        $proveedor = Proveedor::findOrFile($id);
+        $proveedor = Proveedor::find($id);
 
         if (!$proveedor) {
             return response()->json(['message' => 'Proveedor no encontrado'], 404);

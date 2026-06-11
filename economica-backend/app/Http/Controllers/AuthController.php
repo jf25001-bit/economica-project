@@ -4,42 +4,43 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Validator;
-
 
 class AuthController extends Controller
 {
     public function login(Request $request)
     {
-        // 1. Dejamos la validación del request tal como está en el backend 'usuario'
         $fields = $request->validate([
             'usuario' => 'required|string',
-            'password' => 'required|string'
+            'password' => 'required|string',
         ]);
 
-        // 2. MODIFICACIÓN AQUÍ: Cambiamos 'usuario' por 'name' para que busque en la columna real de MySQL
-        $user = User::where('name', $fields['usuario'])->first();
+        $user = User::with('rol')->where('name', $fields['usuario'])->first();
 
-        // 3. Evaluamos si el registro existe y la contraseña encriptada coincide
         if (!$user || !Hash::check($fields['password'], $user->password)) {
             return response()->json([
-                'message' => 'Usuario o contraseña incorrectos.'
+                'message' => 'Usuario o contrasena incorrectos.',
             ], 401);
         }
 
-        // 4. Autenticación exitosa: Generamos y retornamos la respuesta limpia en JSON
+        if ($user->activo === false) {
+            return response()->json([
+                'message' => 'Este usuario esta desactivado.',
+            ], 403);
+        }
+
         return response()->json([
-            'message' => '¡Ingreso exitoso!',
-            'access_token' => 'mock-jwt-token-la-economica', // Si usas Sanctum cámbialo por $user->createToken('token')->plainTextToken
+            'message' => 'Ingreso exitoso',
+            'access_token' => 'mock-jwt-token-la-economica',
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
-                'rol_id' => $user->rol_id ?? 1
-            ]
+                'email' => $user->email,
+                'rol_id' => $user->rol_id,
+                'rol' => $user->rol,
+                'permisos' => $user->permisos ?? [],
+                'activo' => $user->activo,
+            ],
         ], 200);
     }
 }

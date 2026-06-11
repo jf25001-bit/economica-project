@@ -11,13 +11,23 @@ use Illuminate\Support\Facades\DB;
 
 class CompraController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $compras = Compra::with([
+            $query = Compra::with([
                 'detalles.producto.proveedor',
                 'detalles.lotes',
-            ])->latest()->get();
+            ]);
+
+            if ($request->filled('fecha_inicio')) {
+                $query->whereDate('fecha_compra', '>=', $request->fecha_inicio);
+            }
+
+            if ($request->filled('fecha_fin')) {
+                $query->whereDate('fecha_compra', '<=', $request->fecha_fin);
+            }
+
+            $compras = $query->latest()->get();
 
             return response()->json($compras);
         } catch (\Exception $e) {

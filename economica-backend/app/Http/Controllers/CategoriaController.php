@@ -70,7 +70,7 @@ class CategoriaController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $categoria = Categoria::findOrFile($id);
+        $categoria = Categoria::find($id);
 
         if (!$categoria) {
             return response()->json(['message' => 'Categoría no encontrada'], 404);
@@ -94,7 +94,7 @@ class CategoriaController extends Controller
      */
     public function destroy($id)
     {
-        $categoria = Categoria::findOrFile($id);
+        $categoria = Categoria::find($id);
 
         if (!$categoria) {
             return response()->json(['message' => 'Categoría no encontrada'], 404);

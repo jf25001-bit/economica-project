@@ -11,11 +11,19 @@ use Illuminate\Support\Facades\DB;
 
 class VentaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $ventas = Venta::with(['usuario', 'detalles.producto'])
-            ->latest()
-            ->get();
+        $query = Venta::with(['usuario', 'detalles.producto']);
+
+        if ($request->filled('fecha_inicio')) {
+            $query->whereDate('created_at', '>=', $request->fecha_inicio);
+        }
+
+        if ($request->filled('fecha_fin')) {
+            $query->whereDate('created_at', '<=', $request->fecha_fin);
+        }
+
+        $ventas = $query->latest()->get();
 
         return response()->json($ventas, 200);
     }
@@ -28,6 +36,7 @@ class VentaController extends Controller
             'productos' => 'required|array|min:1',
             'productos.*.producto_id' => 'required|exists:productos,id',
             'productos.*.cantidad' => 'required|integer|min:1',
+            'efectivo_recibido' => 'required|numeric|min:0',
         ]);
 
         DB::beginTransaction();
@@ -67,7 +76,19 @@ class VentaController extends Controller
                 $producto->decrement('stock', $cantidad);
             }
 
-            $venta->update(['total' => $totalVenta]);
+            if ((float) $request->efectivo_recibido < $totalVenta) {
+                DB::rollBack();
+
+                return response()->json([
+                    'message' => 'El efectivo recibido no cubre el total de la venta',
+                ], 422);
+            }
+
+            $venta->update([
+                'total' => $totalVenta,
+                'efectivo_recibido' => $request->efectivo_recibido,
+                'cambio' => (float) $request->efectivo_recibido - $totalVenta,
+            ]);
 
             DB::commit();
 
