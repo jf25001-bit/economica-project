@@ -8,15 +8,15 @@
           @input="cargarProductos"
           type="text"
           placeholder="Buscar producto..."
-          class="h-9 w-full rounded-md bg-gray-100 pl-9 pr-3 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[#46674A]/20"
+          class="h-9 w-full rounded-md bg-gray-100 pl-9 pr-3 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[#9FCFCC]/20"
         />
       </div>
 
       <div class="hidden items-center gap-2 md:flex">
-        <button class="text-gray-500 transition hover:text-[#46674A]">
+        <button class="text-gray-500 transition hover:text-[#9FCFCC]">
           <i class="bi bi-chat-left-text"></i>
         </button>
-        <button class="relative text-gray-500 transition hover:text-[#46674A]">
+        <button class="relative text-gray-500 transition hover:text-[#9FCFCC]">
           <i class="bi bi-bell"></i>
           <span class="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-red-500"></span>
         </button>
@@ -35,7 +35,7 @@
 
           <button
             @click="abrirModal"
-            class="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-[#46674A] px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#3b5740]"
+            class="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-[#9FCFCC] px-4 text-sm font-semibold text-gray-900 shadow-sm transition hover:bg-[#8bc0bd]"
           >
             <i class="bi bi-plus-lg"></i>
             Nuevo Producto
@@ -49,7 +49,7 @@
               <select
                 v-model="categoriaFiltro"
                 @change="cargarProductos"
-                class="h-8 rounded-md border border-gray-200 bg-gray-50 px-2 text-sm outline-none focus:ring-2 focus:ring-[#46674A]/20"
+                class="h-8 rounded-md border border-gray-200 bg-gray-50 px-2 text-sm outline-none focus:ring-2 focus:ring-[#9FCFCC]/20"
               >
                 <option value="">Todas</option>
                 <option
@@ -67,7 +67,7 @@
               <select
                 v-model="estado"
                 @change="cargarProductos"
-                class="h-8 rounded-md border border-gray-200 bg-gray-50 px-2 text-sm outline-none focus:ring-2 focus:ring-[#46674A]/20"
+                class="h-8 rounded-md border border-gray-200 bg-gray-50 px-2 text-sm outline-none focus:ring-2 focus:ring-[#9FCFCC]/20"
               >
                 <option value="">Todos</option>
                 <option value="disponible">Disponible</option>
@@ -87,7 +87,7 @@
               <select
                 v-model="ordenar"
                 @change="cargarProductos"
-                class="h-8 rounded-md border border-gray-200 bg-gray-50 px-2 text-sm outline-none focus:ring-2 focus:ring-[#46674A]/20"
+                class="h-8 rounded-md border border-gray-200 bg-gray-50 px-2 text-sm outline-none focus:ring-2 focus:ring-[#9FCFCC]/20"
               >
                 <option value="recientes">Recientes</option>
                 <option value="nombre">Nombre</option>
@@ -131,7 +131,7 @@
 
                   <td class="px-4 py-4">
                     <div class="flex items-center gap-3">
-                      <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-gray-100 text-[#46674A]">
+                      <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-gray-100 text-[#9FCFCC]">
                         <i class="bi bi-box-seam"></i>
                       </div>
                       <div class="min-w-0">
@@ -241,7 +241,7 @@
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
     >
       <div class="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl">
-        <div class="flex items-center justify-between bg-[#46674A] px-6 py-4 text-white">
+        <div class="flex items-center justify-between bg-[#9FCFCC] px-6 py-4 text-white">
           <div>
             <h3 class="text-xl font-bold">Nuevo Producto</h3>
             <p class="text-xs text-white/75">Completa los datos principales del producto</p>
@@ -268,7 +268,7 @@
                 required
                 type="text"
                 placeholder="Ej. Coca Cola 600ml"
-                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-[#46674A] focus:ring-2 focus:ring-[#46674A]/20"
+                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-[#9FCFCC] focus:ring-2 focus:ring-[#9FCFCC]/20"
               />
             </div>
 
@@ -278,7 +278,7 @@
                 v-model="nuevoProducto.codigo_barras"
                 type="text"
                 placeholder="Ej. 7501055300075"
-                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-[#46674A] focus:ring-2 focus:ring-[#46674A]/20"
+                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-[#9FCFCC] focus:ring-2 focus:ring-[#9FCFCC]/20"
               />
             </div>
 
@@ -288,7 +288,7 @@
                 v-model="nuevoProducto.categoria_id"
                 @change="alCambiarCategoriaProducto"
                 required
-                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-[#46674A] focus:ring-2 focus:ring-[#46674A]/20"
+                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-[#9FCFCC] focus:ring-2 focus:ring-[#9FCFCC]/20"
               >
                 <option value="">Seleccione una categoria</option>
                 <option
@@ -306,7 +306,7 @@
               <select
                 v-model="nuevoProducto.sub_categoria_id"
                 required
-                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-[#46674A] focus:ring-2 focus:ring-[#46674A]/20"
+                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-[#9FCFCC] focus:ring-2 focus:ring-[#9FCFCC]/20"
               >
                 <option value="">Seleccione una subcategoria</option>
                 <option
@@ -324,7 +324,7 @@
               <select
                 v-model="nuevoProducto.proveedor_id"
                 required
-                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-[#46674A] focus:ring-2 focus:ring-[#46674A]/20"
+                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-[#9FCFCC] focus:ring-2 focus:ring-[#9FCFCC]/20"
               >
                 <option value="">Seleccione un proveedor</option>
                 <option
@@ -344,7 +344,7 @@
                 required
                 min="0"
                 type="number"
-                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-[#46674A] focus:ring-2 focus:ring-[#46674A]/20"
+                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-[#9FCFCC] focus:ring-2 focus:ring-[#9FCFCC]/20"
               />
             </div>
 
@@ -355,7 +355,7 @@
                 required
                 min="0"
                 type="number"
-                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-[#46674A] focus:ring-2 focus:ring-[#46674A]/20"
+                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-[#9FCFCC] focus:ring-2 focus:ring-[#9FCFCC]/20"
               />
             </div>
 
@@ -367,7 +367,7 @@
                 min="0"
                 step="0.01"
                 type="number"
-                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-[#46674A] focus:ring-2 focus:ring-[#46674A]/20"
+                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-[#9FCFCC] focus:ring-2 focus:ring-[#9FCFCC]/20"
               />
             </div>
 
@@ -379,7 +379,7 @@
                 min="0"
                 step="0.01"
                 type="number"
-                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-[#46674A] focus:ring-2 focus:ring-[#46674A]/20"
+                class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-[#9FCFCC] focus:ring-2 focus:ring-[#9FCFCC]/20"
               />
             </div>
           </div>
@@ -396,7 +396,7 @@
             <button
               type="submit"
               :disabled="guardando"
-              class="h-10 rounded-lg bg-[#46674A] px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#3b5740] disabled:opacity-50"
+              class="h-10 rounded-lg bg-[#9FCFCC] px-4 text-sm font-semibold text-gray-900 shadow-sm transition hover:bg-[#8bc0bd] disabled:opacity-50"
             >
               {{ guardando ? 'Guardando...' : 'Guardar Producto' }}
             </button>
@@ -570,7 +570,7 @@ async function eliminarProducto(id) {
     text: 'Esta accion no se puede deshacer',
     icon: 'warning',
     showCancelButton: true,
-    confirmButtonColor: '#46674A',
+    confirmButtonColor: '#9FCFCC',
     cancelButtonColor: '#d33',
     confirmButtonText: 'Si, eliminar'
   })

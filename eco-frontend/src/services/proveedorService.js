@@ -13,10 +13,13 @@ const getHeaders = () => {
 }
 
 // Obtener proveedores
-export const getProveedores = async () => {
+export const getProveedores = async (params = {}) => {
   const response = await axios.get(
     API_URL,
-    getHeaders()
+    {
+      ...getHeaders(),
+      params
+    }
   )
 
   return response.data

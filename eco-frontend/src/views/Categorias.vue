@@ -12,7 +12,7 @@
 
       <button
         @click="abrirNuevaCategoria"
-        class="bg-[#46674A] hover:bg-[#3b5740] text-white px-6 py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex items-center gap-2"
+        class="bg-[#9FCFCC] hover:bg-[#8bc0bd] text-gray-900 px-6 py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex items-center gap-2"
       >
         <i class="bi bi-plus-lg"></i>
         Nueva Categoría
@@ -25,7 +25,7 @@
         v-model="filtro"
         type="text"
         placeholder="Buscar categoría..."
-        class="w-full px-4 py-3 border border-gray-300 rounded-2xl shadow-sm focus:ring-2 focus:ring-[#46674A] focus:border-transparent outline-none"
+        class="w-full px-4 py-3 border border-gray-300 rounded-2xl shadow-sm focus:ring-2 focus:ring-[#9FCFCC] focus:border-transparent outline-none"
       />
     </div>
 
@@ -64,7 +64,7 @@
                 <span
                   v-for="sub in cat.subcategorias"
                   :key="sub.id"
-                  class="inline-block bg-[#46674A]/10 text-[#46674A] px-3 py-1 rounded-full text-sm mr-2 mb-1"
+                  class="inline-block bg-[#9FCFCC]/10 text-[#9FCFCC] px-3 py-1 rounded-full text-sm mr-2 mb-1"
                 >
                   {{ sub.nombre }}
                 </span>
@@ -118,7 +118,7 @@
   >
 
     <!-- Header -->
-    <div class="bg-[#46674A] text-white px-8 py-5 flex justify-between items-center">
+    <div class="bg-[#9FCFCC] text-gray-900 px-8 py-5 flex justify-between items-center">
       <div>
         <h2 class="text-2xl font-bold">
           {{ editando ? 'Editar Categoría' : 'Nueva Categoría' }}
@@ -143,7 +143,7 @@
       <!-- Nombre categoría -->
       <div>
         <label class="block text-sm font-semibold text-gray-700 mb-2">
-          <i class="bi bi-folder-fill mr-2 text-[#46674A]"></i>
+          <i class="bi bi-folder-fill mr-2 text-[#9FCFCC]"></i>
           Nombre de la categoría
         </label>
 
@@ -151,7 +151,7 @@
           v-model="nombre"
           type="text"
           placeholder="Ingrese el nombre de la categoría"
-          class="w-full px-4 py-3 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-[#46674A] focus:border-[#46674A] outline-none transition"
+          class="w-full px-4 py-3 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-[#9FCFCC] focus:border-[#9FCFCC] outline-none transition"
         />
       </div>
 
@@ -163,7 +163,7 @@
         >
           <div>
             <p class="font-semibold text-gray-700">
-              <i class="bi bi-tags-fill mr-2 text-[#46674A]"></i>
+              <i class="bi bi-tags-fill mr-2 text-[#9FCFCC]"></i>
               Agregar subcategorías
             </p>
 
@@ -174,7 +174,7 @@
 
           <i
             :class="mostrarSubcategorias ? 'bi bi-chevron-up' : 'bi bi-chevron-down'"
-            class="text-[#46674A] text-xl"
+            class="text-[#9FCFCC] text-xl"
           ></i>
         </button>
       </div>
@@ -183,7 +183,7 @@
       <div v-if="mostrarSubcategorias">
 
         <label class="block text-sm font-semibold text-gray-700 mb-3">
-          <i class="bi bi-tags-fill mr-2 text-[#46674A]"></i>
+          <i class="bi bi-tags-fill mr-2 text-[#9FCFCC]"></i>
           Subcategorías
         </label>
 
@@ -192,7 +192,7 @@
           <span
             v-for="(sub, i) in subExistentes"
             :key="sub.id"
-            class="bg-green-100 text-[#46674A] px-3 py-2 rounded-xl flex items-center gap-2"
+            class="bg-green-100 text-[#9FCFCC] px-3 py-2 rounded-xl flex items-center gap-2"
           >
             {{ sub.nombre }}
 
@@ -211,12 +211,12 @@
             v-model="nuevaSub"
             @keyup.enter="agregarSub"
             placeholder="Nueva subcategoría"
-            class="flex-1 px-4 py-3 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-[#46674A] focus:border-[#46674A] outline-none"
+            class="flex-1 px-4 py-3 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-[#9FCFCC] focus:border-[#9FCFCC] outline-none"
           />
 
           <button
             @click="agregarSub"
-            class="bg-[#46674A] hover:bg-[#3b5740] text-white px-5 rounded-2xl shadow-md"
+            class="bg-[#9FCFCC] hover:bg-[#8bc0bd] text-gray-900 px-5 rounded-2xl shadow-md"
           >
             <i class="bi bi-plus-lg"></i>
           </button>
@@ -257,7 +257,7 @@
       <button
         @click="guardar"
         :disabled="guardando"
-        class="px-6 py-3 rounded-xl bg-[#46674A] text-white font-semibold hover:bg-[#3b5740] shadow-lg transition disabled:opacity-50"
+        class="px-6 py-3 rounded-xl bg-[#9FCFCC] text-gray-900 font-semibold hover:bg-[#8bc0bd] shadow-lg transition disabled:opacity-50"
       >
         <i class="bi bi-check-circle me-2"></i>
         {{ guardando ? 'Guardando...' : 'Guardar' }}
@@ -459,7 +459,7 @@ async function eliminarCategoria(catId) {
     text: 'Esta acción no se puede deshacer',
     icon: 'warning',
     showCancelButton: true,
-    confirmButtonColor: '#46674A',
+    confirmButtonColor: '#9FCFCC',
     cancelButtonColor: '#d33',
     confirmButtonText: 'Sí, eliminar'
   })

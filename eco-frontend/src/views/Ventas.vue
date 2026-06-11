@@ -8,7 +8,7 @@
 
       <button
         @click="abrirModal"
-        class="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[#46674A] px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#3b5740]"
+        class="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[#9FCFCC] px-4 text-sm font-semibold text-gray-900 shadow-sm transition hover:bg-[#8bc0bd]"
       >
         <i class="bi bi-plus-lg"></i>
         Nueva Venta
@@ -22,7 +22,7 @@
       </div>
       <div class="rounded-lg border border-gray-200 bg-white p-4">
         <p class="text-xs font-semibold uppercase text-gray-500">Ingresos</p>
-        <p class="mt-1 text-2xl font-bold text-[#46674A]">${{ formatoPrecio(totalVentas) }}</p>
+        <p class="mt-1 text-2xl font-bold text-gray-950">${{ formatoPrecio(totalVentas) }}</p>
       </div>
       <div class="rounded-lg border border-gray-200 bg-white p-4">
         <p class="text-xs font-semibold uppercase text-gray-500">Unidades vendidas</p>
@@ -37,7 +37,7 @@
           v-model="busqueda"
           type="text"
           placeholder="Buscar por cliente, producto o factura..."
-          class="h-10 w-full rounded-md bg-gray-100 pl-9 pr-3 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[#46674A]/20"
+          class="h-10 w-full rounded-md bg-gray-100 pl-9 pr-3 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[#9FCFCC]/50"
         />
       </div>
     </div>
@@ -60,7 +60,7 @@
             <tr
               v-for="venta in ventasFiltradas"
               :key="venta.id"
-              class="text-sm transition hover:bg-green-50"
+              class="text-sm transition hover:bg-[#9FCFCC]/10"
             >
               <td class="px-4 py-4 font-semibold text-gray-900">F{{ String(venta.id).padStart(4, '0') }}</td>
               <td class="px-4 py-4 text-gray-700">{{ venta.cliente || 'Consumidor Final' }}</td>
@@ -115,12 +115,12 @@
                   v-model="cliente"
                   type="text"
                   placeholder="Consumidor Final"
-                  class="h-10 w-full rounded-md border border-gray-300 px-3 text-sm outline-none focus:border-[#46674A] focus:ring-2 focus:ring-[#46674A]/20"
+                  class="h-10 w-full rounded-md border border-gray-300 px-3 text-sm outline-none focus:border-[#9FCFCC] focus:ring-2 focus:ring-[#9FCFCC]/40"
                 />
               </div>
               <div class="rounded-md bg-gray-100 px-4 py-3">
                 <p class="text-xs text-gray-500">Total</p>
-                <p class="text-2xl font-bold text-[#46674A]">${{ formatoPrecio(totalCarrito) }}</p>
+                <p class="text-2xl font-bold text-gray-950">${{ formatoPrecio(totalCarrito) }}</p>
               </div>
             </div>
 
@@ -132,7 +132,7 @@
                   @keyup.enter.prevent="agregarPrimeroFiltrado"
                   type="text"
                   placeholder="Codigo de barras o nombre del producto"
-                  class="h-10 w-full rounded-md border border-gray-300 pl-9 pr-3 text-sm outline-none focus:border-[#46674A] focus:ring-2 focus:ring-[#46674A]/20"
+                  class="h-10 w-full rounded-md border border-gray-300 pl-9 pr-3 text-sm outline-none focus:border-[#9FCFCC] focus:ring-2 focus:ring-[#9FCFCC]/40"
                   autofocus
                 />
               </div>
@@ -140,12 +140,12 @@
                 v-model.number="cantidad"
                 min="1"
                 type="number"
-                class="h-10 rounded-md border border-gray-300 px-3 text-sm outline-none focus:border-[#46674A] focus:ring-2 focus:ring-[#46674A]/20"
+                class="h-10 rounded-md border border-gray-300 px-3 text-sm outline-none focus:border-[#9FCFCC] focus:ring-2 focus:ring-[#9FCFCC]/40"
               />
               <button
                 type="button"
                 @click="agregarPrimeroFiltrado"
-                class="h-10 rounded-md bg-[#46674A] px-4 text-sm font-semibold text-white transition hover:bg-[#3b5740]"
+                class="h-10 rounded-md bg-[#9FCFCC] px-4 text-sm font-semibold text-gray-900 transition hover:bg-[#8bc0bd]"
               >
                 Agregar
               </button>
@@ -174,7 +174,7 @@
                           min="1"
                           :max="item.stock"
                           type="number"
-                          class="h-8 w-20 rounded-md border border-gray-300 px-2 text-sm outline-none focus:border-[#46674A]"
+                          class="h-8 w-20 rounded-md border border-gray-300 px-2 text-sm outline-none focus:border-[#9FCFCC]"
                         />
                       </td>
                       <td class="px-4 py-3">{{ item.stock }}</td>
@@ -202,7 +202,7 @@
                 :key="producto.id"
                 type="button"
                 @click="agregarProducto(producto)"
-                class="w-full rounded-md border border-gray-200 bg-white p-3 text-left transition hover:border-[#46674A] hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-50"
+                class="w-full rounded-md border border-gray-200 bg-white p-3 text-left transition hover:border-[#9FCFCC] hover:bg-[#9FCFCC]/10 disabled:cursor-not-allowed disabled:opacity-50"
                 :disabled="producto.stock <= 0"
               >
                 <div class="flex items-start justify-between gap-3">
@@ -210,10 +210,34 @@
                     <p class="truncate text-sm font-semibold text-gray-950">{{ producto.nombre }}</p>
                     <p class="truncate text-xs text-gray-500">{{ producto.codigo_barras || 'Sin codigo' }}</p>
                   </div>
-                  <p class="text-sm font-bold text-[#46674A]">${{ formatoPrecio(producto.precio_venta) }}</p>
+                  <p class="text-sm font-bold text-gray-900">${{ formatoPrecio(producto.precio_venta) }}</p>
                 </div>
                 <p class="mt-2 text-xs text-gray-500">Stock: {{ producto.stock }}</p>
               </button>
+            </div>
+
+            <div class="mt-5 space-y-3 rounded-lg border border-gray-200 bg-white p-3">
+              <label>
+                <span class="mb-1 block text-sm font-semibold text-gray-700">Efectivo recibido</span>
+                <input
+                  v-model.number="efectivoRecibido"
+                  min="0"
+                  step="0.01"
+                  type="number"
+                  class="h-10 w-full rounded-md border border-gray-300 px-3 text-sm outline-none focus:border-[#9FCFCC] focus:ring-2 focus:ring-[#9FCFCC]/40"
+                  placeholder="0.00"
+                />
+              </label>
+              <div class="grid grid-cols-2 gap-3">
+                <div class="rounded-md bg-gray-100 px-3 py-2">
+                  <p class="text-xs text-gray-500">Total</p>
+                  <p class="text-lg font-bold text-gray-950">${{ formatoPrecio(totalCarrito) }}</p>
+                </div>
+                <div class="rounded-md px-3 py-2" :class="cambio < 0 ? 'bg-red-50' : 'bg-[#9FCFCC]/25'">
+                  <p class="text-xs text-gray-500">Cambio</p>
+                  <p class="text-lg font-bold" :class="cambio < 0 ? 'text-red-600' : 'text-gray-950'">${{ formatoPrecio(Math.max(cambio, 0)) }}</p>
+                </div>
+              </div>
             </div>
 
             <div class="mt-5 flex gap-3">
@@ -227,7 +251,7 @@
               <button
                 type="submit"
                 :disabled="guardando"
-                class="h-10 flex-1 rounded-md bg-[#46674A] px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#3b5740] disabled:opacity-50"
+                class="h-10 flex-1 rounded-md bg-[#9FCFCC] px-4 text-sm font-semibold text-gray-900 shadow-sm transition hover:bg-[#8bc0bd] disabled:opacity-50"
               >
                 {{ guardando ? 'Procesando...' : 'Finalizar' }}
               </button>
@@ -252,6 +276,7 @@ const busqueda = ref('')
 const busquedaProducto = ref('')
 const cliente = ref('Consumidor Final')
 const cantidad = ref(1)
+const efectivoRecibido = ref('')
 const cargando = ref(false)
 const guardando = ref(false)
 const mostrarModal = ref(false)
@@ -277,6 +302,7 @@ const productosFiltrados = computed(() => {
 })
 
 const totalCarrito = computed(() => carrito.value.reduce((suma, item) => suma + Number(item.precio_venta) * Number(item.cantidad), 0))
+const cambio = computed(() => Number(efectivoRecibido.value || 0) - totalCarrito.value)
 const totalVentas = computed(() => ventas.value.reduce((suma, venta) => suma + Number(venta.total || 0), 0))
 const unidadesVendidas = computed(() => ventas.value.reduce((suma, venta) => {
   return suma + (venta.detalles || []).reduce((acc, detalle) => acc + Number(detalle.cantidad || 0), 0)
@@ -310,6 +336,7 @@ function abrirModal() {
   cliente.value = 'Consumidor Final'
   busquedaProducto.value = ''
   cantidad.value = 1
+  efectivoRecibido.value = ''
   mostrarModal.value = true
 }
 
@@ -371,6 +398,11 @@ async function finalizarVenta() {
     return
   }
 
+  if (efectivoRecibido.value === '' || efectivoRecibido.value === null || Number(efectivoRecibido.value) < totalCarrito.value) {
+    Swal.fire('Efectivo insuficiente', 'Ingresa el efectivo recibido para calcular el cambio y cubrir el total', 'warning')
+    return
+  }
+
   guardando.value = true
   try {
     await createVenta({
@@ -378,7 +410,8 @@ async function finalizarVenta() {
       productos: carrito.value.map(item => ({
         producto_id: item.producto_id,
         cantidad: Number(item.cantidad)
-      }))
+      })),
+      efectivo_recibido: Number(efectivoRecibido.value)
     })
 
     await Promise.all([

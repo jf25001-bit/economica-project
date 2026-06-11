@@ -8,7 +8,7 @@
 
       <button
         @click="abrirModal"
-        class="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[#46674A] px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#3b5740]"
+        class="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[#9FCFCC] px-4 text-sm font-semibold text-gray-900 shadow-sm transition hover:bg-[#8bc0bd]"
       >
         <i class="bi bi-plus-lg"></i>
         Nueva Compra
@@ -22,7 +22,7 @@
       </div>
       <div class="rounded-lg border border-gray-200 bg-white p-4">
         <p class="text-xs font-semibold uppercase text-gray-500">Total invertido</p>
-        <p class="mt-1 text-2xl font-bold text-[#46674A]">${{ formatoPrecio(totalCompras) }}</p>
+        <p class="mt-1 text-2xl font-bold text-gray-950">${{ formatoPrecio(totalCompras) }}</p>
       </div>
       <div class="rounded-lg border border-gray-200 bg-white p-4">
         <p class="text-xs font-semibold uppercase text-gray-500">Productos recibidos</p>
@@ -30,16 +30,19 @@
       </div>
     </div>
 
-    <div class="mb-4 rounded-lg border border-gray-200 bg-white p-3">
+    <div class="mb-4 grid gap-3 rounded-lg border border-gray-200 bg-white p-3 md:grid-cols-[1fr_180px_180px_auto]">
       <div class="relative">
         <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
         <input
           v-model="busqueda"
           type="text"
           placeholder="Buscar por proveedor, producto o estado..."
-          class="h-10 w-full rounded-md bg-gray-100 pl-9 pr-3 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[#46674A]/20"
+          class="h-10 w-full rounded-md bg-gray-100 pl-9 pr-3 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[#9FCFCC]/50"
         />
       </div>
+      <input v-model="fechaInicio" type="date" class="h-10 rounded-md border border-gray-300 px-3 text-sm outline-none focus:border-[#9FCFCC] focus:ring-2 focus:ring-[#9FCFCC]/40" />
+      <input v-model="fechaFin" type="date" class="h-10 rounded-md border border-gray-300 px-3 text-sm outline-none focus:border-[#9FCFCC] focus:ring-2 focus:ring-[#9FCFCC]/40" />
+      <button @click="cargarCompras" class="h-10 rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 hover:bg-gray-50">Filtrar</button>
     </div>
 
     <div class="overflow-hidden rounded-lg border border-gray-200 bg-white">
@@ -60,7 +63,7 @@
             <tr
               v-for="compra in comprasFiltradas"
               :key="compra.id"
-              class="text-sm transition hover:bg-green-50"
+              class="text-sm transition hover:bg-[#9FCFCC]/10"
             >
               <td class="px-4 py-4 font-semibold text-gray-900">C{{ String(compra.id).padStart(4, '0') }}</td>
               <td class="px-4 py-4 text-gray-700">{{ proveedorCompra(compra) }}</td>
@@ -120,14 +123,14 @@
               <input
                 v-model="form.fecha_compra"
                 type="date"
-                class="h-10 w-full rounded-md border border-gray-300 px-3 text-sm outline-none focus:border-[#46674A] focus:ring-2 focus:ring-[#46674A]/20"
+                class="h-10 w-full rounded-md border border-gray-300 px-3 text-sm outline-none focus:border-[#9FCFCC] focus:ring-2 focus:ring-[#9FCFCC]/40"
               />
             </div>
             <div>
               <label class="mb-1 block text-sm font-semibold text-gray-700">Estado</label>
               <select
                 v-model="form.estado"
-                class="h-10 w-full rounded-md border border-gray-300 px-3 text-sm outline-none focus:border-[#46674A] focus:ring-2 focus:ring-[#46674A]/20"
+                class="h-10 w-full rounded-md border border-gray-300 px-3 text-sm outline-none focus:border-[#9FCFCC] focus:ring-2 focus:ring-[#9FCFCC]/40"
               >
                 <option value="completada">Completada</option>
                 <option value="pendiente">Pendiente</option>
@@ -135,7 +138,7 @@
             </div>
             <div class="rounded-md bg-gray-100 px-4 py-3">
               <p class="text-xs text-gray-500">Total</p>
-              <p class="text-2xl font-bold text-[#46674A]">${{ formatoPrecio(totalFormulario) }}</p>
+              <p class="text-2xl font-bold text-gray-950">${{ formatoPrecio(totalFormulario) }}</p>
             </div>
           </div>
 
@@ -143,7 +146,7 @@
             <div class="grid gap-3 border-b border-gray-100 bg-gray-50 p-3 md:grid-cols-[1.3fr_.45fr_.45fr_.7fr_.55fr_auto]">
               <select
                 v-model="linea.producto_id"
-                class="h-10 rounded-md border border-gray-300 px-3 text-sm outline-none focus:border-[#46674A] focus:ring-2 focus:ring-[#46674A]/20"
+                class="h-10 rounded-md border border-gray-300 px-3 text-sm outline-none focus:border-[#9FCFCC] focus:ring-2 focus:ring-[#9FCFCC]/40"
               >
                 <option value="">Producto</option>
                 <option
@@ -159,7 +162,7 @@
                 min="1"
                 type="number"
                 placeholder="Cantidad"
-                class="h-10 rounded-md border border-gray-300 px-3 text-sm outline-none focus:border-[#46674A] focus:ring-2 focus:ring-[#46674A]/20"
+                class="h-10 rounded-md border border-gray-300 px-3 text-sm outline-none focus:border-[#9FCFCC] focus:ring-2 focus:ring-[#9FCFCC]/40"
               />
               <input
                 v-model.number="linea.precio_compra"
@@ -167,23 +170,23 @@
                 step="0.01"
                 type="number"
                 placeholder="Precio"
-                class="h-10 rounded-md border border-gray-300 px-3 text-sm outline-none focus:border-[#46674A] focus:ring-2 focus:ring-[#46674A]/20"
+                class="h-10 rounded-md border border-gray-300 px-3 text-sm outline-none focus:border-[#9FCFCC] focus:ring-2 focus:ring-[#9FCFCC]/40"
               />
               <input
                 v-model="linea.codigo_lote"
                 type="text"
                 placeholder="Lote"
-                class="h-10 rounded-md border border-gray-300 px-3 text-sm outline-none focus:border-[#46674A] focus:ring-2 focus:ring-[#46674A]/20"
+                class="h-10 rounded-md border border-gray-300 px-3 text-sm outline-none focus:border-[#9FCFCC] focus:ring-2 focus:ring-[#9FCFCC]/40"
               />
               <input
                 v-model="linea.fecha_expiracion"
                 type="date"
-                class="h-10 rounded-md border border-gray-300 px-3 text-sm outline-none focus:border-[#46674A] focus:ring-2 focus:ring-[#46674A]/20"
+                class="h-10 rounded-md border border-gray-300 px-3 text-sm outline-none focus:border-[#9FCFCC] focus:ring-2 focus:ring-[#9FCFCC]/40"
               />
               <button
                 type="button"
                 @click="agregarDetalle"
-                class="h-10 rounded-md bg-[#46674A] px-4 text-sm font-semibold text-white transition hover:bg-[#3b5740]"
+                class="h-10 rounded-md bg-[#9FCFCC] px-4 text-sm font-semibold text-gray-900 transition hover:bg-[#8bc0bd]"
               >
                 Agregar
               </button>
@@ -233,7 +236,7 @@
             <button
               type="submit"
               :disabled="guardando"
-              class="h-10 rounded-md bg-[#46674A] px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#3b5740] disabled:opacity-50"
+              class="h-10 rounded-md bg-[#9FCFCC] px-4 text-sm font-semibold text-gray-900 shadow-sm transition hover:bg-[#8bc0bd] disabled:opacity-50"
             >
               {{ guardando ? 'Guardando...' : 'Guardar Compra' }}
             </button>
@@ -253,6 +256,8 @@ import { getProductos } from '@/services/productoService'
 const compras = ref([])
 const productos = ref([])
 const busqueda = ref('')
+const fechaInicio = ref('')
+const fechaFin = ref('')
 const cargando = ref(false)
 const guardando = ref(false)
 const mostrarModal = ref(false)
@@ -311,7 +316,10 @@ function modeloLinea() {
 async function cargarCompras() {
   cargando.value = true
   try {
-    compras.value = await getCompras()
+    compras.value = await getCompras({
+      fecha_inicio: fechaInicio.value || undefined,
+      fecha_fin: fechaFin.value || undefined
+    })
   } catch (error) {
     Swal.fire('Error', error?.response?.data?.message || 'No se pudieron cargar las compras', 'error')
   } finally {
@@ -380,7 +388,7 @@ async function guardarCompra() {
     cerrarModal()
     Swal.fire({ icon: 'success', title: 'Compra guardada', timer: 1400, showConfirmButton: false })
   } catch (error) {
-    Swal.fire('Error', error?.response?.data?.message || 'No se pudo guardar la compra', 'error')
+    Swal.fire('Error', error?.response?.data?.error || error?.response?.data?.message || 'No se pudo guardar la compra', 'error')
   } finally {
     guardando.value = false
   }
@@ -419,7 +427,7 @@ function etiquetaEstado(estado) {
 
 function claseEstado(estado) {
   return {
-    completada: 'bg-green-100 text-green-700',
+    completada: 'bg-[#9FCFCC]/40 text-gray-800',
     pendiente: 'bg-amber-100 text-amber-700',
     cancelada: 'bg-red-100 text-red-700'
   }[estado] || 'bg-gray-100 text-gray-700'

@@ -1,7 +1,7 @@
 <template>
   <aside
     :class="[
-       'bg-[#405c44] text-white h-screen fixed left-0 top-0 transition-all duration-300 shadow-xl flex flex-col z-40 border-r border-white/5',
+       'bg-[#9FCFCC] text-gray-900 h-screen fixed left-0 top-0 transition-all duration-300 shadow-xl flex flex-col z-40 border-r border-white/5',
       isOpen ? 'w-60' : 'w-20'
     ]"
   >
@@ -19,7 +19,7 @@
       />
 
      <div v-if="isOpen" class="overflow-hidden whitespace-nowrap transition-all duration-300">
-        <h1 class="font-bold text-base tracking-wide text-white leading-tight">La Económica</h1>
+        <h1 class="font-bold text-base tracking-wide text-gray-950 leading-tight">La Económica</h1>
       </div>
     </div>
 
@@ -29,8 +29,8 @@
         v-for="item in menu"
         :key="item.name"
         :to="item.route"
-         class="flex items-center gap-8 px-3 py-3 mx-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all duration-200 group"
-        active-class="bg-white/15 text-white font-semibold shadow-inner border-1-4 border-white !rounded-l-none"
+         class="flex items-center gap-8 px-3 py-3 mx-2 rounded-xl text-gray-700 hover:text-gray-950 hover:bg-white/35 transition-all duration-200 group"
+        active-class="bg-white/60 text-gray-950 font-semibold shadow-inner border-1-4 border-white !rounded-l-none"
         :title="!isOpen ? item.name : ''"
       >
         <i :class="[item.icon, 'text-xl transition-transform group-hover:scale-110 shrink-0']"></i>
@@ -45,10 +45,10 @@
     </nav>
 
     <!-- Cerrar sesión -->
-      <div class="p-3 border-t border-white/10 bg-black/10">
+      <div class="p-3 border-t border-white/30 bg-white/20">
       <button
         @click="cerrarSesion"
-        class="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-black/70 hover:text-red-200 hover:bg-red-500/20 transition-all duration-200 group"
+        class="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-gray-800 hover:text-red-700 hover:bg-red-100/70 transition-all duration-200 group"
         :title="!isOpen ? 'Cerrar sesión' : ''"
       >
          <i class="bi bi-box-arrow-left text-xl transition-transform group-hover:-translate-x-0.5 shrink-0"></i>
