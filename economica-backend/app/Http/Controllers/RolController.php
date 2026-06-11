@@ -9,82 +9,62 @@ use Illuminate\Http\JsonResponse;
 class RolController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Listar roles
      */
     public function index(): JsonResponse
     {
-        $roles = Rol::all();
-        return response()->json($roles, 200);
+        return response()->json(
+            Rol::all(),
+            200
+        );
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create(): JsonResponse
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
+     * Crear rol
      */
     public function store(Request $request): JsonResponse
     {
-        // Validamos los datos que vienen desde Vue
         $request->validate([
             'nombre' => 'required|string|max:50|unique:rols,nombre',
             'descripcion' => 'nullable|string|max:255',
         ]);
 
-        // Creamos el registro
-        $rol = Rol::create($request->all());
+        $rol = Rol::create([
+            'nombre' => $request->nombre,
+            'descripcion' => $request->descripcion
+        ]);
 
         return response()->json([
             'message' => 'Rol creado con éxito',
             'data' => $rol
-        ], 21); // 21: Created
+        ], 201);
     }
 
     /**
-     * Display the specified resource.
+     * Mostrar rol
      */
     public function show(Rol $rol): JsonResponse
     {
-        $rol = Rol::find($id);
-
-        if (!$rol) {
-            return response()->json(['message' => 'Rol no encontrado'], 404);
-        }
-
-        return response()->json($rol, 200);
+        return response()->json(
+            $rol,
+            200
+        );
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Rol $rol): JsonResponse
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
+     * Actualizar rol
      */
     public function update(Request $request, Rol $rol): JsonResponse
     {
-        $rol = Rol::find($id);
-
-        if (!$rol) {
-            return response()->json(['message' => 'Rol no encontrado'], 404);
-        }
-
-        // Validamos, ignorando el nombre del rol actual para que no choque con el 'unique'
         $request->validate([
-            'nombre' => 'required|string|max:50|unique:rols,nombre,' . $id,
+            'nombre' => 'required|string|max:50|unique:rols,nombre,' . $rol->id,
             'descripcion' => 'nullable|string|max:255',
         ]);
 
-        $rol->update($request->all());
+        $rol->update([
+            'nombre' => $request->nombre,
+            'descripcion' => $request->descripcion
+        ]);
 
         return response()->json([
             'message' => 'Rol actualizado con éxito',
@@ -93,18 +73,14 @@ class RolController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Eliminar rol
      */
     public function destroy(Rol $rol): JsonResponse
     {
-        $rol = Rol::find($id);
-
-        if (!$rol) {
-            return response()->json(['message' => 'Rol no encontrado'], 404);
-        }
-
         $rol->delete();
 
-        return response()->json(['message' => 'Rol eliminado con éxito'], 200);
+        return response()->json([
+            'message' => 'Rol eliminado con éxito'
+        ], 200);
     }
 }
