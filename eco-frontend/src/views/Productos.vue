@@ -51,11 +51,12 @@
             <thead class="bg-gray-100 border-b border-gray-200">
               <tr class="text-gray-700 text-sm font-semibold">
                 <th class="px-6 py-4" style="width: 15%;">SKU / Código</th>
-                <th class="px-6 py-4" style="width: 15%;">Imagen</th>
-                <th class="px-6 py-4" style="width: 25%;">Producto</th>
-                <th class="px-6 py-4" style="width: 20%;">Categoría / Subcategoría</th>
-                <th class="px-6 py-4" style="width: 10%;">Stock</th>
-                <th class="px-6 py-4" style="width: 15%;">Precio Venta</th>
+                <th class="px-6 py-4" style="width: 12%;">Imagen</th>
+                <th class="px-6 py-4" style="width: 23%;">Producto</th>
+                <th class="px-6 py-4" style="width: 18%;">Categoría / Subcategoría</th>
+                <th class="px-6 py-4" style="width: 13%;">Estado</th>
+                <th class="px-6 py-4" style="width: 9%;">Stock</th>
+                <th class="px-6 py-4" style="width: 10%;">Precio Venta</th>
                 <th class="px-6 py-4 text-right" style="width: 10%;">Acciones</th>
               </tr>
             </thead>
@@ -81,11 +82,20 @@
                 </td>
 
                 <td class="px-6 py-4">
-                  <span :class="producto.stock <= (producto.stock_minimo || 5) ? 'text-red-600 font-bold' : 'text-gray-700'">
+                  <span 
+                    class="rounded-full px-2.5 py-1 text-xs font-semibold inline-block"
+                    :class="Number(producto.stock) <= (Number(producto.stock_minimo) || 5) ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'"
+                  >
+                    {{ Number(producto.stock) <= (Number(producto.stock_minimo) || 5) ? 'Bajo Stock' : 'Disponible' }}
+                  </span>
+                </td>
+
+                <td class="px-6 py-4">
+                  <span :class="Number(producto.stock) <= (Number(producto.stock_minimo) || 5) ? 'text-amber-600 font-bold' : 'text-gray-700'">
                     {{ producto.stock }}
                   </span>
                 </td>
-                <td class="px-6 py-4 font-medium text-gray-900">${{ producto.precio_venta }}</td>
+                <td class="px-6 py-4 font-medium text-gray-990">${{ producto.precio_venta }}</td>
                 
                 <td class="px-6 py-4 text-right">
                   <div class="flex gap-2 justify-end">
@@ -99,7 +109,7 @@
                 </td>
               </tr>
               <tr v-if="productosFiltrados.length === 0">
-                <td colspan="7" class="text-center py-8 text-gray-400 italic">No se encontraron productos con los filtros seleccionados.</td>
+                <td colspan="8" class="text-center py-8 text-gray-400 italic">No se encontraron productos con los filtros seleccionados.</td>
               </tr>
             </tbody>
           </table>
