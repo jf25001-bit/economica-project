@@ -75,17 +75,24 @@ defineProps({
 })
 
 const router = useRouter()
-
-const menu = [
+const user = JSON.parse(localStorage.getItem('user'))
+const rol = user?.rol?.nombre
+ const menu = [
   { name: 'Inicio', route: '/dashboard', icon: 'bi bi-house-door-fill' },
   { name: 'Categorias', route: '/categorias', icon: 'bi bi-grid-3x3-gap-fill' },
   { name: 'Productos', route: '/productos', icon: 'bi bi-box-seam-fill' },
-  { name: 'Inventario', route: '/inventario', icon: 'bi bi-archive-fill' },
   { name: 'Compras', route: '/compras', icon: 'bi bi-basket2-fill' },
   { name: 'Proveedores', route: '/proveedores', icon: 'bi bi-building' },
   { name: 'Ventas', route: '/ventas', icon: 'bi bi-cash-coin' },
-  { name: 'Usuarios', route: '/usuarios', icon: 'bi bi-person-badge-fill' },
-  { name: 'Reportes', route: '/reportes', icon: 'bi bi-bar-chart-line-fill' }
+
+  // SOLO ADMIN
+  ...(rol === 'Administrador'
+    ? [
+        { name: 'Inventario', route: '/inventario', icon: 'bi bi-archive-fill' },
+        { name: 'Usuarios', route: '/usuarios', icon: 'bi bi-person-badge-fill' },
+        { name: 'Reportes', route: '/reportes', icon: 'bi bi-bar-chart-line-fill' }
+      ]
+    : [])
 ]
 const cerrarSesion = async () => {
   try {

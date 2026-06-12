@@ -12,17 +12,34 @@ use App\Models\User;
 
 class AuthController extends Controller
 {
-    public function login(Request $request){
-        $credenciales = $request->only('name','password');
-        //evaluamos si no se obtiene un token válido
-        if(!$token = Auth::attempt($credenciales)){
-           return response()->json([
-            'message'=> 'Credenciales inválidas'
-           ], 401);     
-        }
-        //en caso de exitoso retornamos el token
-        return $this->responseWithToken($token);
+    public function login(Request $request)
+{
+    $credenciales = $request->only('name','password');
+
+    if (!$token = Auth::attempt($credenciales)) {
+        return response()->json([
+            'message' => 'Credenciales inválidas'
+        ], 401);
     }
+
+    $user = User::with('rol')->find(Auth::id());
+
+    if (!$user->activo) {
+
+        Auth::logout();
+
+        return response()->json([
+            'message' => 'Usuario desactivado'
+        ], 403);
+    }
+
+    return response()->json([
+        'access_token' => $token,
+        'token_type' => 'bearer',
+        'user' => $user,
+        'expires_in' => JWTAuth::factory()->getTTL() * 60
+    ]);
+}
     
 
     public function register(Request $request){
@@ -36,11 +53,12 @@ class AuthController extends Controller
           return response()->json($validator->errors(),422);
       }
       //creamos el usuario
-      $user = User::create([
-          'name' => $request->name,
-        //   'email' => $request->email,
-          'password' => Hash::make($request->password)
-      ]);
+     $user = User::create([
+    'name' => $request->name,
+    'password' => Hash::make($request->password),
+    'rol_id' => $request->rol_id ?? 1,
+    'activo' => true
+]);
 
       //Recordatorio--Asignar rol por defecto
 
@@ -66,8 +84,11 @@ class AuthController extends Controller
         ]);
     }
 
-    public function me(){
-  return response()->json(JWTAuth::user());
+ public function me()
+{
+    return response()->json(
+        User::with('rol')->find(JWTAuth::user()->id)
+    );
 }
 
     //método para invalidar un token (logout)
