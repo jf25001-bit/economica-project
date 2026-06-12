@@ -14,6 +14,8 @@ import Proveedores from '@/views/Proveedores.vue'
 import Imagenes from '../views/Imagenes.vue'
 
 
+
+
 const routes = [
 
   {
