@@ -186,7 +186,7 @@
             class="p-3 border rounded bg-gray-50 flex flex-col gap-1 w-full"
           >
             <label class="text-xs font-bold text-gray-700 uppercase tracking-wide">
-              Documento de facturación (Maquetado)
+              Documento de facturación
             </label>
             <input 
               type="file" 
