@@ -267,7 +267,7 @@
               @click="completarCompra"
               class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
-              {{ cargando ? 'Procesando...' : 'Finalizar y Cargar Stock' }}
+              {{ cargando ? 'Procesando...' : 'Finalizar compra' }}
             </button>
 
             <button
@@ -443,7 +443,7 @@ function mapearDetallesParaBackend() {
 
 /* PEDIR CONFIRMACIÓN PARA FINALIZAR */
 async function completarCompra() {
-  const confirmar = confirm('¿Estás seguro de que deseas finalizar esta compra? Esta acción cargará automáticamente las cantidades indicadas en el stock de los productos.')
+  const confirmar = confirm('¿Finalizar compra y cargar stock?.')
   if (!confirmar) return
   if (cargando.value) return
 
