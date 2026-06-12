@@ -11,23 +11,38 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        $admin = Rol::where('nombre', 'Administrador')->first();
-        $cajero = Rol::where('nombre', 'Cajero')->first();
+        // Crear rol Administrador
+        $adminRol = Rol::updateOrCreate(
+            ['nombre' => 'Administrador'],
+            [
+                'descripcion' => 'Usuario con acceso total al sistema'
+            ]
+        );
 
+        // Crear rol Cajero
+        $cajeroRol = Rol::updateOrCreate(
+            ['nombre' => 'Cajero'],
+            [
+                'descripcion' => 'Usuario encargado de ventas y caja'
+            ]
+        );
+
+        // Crear usuario administrador
         User::updateOrCreate(
             ['name' => 'administrador'],
             [
                 'password' => Hash::make('clave1234'),
-                'rol_id' => $admin?->id,
+                'rol_id' => $adminRol->id,
                 'activo' => true
             ]
         );
 
+        // Crear usuario cajero
         User::updateOrCreate(
             ['name' => 'cajero'],
             [
                 'password' => Hash::make('clave1234'),
-                'rol_id' => $cajero?->id,
+                'rol_id' => $cajeroRol->id,
                 'activo' => true
             ]
         );

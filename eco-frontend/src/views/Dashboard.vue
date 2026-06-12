@@ -1,7 +1,7 @@
 <template>
   <div class="p-6">
-
-    <!-- Bienvenida -->
+   
+     <!-- Bienvenida -->
     <div class="mb-8">
       <h1 class="text-4xl font-bold text-gray-800">
         Bienvenido a la económica
@@ -14,15 +14,14 @@
 
     <!-- Tarjetas -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-
-      <!-- Productos -->
+        <!-- Productos -->
       <router-link
         to="/productos"
         class="bg-white rounded-3xl shadow-md p-6 hover:shadow-xl hover:scale-105 transition-all block"
       >
-        <div class="flex items-center justify-between">
+ <div class="flex items-center justify-between">
           <div>
-            <p class="text-gray-500 font-medium">
+ <p class="text-gray-500 font-medium">
               Productos
             </p>
 
@@ -34,17 +33,16 @@
           <div class="w-14 h-14 rounded-2xl bg-green-100 flex items-center justify-center">
             <i class="bi bi-box-seam text-2xl text-green-700"></i>
           </div>
-        </div>
-      </router-link>
-
-      <!-- Categorías -->
+          </div> 
+ </router-link>
+ <!-- Categorías -->
       <router-link
         to="/categorias"
         class="bg-white rounded-3xl shadow-md p-6 hover:shadow-xl hover:scale-105 transition-all block"
       >
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-gray-500 font-medium">
+<p class="text-gray-500 font-medium">
               Categorías
             </p>
 
@@ -56,17 +54,16 @@
           <div class="w-14 h-14 rounded-2xl bg-[#46674A]/10 flex items-center justify-center">
             <i class="bi bi-grid text-2xl text-[#46674A]"></i>
           </div>
-        </div>
-      </router-link>
-
-      <!-- Proveedores -->
+          </div>
+         </router-link>
+<!-- Proveedores -->
       <router-link
         to="/proveedores"
         class="bg-white rounded-3xl shadow-md p-6 hover:shadow-xl hover:scale-105 transition-all block"
       >
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-gray-500 font-medium">
+<p class="text-gray-500 font-medium">
               Proveedores
             </p>
 
@@ -78,17 +75,16 @@
           <div class="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center">
             <i class="bi bi-truck text-2xl text-blue-700"></i>
           </div>
-        </div>
-      </router-link>
-
-      <!-- Usuarios -->
-      <router-link
+</div>
+ </router-link>
+ <!-- Usuarios -->
+   <router-link
         to="/usuarios"
         class="bg-white rounded-3xl shadow-md p-6 hover:shadow-xl hover:scale-105 transition-all block"
       >
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-gray-500 font-medium">
+ <p class="text-gray-500 font-medium">
               Usuarios
             </p>
 
@@ -182,16 +178,11 @@
               Dulces
             </p>
           </div>
-        </div>
-
-      </div>
-
-    </div>
-
-  </div>
+</div>
+</div>
+</div>
+     </div>
 </template>
-
-
 <script setup>
 import { ref, onMounted } from 'vue'
 import { getCategorias } from '../services/categoriaService'
