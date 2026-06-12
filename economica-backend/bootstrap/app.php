@@ -12,10 +12,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // Agrega esta línea para habilitar CORS global en tus APIs:
+        // 1. Evitamos problemas con los tokens CSRF en las rutas de la API
         $middleware->validateCsrfTokens(except: [
             'api/*'
         ]);
+
+        // 2. Activamos el Middleware de CORS propio de Laravel
+        $middleware->append(\Illuminate\Http\Middleware\HandleCors::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
