@@ -12,18 +12,11 @@ class Venta extends Model
     protected $table = 'ventas';
 
     protected $fillable = [
+        'fecha_venta',
         'cliente',
-        'total',
-        'user_id'
+        'total'
     ];
 
-    // Relación: Una venta pertenece a un usuario/empleado
-    public function usuario()
-    {
-        return $this->belongsTo(User::class, 'user_id');
-    }
-
-    // Relación: Una venta tiene muchos detalles/productos desglosados
     public function detalles()
     {
         return $this->hasMany(DetalleVenta::class, 'venta_id');

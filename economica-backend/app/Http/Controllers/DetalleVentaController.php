@@ -2,110 +2,146 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Venta;
 use App\Models\DetalleVenta;
+use App\Models\Producto;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\DB;
 
-class DetalleVentaController extends Controller
+class VentaController extends Controller
 {
-    // Mostrar todos los detalles
     public function index()
     {
-        $detalles = DetalleVenta::all();
-        return response()->json($detalles);
+        $ventas = Venta::with(['detalles.producto'])->get();
+
+        return response()->json($ventas, 200);
     }
 
-    // Guardar detalle de venta
     public function store(Request $request)
     {
+        $request->validate([
+            'productos' => 'required|array|min:1',
+            'productos.*.producto_id' => 'required|exists:productos,id',
+            'productos.*.cantidad' => 'required|integer|min:1',
+        ]);
+
+        DB::beginTransaction();
+
         try {
 
-            $validated = $request->validate([
-                'cantidad' => 'required|integer',
-                'precio_venta' => 'required|numeric',
-                'venta_id' => 'required',
-                'producto_id' => 'required'
+            $venta = Venta::create([
+                'cliente' => $request->input('cliente', 'Consumidor Final'),
+                'total' => 0
             ]);
 
-            $detalle = DetalleVenta::create($validated);
+            $totalVenta = 0;
+
+            foreach ($request->productos as $item) {
+
+                $producto = Producto::find($item['producto_id']);
+
+                if ($producto->stock < $item['cantidad']) {
+
+                    DB::rollBack();
+
+                    return response()->json([
+                        'message' => "Stock insuficiente para el producto: {$producto->nombre}. Disponible: {$producto->stock}"
+                    ], 400);
+                }
+
+                $subtotal = $producto->precio_venta * $item['cantidad'];
+                $totalVenta += $subtotal;
+
+                DetalleVenta::create([
+                    'venta_id' => $venta->id,
+                    'producto_id' => $producto->id,
+                    'cantidad' => $item['cantidad'],
+                    'precio_unitario' => $producto->precio_venta,
+                    'subtotal' => $subtotal
+                ]);
+
+                $producto->decrement('stock', $item['cantidad']);
+            }
+
+            $venta->update([
+                'total' => $totalVenta
+            ]);
+
+            DB::commit();
 
             return response()->json([
-                'message' => 'Detalle de venta creado correctamente',
-                'data' => $detalle
+                'message' => 'Venta procesada con éxito',
+                'data' => $venta->load('detalles.producto')
             ], 201);
 
-        } catch (ValidationException $e) {
+        } catch (\Exception $e) {
+
+            DB::rollBack();
 
             return response()->json([
-                'errors' => $e->errors()
-            ], 422);
+                'message' => 'Error al procesar la venta',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
-    // Mostrar un detalle específico
     public function show($id)
     {
-        try {
+        $venta = Venta::with(['detalles.producto'])->find($id);
 
-            $detalle = DetalleVenta::findOrFail($id);
-
-            return response()->json($detalle);
-
-        } catch (ModelNotFoundException $e) {
-
+        if (!$venta) {
             return response()->json([
-                'message' => 'Detalle no encontrado'
+                'message' => 'Venta no encontrada'
             ], 404);
         }
+
+        return response()->json($venta, 200);
     }
 
-    // Actualizar detalle
     public function update(Request $request, $id)
     {
         try {
 
-            $detalle = DetalleVenta::findOrFail($id);
+            $venta = Venta::findOrFail($id);
 
             $validated = $request->validate([
-                'cantidad' => 'sometimes|integer',
-                'precio_venta' => 'sometimes|numeric',
-                'venta_id' => 'sometimes',
-                'producto_id' => 'sometimes'
+                'fecha_venta' => 'sometimes|date',
+                'total' => 'sometimes|numeric',
+                'cliente' => 'sometimes|string|max:100'
             ]);
 
-            $detalle->update($validated);
+            $venta->update($validated);
 
             return response()->json([
-                'message' => 'Detalle actualizado correctamente',
-                'data' => $detalle
+                'message' => 'Venta actualizada correctamente',
+                'data' => $venta
             ]);
 
         } catch (ModelNotFoundException $e) {
 
             return response()->json([
-                'message' => 'Detalle no encontrado'
+                'message' => 'Venta no encontrada'
             ], 404);
         }
     }
 
-    // Eliminar detalle
     public function destroy($id)
     {
         try {
 
-            $detalle = DetalleVenta::findOrFail($id);
+            $venta = Venta::findOrFail($id);
 
-            $detalle->delete();
+            $venta->delete();
 
             return response()->json([
-                'message' => 'Detalle eliminado correctamente'
+                'message' => 'Venta eliminada correctamente'
             ]);
 
         } catch (ModelNotFoundException $e) {
 
             return response()->json([
-                'message' => 'Detalle no encontrado'
+                'message' => 'Venta no encontrada'
             ], 404);
         }
     }

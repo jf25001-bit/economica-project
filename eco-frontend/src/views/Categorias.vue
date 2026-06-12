@@ -156,10 +156,6 @@
                   <i class="bi bi-tags-fill mr-2 text-[#46674A]"></i>
                   Agregar subcategorías
                 </p>
-
-                <p class="text-sm text-gray-500">
-                  Opcional para categorías que necesitan una división interna
-                </p>
               </div>
 
               <i
