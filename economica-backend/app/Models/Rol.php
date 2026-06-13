@@ -9,12 +9,18 @@ class Rol extends Model
 {
     use HasFactory;
 
-    // Le indicamos a Laravel que la tabla se llama 'roles'
     protected $table = 'rols';
 
-    // Campos que permitiremos llenar mediante formularios/API
     protected $fillable = [
         'nombre',
         'descripcion'
     ];
+
+    /**
+     * Un rol tiene muchos usuarios
+     */
+    public function usuarios()
+    {
+        return $this->hasMany(User::class);
+    }
 }

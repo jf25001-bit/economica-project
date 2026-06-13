@@ -10,13 +10,36 @@ class DetalleCompra extends Model
     use HasFactory;
 
     protected $table = 'detalle_compras';
-    protected $fillable = ['cantidad', 'precio_compra', 'subtotal', 'compra_id', 'producto_id'];
 
-    public function compra() {
-        return $this->belongsTo(Compra::class, 'compra_id');
+    protected $fillable = [
+        'compra_id',
+        'producto_id',
+        'cantidad',
+        'precio_compra',
+        'subtotal'
+    ];
+
+    public function compra()
+    {
+        return $this->belongsTo(
+            Compra::class,
+            'compra_id'
+        );
     }
 
-    public function producto() {
-        return $this->belongsTo(Producto::class, 'producto_id');
+    public function producto()
+    {
+        return $this->belongsTo(
+            Producto::class,
+            'producto_id'
+        );
+    }
+
+    public function lotes()
+    {
+        return $this->hasMany(
+            Lote::class,
+            'detalle_compra_id'
+        );
     }
 }

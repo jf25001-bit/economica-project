@@ -15,16 +15,15 @@ return new class extends Migration
             $table->id();
 
             $table->date('fecha_compra')->nullable();
+            $table->date('fecha_llegada')->nullable();
 
-            $table->decimal('total', 10, 2)->default(0.00);
+            $table->enum('estado', [
+                'pendiente',
+                'completada',
+                'cancelada'
+            ])->default('pendiente');
 
-            $table->foreignId('proveedor_id')
-                ->constrained('proveedors')
-                ->onDelete('cascade');
-
-            $table->foreignId('user_id')
-                ->constrained('users')
-                ->onDelete('cascade');
+            $table->decimal('total', 10, 2)->nullable();
 
             $table->timestamps();
         });

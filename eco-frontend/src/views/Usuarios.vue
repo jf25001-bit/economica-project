@@ -1,91 +1,100 @@
 <template>
-  <div class="p-6">
-    <!-- Encabezado -->
-    <div class="flex items-center justify-between mb-6">
+  <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
+
+    <!-- HEADER -->
+    <div class="flex items-center justify-between mb-8">
       <div>
-        <h1 class="text-3xl font-bold text-gray-800">
-          Usuarios
-        </h1>
+        <h1 class="text-4xl font-bold text-gray-800">Usuarios</h1>
+        <p class="text-gray-500">Gestión de usuarios y roles</p>
       </div>
 
-      <!-- Botón -->
       <button
         @click="abrirModal"
-        class="bg-[#46674A] hover:bg-[#3b5740] text-white px-5 py-3 rounded-xl shadow-md transition font-medium"
+        class="bg-[#46674A] hover:bg-[#3b5740] text-white px-6 py-3 rounded-2xl shadow-lg transition"
       >
         <i class="bi bi-plus-lg mr-2"></i>
         Nuevo Usuario
       </button>
     </div>
 
-    <!-- Barra de búsqueda -->
-    <div class="bg-white rounded-2xl shadow-md p-4 mb-6">
-      <div class="relative">
-        <i
-          class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-        ></i>
+    <!-- FILTROS -->
+    <div class="bg-white rounded-2xl shadow-md p-5 mb-6 flex flex-wrap gap-4">
 
-        <input
-          type="text"
-          placeholder="Buscar usuarios..."
-          class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
-        />
-      </div>
+      <input
+        v-model="search"
+        type="text"
+        placeholder="Buscar usuario..."
+        class="flex-1 px-4 py-3 border rounded-2xl focus:ring-2 focus:ring-[#46674A]"
+      />
+
+      <select
+        v-model="filtroRol"
+        class="px-4 py-3 border rounded-2xl focus:ring-2 focus:ring-[#46674A]"
+      >
+        <option value="">Todos los roles</option>
+        <option v-for="r in roles" :key="r.id" :value="r.id">
+          {{ r.nombre }}
+        </option>
+      </select>
+
     </div>
 
-    <!-- Tabla -->
-    <div class="bg-white rounded-2xl shadow-md overflow-hidden">
-      <table class="w-full">
+    <!-- TABLA -->
+    <div class="bg-white rounded-3xl shadow-xl overflow-x-hidden">
+
+      <table class="w-full table-fixed">
         <thead class="bg-gray-100">
-          <tr class="text-left text-gray-700">
-            <th class="px-6 py-4 font-semibold">
-              Nombre
-            </th>
-
-            <th class="px-6 py-4 font-semibold">
-              Rol
-            </th>
-
-            <th class="px-6 py-4 font-semibold">
-              Acciones
-            </th>
+          <tr>
+            <th class="px-6 py-4 text-left">Nombre</th>
+            <th class="px-6 py-4 text-left">Rol</th>
+            <th class="px-6 py-4 text-left">Estado</th>
+            <th class="px-6 py-4 text-left">Acciones</th>
           </tr>
         </thead>
 
         <tbody>
           <tr
-            v-for="usuario in usuarios"
-            :key="usuario.id"
+            v-for="u in usuariosFiltrados"
+            :key="u.id"
             class="border-t hover:bg-gray-50"
           >
-            <!-- Nombre -->
-            <td class="px-6 py-4 font-medium text-gray-800">
-              {{ usuario.nombre }}
+            <td class="px-6 py-4 font-medium">
+              {{ u.name }}
             </td>
 
-            <!-- Rol -->
             <td class="px-6 py-4">
-              {{ usuario.rol }}
+              {{ u.rol?.nombre || 'Sin rol' }}
             </td>
 
-            <!-- Acciones -->
             <td class="px-6 py-4">
-              <div class="flex gap-2">
+              <span :class="u.activo ? 'text-green-600' : 'text-red-600'">
+                {{ u.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
 
-                <!-- Editar -->
+            <!-- ACCIONES -->
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-2">
+
                 <button
-                  @click="editarUsuario(usuario)"
-                  class="bg-blue-100 text-blue-600 p-2 rounded-lg hover:bg-blue-200"
+                  @click="editar(u)"
+                  class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition"
                 >
                   <i class="bi bi-pencil"></i>
                 </button>
 
-                <!-- Eliminar -->
                 <button
-                  @click="eliminarUsuario(usuario.id)"
-                  class="bg-red-100 text-red-600 p-2 rounded-lg hover:bg-red-200"
+                  @click="abrirEliminar(u)"
+                  class="w-9 h-9 flex items-center justify-center rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition"
                 >
                   <i class="bi bi-trash"></i>
+                </button>
+
+                <button
+                  @click="toggleEstado(u)"
+                  class="w-9 h-9 flex items-center justify-center rounded-full bg-yellow-100 text-yellow-700 hover:bg-yellow-200 transition"
+                >
+                  <i class="bi bi-power"></i>
                 </button>
 
               </div>
@@ -95,192 +104,294 @@
       </table>
     </div>
 
-    <!-- Modal -->
-    <div
-      v-if="mostrarModal"
-      class="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-    >
-      <div
-        class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6"
-      >
-        <!-- Encabezado -->
-        <div class="flex items-center justify-between mb-6">
-          <h2 class="text-2xl font-bold text-gray-800">
-            {{
-              editandoId
-                ? 'Editar Usuario'
-                : 'Nuevo Usuario'
-            }}
+    <!-- MODAL USUARIO -->
+    <div v-if="modal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+
+      <div class="bg-white rounded-3xl w-full max-w-xl flex flex-col">
+
+        <!-- HEADER -->
+        <div class="bg-[#46674A] text-white px-6 py-5 flex justify-between items-center">
+          <h2 class="text-xl font-bold">
+            {{ editando ? 'Editar Usuario' : 'Nuevo Usuario' }}
           </h2>
 
           <button
-            @click="cerrarModal"
-            class="text-3xl text-gray-500"
-          >
-            &times;
-          </button>
+  @click="cerrar"
+  class="w-9 h-9 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition text-white"
+>
+  ✖
+</button>
         </div>
 
-        <!-- Nombre -->
-        <div class="mb-5">
-          <label class="block text-gray-700 font-medium mb-2">
-            Nombre
-          </label>
+        <!-- BODY -->
+        <div class="p-6 space-y-2">
 
           <input
-            v-model="nombre"
-            type="text"
-            placeholder="Ingresa el nombre"
-            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
+            v-model="form.name"
+            placeholder="Nombre"
+            class="w-full px-1 py-2 border rounded-xl"
           />
-        </div>
+          <p v-if="errores.name" class="text-red-500 text-sm">{{ errores.name }}</p>
 
-        <!-- Rol -->
-        <div class="mb-6">
-          <label class="block text-gray-700 font-medium mb-2">
-            Rol
-          </label>
+          <input
+            v-model="form.password"
+            type="password"
+            placeholder="Contraseña"
+            class="w-full px-1 py-2 border rounded-xl"
+          />
+          <p v-if="errores.password" class="text-red-500 text-sm">{{ errores.password }}</p>
 
           <select
-            v-model="rol"
-            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
+            v-model="form.rol_id"
+            class="w-full px-3 py-2 border rounded-xl"
           >
-            <option value="">
-              Selecciona un rol
-            </option>
-
-            <option>
-              Administrador
-            </option>
-
-            <option>
-              Cajero
-            </option>
-
-            <option>
-              Encargado
+            <option value="">Selecciona rol</option>
+            <option v-for="r in roles" :key="r.id" :value="r.id">
+              {{ r.nombre }}
             </option>
           </select>
+          <p v-if="errores.rol_id" class="text-red-500 text-sm">{{ errores.rol_id }}</p>
+
         </div>
 
-        <!-- Botones -->
-        <div class="flex justify-end gap-3">
+        <!-- FOOTER -->
+        <div class="flex justify-end gap-3 p-4">
+
+          <button @click="cerrar" class="px-4 py-2 border rounded-xl">
+            Cancelar
+          </button>
+
           <button
-            @click="cerrarModal"
-            class="px-5 py-3 border border-gray-300 rounded-xl"
+            @click="guardar"
+            :disabled="loading"
+            class="px-4 py-2 bg-[#46674A] text-white rounded-xl disabled:opacity-50"
+          >
+            {{ loading ? 'Guardando...' : 'Guardar' }}
+          </button>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- MODAL ELIMINAR -->
+    <div v-if="modalEliminar" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+
+      <div class="bg-white p-6 w-[420px] rounded shadow-lg">
+
+        <h2 class="text-xl font-bold mb-3">Eliminar usuario</h2>
+
+        <p class="text-gray-600 mb-6">
+          ¿Seguro que deseas eliminar este usuario?
+        </p>
+
+        <div class="flex justify-end gap-3">
+
+          <button
+            @click="modalEliminar = false"
+            class="px-4 py-2 border rounded hover:bg-gray-50"
           >
             Cancelar
           </button>
 
           <button
-            @click="guardarUsuario"
-            class="bg-[#46674A] hover:bg-[#3b5740] text-white px-5 py-3 rounded-xl"
+            @click="confirmarEliminar"
+            class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
           >
-            {{
-              editandoId
-                ? 'Actualizar'
-                : 'Guardar Usuario'
-            }}
+            Eliminar
           </button>
+
         </div>
+
       </div>
+
     </div>
+
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import Swal from 'sweetalert2'
+import { getUsuarios, createUsuario, updateUsuario, deleteUsuario } from '@/services/usuarioService'
+import { getRoles } from '@/services/rolService'
 
-const mostrarModal = ref(false)
+const usuarios = ref([])
+const roles = ref([])
 
-const nombre = ref('')
-const rol = ref('')
+const search = ref('')
+const filtroRol = ref('')
 
-const editandoId = ref(null)
+const modal = ref(false)
+const editando = ref(false)
 
-const usuarios = ref([
-  {
-    id: 1,
-    nombre: 'Administrador',
-    rol: 'Administrador'
-  },
-  {
-    id: 2,
-    nombre: 'María López',
-    rol: 'Cajero'
-  },
-  {
-    id: 3,
-    nombre: 'Juan Pérez',
-    rol: 'Encargado'
-  },
-  {
-    id: 4,
-    nombre: 'Ana Martínez',
-    rol: 'Cajero'
-  }
-])
+const loading = ref(false)
 
-/* Abrir modal */
-function abrirModal() {
-  mostrarModal.value = true
+const form = ref({
+  id: null,
+  name: '',
+  password: '',
+  rol_id: ''
+})
+
+const errores = ref({
+  name: '',
+  password: '',
+  rol_id: ''
+})
+
+/* CARGA */
+const cargar = async () => {
+  usuarios.value = await getUsuarios()
+  roles.value = await getRoles()
 }
 
-/* Guardar */
-function guardarUsuario() {
-  if (
-    nombre.value.trim() === '' ||
-    rol.value.trim() === ''
-  ) {
-    alert('Completa todos los campos')
-    return
+onMounted(cargar)
+
+/* FILTRO */
+const usuariosFiltrados = computed(() => {
+  return usuarios.value.filter(u => {
+    const nombre = u.name?.toLowerCase() || ''
+    const matchName = nombre.includes(search.value.toLowerCase())
+    const matchRol = filtroRol.value === '' || u.rol_id == filtroRol.value
+    return matchName && matchRol
+  })
+})
+
+/* MODAL */
+const abrirModal = () => {
+  modal.value = true
+  editando.value = false
+  form.value = { id: null, name: '', password: '', rol_id: '' }
+  errores.value = { name: '', password: '', rol_id: '' }
+}
+
+const cerrar = () => {
+  modal.value = false
+}
+
+/* VALIDACIÓN */
+const validar = () => {
+  errores.value = { name: '', password: '', rol_id: '' }
+  let ok = true
+
+  if (!form.value.name.trim()) {
+    errores.value.name = 'El nombre es obligatorio'
+    ok = false
   }
 
-  if (editandoId.value) {
-    const index = usuarios.value.findIndex(
-      usuario => usuario.id === editandoId.value
-    )
-
-    usuarios.value[index] = {
-      ...usuarios.value[index],
-      nombre: nombre.value,
-      rol: rol.value
+  if (!editando.value) {
+    if (!form.value.password || form.value.password.length < 8) {
+      errores.value.password = 'La contraseña debe tener mínimo 8 caracteres'
+      ok = false
     }
   } else {
-    usuarios.value.push({
-      id: usuarios.value.length + 1,
-      nombre: nombre.value,
-      rol: rol.value
-    })
+    if (form.value.password && form.value.password.length < 8) {
+      errores.value.password = 'La contraseña debe tener mínimo 8 caracteres'
+      ok = false
+    }
   }
 
-  cerrarModal()
+  if (!form.value.rol_id) {
+    errores.value.rol_id = 'Selecciona un rol'
+    ok = false
+  }
+
+  return ok
 }
 
-/* Editar */
-function editarUsuario(usuario) {
-  mostrarModal.value = true
+/* GUARDAR */
+const guardar = async () => {
+  if (!validar()) return
 
-  editandoId.value = usuario.id
+  loading.value = true
 
-  nombre.value = usuario.nombre
-  rol.value = usuario.rol
+  // 🔥 ALERTA DE CARGA
+  Swal.fire({
+    title: editando.value ? 'Actualizando usuario...' : 'Creando usuario...',
+    text: 'Por favor espera',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading()
+    }
+  })
+
+  try {
+    if (editando.value) {
+      await updateUsuario(form.value.id, form.value)
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Usuario actualizado',
+        timer: 1500,
+        showConfirmButton: false
+      })
+
+    } else {
+      await createUsuario(form.value)
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Usuario creado correctamente',
+        timer: 1500,
+        showConfirmButton: false
+      })
+    }
+
+    cerrar()
+    await cargar()
+
+  } catch (error) {
+    Swal.fire('Error', 'No se pudo guardar el usuario', 'error')
+  } finally {
+    loading.value = false
+  }
 }
 
-/* Eliminar */
-function eliminarUsuario(id) {
-  usuarios.value = usuarios.value.filter(
-    usuario => usuario.id !== id
-  )
+/* EDITAR */
+const editar = (u) => {
+  form.value = { ...u, password: '' }
+  editando.value = true
+  modal.value = true
 }
 
-/* Cerrar modal */
-function cerrarModal() {
-  mostrarModal.value = false
+/* ELIMINAR (SWEETALERT como categorías) */
+const abrirEliminar = async (u) => {
+  const result = await Swal.fire({
+    title: '¿Eliminar usuario?',
+    text: 'Esta acción no se puede deshacer',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#46674A',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Sí, eliminar'
+  })
 
-  editandoId.value = null
+  if (!result.isConfirmed) return
 
-  nombre.value = ''
-  rol.value = ''
+  try {
+    await deleteUsuario(u.id)
+    await cargar()
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Usuario eliminado',
+      timer: 1500,
+      showConfirmButton: false
+    })
+
+  } catch (error) {
+    Swal.fire('Error', 'No se pudo eliminar el usuario', 'error')
+  }
+}
+
+/* TOGGLE ESTADO */
+const toggleEstado = async (u) => {
+  await updateUsuario(u.id, {
+    ...u,
+    activo: !u.activo,
+    password: ''
+  })
+  cargar()
 }
 </script>

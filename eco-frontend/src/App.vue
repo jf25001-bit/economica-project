@@ -16,7 +16,7 @@
       : 'md:ml-20 ml-0'
   ]"
 >
-    >
+    
       <!-- Navbar -->
       <Navbar @toggle-sidebar="toggleSidebar" />
 

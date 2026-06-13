@@ -4,146 +4,194 @@ namespace App\Http\Controllers;
 
 use App\Models\Compra;
 use App\Models\DetalleCompra;
+use App\Models\Lote;
 use App\Models\Producto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class CompraController extends Controller
 {
     public function index()
-    {
-        $compras = Compra::with(['proveedor', 'usuario', 'detalles.producto'])->get();
-        return response()->json($compras, 200);
-    }
+{
+    try {
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+        $compras = Compra::with([
+            'detalles.producto',
+            'detalles.lotes'
+        ])->latest()->get();
 
-    /**
-     * Store a newly created resource in storage.
-     */
+        return response()->json($compras);
+
+    } catch (\Exception $e) {
+
+        return response()->json([
+            'message' => 'Error al obtener compras',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
     public function store(Request $request)
-    {
-        $request->validate([
-            'proveedor_id' => 'required|exists:proveedores,id', // Apunta a tu tabla real
-            'user_id' => 'required|exists:users,id',
-            'productos' => 'required|array|min:1',
-            'productos.*.producto_id' => 'required|exists:productos,id',
-            'productos.*.cantidad' => 'required|integer|min:1',
+{
+    $request->validate([
+        'fecha_compra' => 'nullable|date',
+        'estado' => 'nullable|in:pendiente,completada,cancelada',
+        'detalles' => 'required|array|min:1',
+        'detalles.*.producto_id' => 'required|exists:productos,id',
+        'detalles.*.cantidad' => 'required|integer|min:1',
+        'detalles.*.precio_compra' => 'nullable|numeric|min:0'
+    ]);
+
+    DB::beginTransaction();
+
+    try {
+
+        $compra = Compra::create([
+            'fecha_compra' => $request->fecha_compra ?? now(),
+            'estado' => $request->estado ?? 'pendiente',
+            'total' => 0
         ]);
 
-        DB::beginTransaction();
+        $total = 0;
 
-        try {
-            // 1. Crear cabecera de la compra
-            $compra = Compra::create([
-                'proveedor_id' => $request->proveedor_id,
-                'user_id' => $request->user_id,
-                'total' => 0
+        foreach ($request->detalles as $item) {
+
+            $producto = Producto::findOrFail($item['producto_id']);
+
+            $cantidad = (int) $item['cantidad'];
+            $precio = $item['precio_compra'] ?? ($producto->precio_compra ?? 0);
+
+            $subtotal = $cantidad * $precio;
+            $total += $subtotal;
+
+            DetalleCompra::create([
+                'compra_id' => $compra->id,
+                'producto_id' => $producto->id,
+                'cantidad' => $cantidad,
+                'precio_compra' => $precio,
+                'subtotal' => $subtotal
             ]);
-
-            $totalCompra = 0;
-
-            // 2. Procesar los productos agregados
-            foreach ($request->productos as $item) {
-                $producto = Producto::find($item['producto_id']);
-
-                // Usamos el precio de compra registrado en el producto
-                $subtotal = $producto->precio_compra * $item['cantidad'];
-                $totalCompra += $subtotal;
-
-                DetalleCompra::create([
-                    'compra_id' => $compra->id,
-                    'producto_id' => $producto->id,
-                    'cantidad' => $item['cantidad'],
-                    'precio_compra' => $producto->precio_compra,
-                    'subtotal' => $subtotal
-                ]);
-
-                // ¡Efecto Inverso!: Incrementamos el stock del inventario
-                $producto->increment('stock', $item['cantidad']);
-            }
-
-            // 3. Guardar el total definitivo de la compra
-            $compra->update(['total' => $totalCompra]);
-
-            DB::commit();
-
-            return response()->json([
-                'message' => 'Compra registrada con éxito y stock reabastecido (+)',
-                'data' => $compra->load('detalles')
-            ], 201);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'message' => 'Error al registrar la compra',
-                'error' => $e->getMessage()
-            ], 500);
         }
-    }
 
-     /**
-     * Display the specified resource.
-     */
+        $compra->update([
+            'total' => $total
+        ]);
+
+        DB::commit();
+
+        return response()->json([
+            'message' => 'Compra creada correctamente',
+            'compra' => $compra->fresh('detalles.producto')
+        ], 201);
+
+    } catch (\Exception $e) {
+
+        DB::rollBack();
+
+        return response()->json([
+            'message' => 'Error al crear compra',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
     public function show($id)
     {
-        $compra = Compra::with(['proveedor', 'usuario', 'detalles.producto'])->find($id);
+        try {
+            $compra = Compra::with([
+                'usuario',
+                'detalles.producto',
+                'detalles.lotes'
+            ])->findOrFail($id);
 
-        if (!$compra) {
-            return response()->json(['message' => 'Compra no encontrada'], 404);
+            return response()->json($compra);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Compra no encontrada'
+            ], 404);
         }
-
-        return response()->json($compra, 200);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Compra $compra)
+    public function update(Request $request, $id)
+{
+    DB::beginTransaction();
+
+    try {
+        $compra = Compra::with('detalles.producto', 'detalles.lotes')->findOrFail($id);
+        $estadoAnterior = $compra->estado;
+
+        $request->validate([
+            'fecha_compra' => 'nullable|date',
+            'fecha_llegada' => 'nullable|date',
+            'estado' => 'nullable|in:pendiente,completada,cancelada',
+            'detalles' => 'nullable|array',
+            'detalles.*.detalle_id' => 'required|integer',
+            'detalles.*.codigo_lote' => 'nullable|string|max:100',
+            'detalles.*.fecha_expiracion' => 'nullable|date'
+        ]);
+
+        $compra->update([
+            'fecha_compra' => $request->fecha_compra ?? $compra->fecha_compra,
+            'fecha_llegada' => $request->fecha_llegada ?? $compra->fecha_llegada,
+            'estado' => $request->estado ?? $compra->estado
+        ]);
+
+        if ($request->has('detalles')) {
+            foreach ($request->detalles as $input) {
+                $detalle = DetalleCompra::find($input['detalle_id']);
+                if (!$detalle) continue;
+
+                // CASO A: La compra pasa a estar completada por primera vez -> Creamos lote e incrementamos stock
+                if ($estadoAnterior !== 'completada' && $compra->estado === 'completada') {
+                    
+                    if (!$detalle->lotes()->exists()) {
+                        Lote::create([
+                            'detalle_compra_id' => $detalle->id,
+                            'producto_id'       => $detalle->producto_id,
+                            'codigo_lote'       => $input['codigo_lote'] ?? null,
+                            'fecha_expiracion'  => $input['fecha_expiracion'] ?? null,
+                            'amount_initial'    => $detalle->cantidad, // Asegúrate si tus columnas se llaman cantidad_inicial o amount_initial
+                            'cantidad_inicial'  => $detalle->cantidad, 
+                            'cantidad_actual'   => $detalle->cantidad
+                        ]);
+
+                        if ($detalle->producto) {
+                            $detalle->producto->increment('stock', $detalle->cantidad);
+                        }
+                    }
+
+                // CASO B: La compra ya estaba completada -> Actualizamos SOLAMENTE el lote existente
+                } else if ($compra->estado === 'completada') {
+                    
+                    $lote = $detalle->lotes()->first();
+                    if ($lote) {
+                        $lote->update([
+                            'codigo_lote'      => $input['codigo_lote'] ?? null,
+                            'fecha_expiracion' => $input['fecha_expiracion'] ?? null
+                        ]);
+                    }
+                }
+            }
+        }
+
+        DB::commit();
+
+        return response()->json([
+            'message' => 'Compra actualizada correctamente',
+            'data' => $compra->fresh('detalles.producto', 'detalles.lotes')
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+
+        return response()->json([
+            'message' => 'Error al actualizar compra',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+    public function destroy($id)
     {
         //
     }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Compra $compra)
-    {
-        try {
-        $validated = $request->validate([
-            'fecha_compra' => 'sometimes',
-            'total' => 'sometimes|numeric',
-            'proveedor_id' => 'sometimes'
-        ]);
-
-        $compra->update($validated);
-
-        return response()->json([
-            'message' => 'Compra actualizada',
-            'data' => $compra
-        ]);
-    } catch (ModelNotFoundException $e) {
-        return response()->json([
-            'message' => 'Compra no encontrada'
-        ], 404);
-    }
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-
-    //ESTE METODO NO SE UTILIZA, YA QUE LAS COMPRAS NO SE ELIMINAN, SOLO SE MARCAN COMO INACTIVAS
-    
-    public function destroy(compra $compra)
-{
-   
-}
 }

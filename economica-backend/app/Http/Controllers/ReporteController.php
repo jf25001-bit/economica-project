@@ -159,30 +159,58 @@ class ReporteController extends Controller
 
     // 4. ENDPOINT QUE RENDERIZA EL PDF
     public function reporteGeneral(Request $request)
-    {
+
+{
     try {
+        $tipo = $request->query('tipo', 'general'); // general, ventas, compras
         $periodo = $request->query('periodo', 'mes');
-        $query = DB::table('ventas');
+        
+        // Configuración de rangos de tiempo con Carbon
+        $fechaInicio = \Carbon\Carbon::now()->startOfMonth();
+        $fechaFin = \Carbon\Carbon::now()->endOfMonth();
 
         if ($periodo === 'dia') {
-            $query->whereDate('created_at', \Carbon\Carbon::today());
+            $fechaInicio = \Carbon\Carbon::today()->startOfDay();
+            $fechaFin = \Carbon\Carbon::today()->endOfDay();
         } elseif ($periodo === 'semana') {
-            $query->whereBetween('created_at', [\Carbon\Carbon::now()->startOfWeek(), \Carbon\Carbon::now()->endOfWeek()]);
-        } else {
-            $query->whereMonth('created_at', \Carbon\Carbon::now()->month)
-                  ->whereYear('created_at', \Carbon\Carbon::now()->year);
+            $fechaInicio = \Carbon\Carbon::now()->startOfWeek();
+            $fechaFin = \Carbon\Carbon::now()->endOfWeek();
         }
 
-        $ventas = $query->orderBy('created_at', 'desc')->get();
+        // CASO 1: REPORTE GENERAL (Balance Financiero Consolidador)
+        if ($tipo === 'general') {
+            $ventas = DB::table('ventas')->whereBetween('created_at', [$fechaInicio, $fechaFin])->get();
+            $compras = DB::table('compras')->whereBetween('created_at', [$fechaInicio, $fechaFin])->get();
 
-        // 1. Calculamos el total acumulado de las ventas obtenidas
-        $granTotal = $ventas->sum('total');
+            $totalVentas = $ventas->sum('total');
+            $totalCompras = $compras->sum('total');
+            $balanceNeto = $totalVentas - $totalCompras; // Ganancia o pérdida
 
-        // 2. Retornamos una vista HTML hermosa que se auto-imprime como PDF
-        return view('reportes.pdf_general', compact('ventas', 'periodo', 'granTotal'));
+            return view('reportes.pdf_general', [
+                'tipo' => 'general',
+                'periodo' => $periodo,
+                'ventas' => $ventas,
+                'compras' => $compras,
+                'totalVentas' => $totalVentas,
+                'totalCompras' => $totalCompras,
+                'balanceNeto' => $balanceNeto
+            ]);
+        }
+
+        // CASO 2: REPORTE INDIVIDUAL DE COMPRAS
+        if ($tipo === 'compras') {
+            $datos = DB::table('compras')->whereBetween('created_at', [$fechaInicio, $fechaFin])->orderBy('created_at', 'desc')->get();
+            $granTotal = $datos->sum('total');
+            return view('reportes.pdf_general', compact('datos', 'periodo', 'granTotal', 'tipo'));
+        }
+
+        // CASO 3: REPORTE INDIVIDUAL DE VENTAS
+        $datos = DB::table('ventas')->whereBetween('created_at', [$fechaInicio, $fechaFin])->orderBy('created_at', 'desc')->get();
+        $granTotal = $datos->sum('total');
+        return view('reportes.pdf_general', compact('datos', 'periodo', 'granTotal', 'tipo'));
 
     } catch (\Exception $e) {
-        return response()->json(['error' => 'Error en el reporte', 'detalle' => $e->getMessage()], 500);
+        return response()->json(['error' => 'Error al procesar reporte', 'detalle' => $e->getMessage()], 500);
     }
 }
 }
