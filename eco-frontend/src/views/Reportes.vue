@@ -1,6 +1,5 @@
 <template>
   <div class="p-6">
-    <!-- Encabezado -->
     <div class="flex items-center justify-between mb-6">
       <div>
         <h1 class="text-3xl font-bold text-gray-800">Reportes</h1>
@@ -16,7 +15,6 @@
       </button>
     </div>
 
-    <!-- Filtro Temporal -->
     <div class="flex justify-end mb-4">
       <select 
         v-model="periodoSeleccionado" 
@@ -29,7 +27,6 @@
       </select>
     </div>
 
-    <!-- Tarjetas Informativas -->
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
       <div class="bg-white rounded-2xl shadow-md p-6 border-l-4 border-green-600">
         <p class="text-gray-500 text-sm font-medium">Ventas del Periodo</p>
@@ -56,13 +53,11 @@
       </div>
     </div>
 
-    <!-- Alerta de Errores de Conexión -->
     <div v-if="error" class="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-center gap-2 text-sm font-medium">
       <i class="bi bi-exclamation-triangle-fill"></i>
       <span>{{ error }}</span>
     </div>
 
-    <!-- Tabla Dinámica de Descargas -->
     <div class="bg-white rounded-2xl shadow-md overflow-hidden">
       <table class="w-full">
         <thead class="bg-gray-100">
@@ -111,12 +106,11 @@ const tarjetas = ref({
   stock_bajo: 0
 })
 
-const reportes = [
+// Dejamos únicamente los reportes detallados individuales
+const reportes = ref([
   { id: 1, nombre: 'Reporte de Ventas', descripcion: 'Muestra todas las ventas realizadas en el periodo seleccionado.' },
-  { id: 2, nombre: 'Reporte de Compras', descripcion: 'Muestra todas las compras registradas a proveedores en el periodo seleccionado.' },
-  { id: 3, nombre: 'Reporte de Inventario', descripcion: 'Muestra el stock actual de productos y alertas de reposición.' }
-]
-
+  { id: 2, nombre: 'Reporte de Compras', descripcion: 'Muestra todas las compras registradas a proveedores en el periodo seleccionado.' }
+])
 
 async function obtenerEstadisticas() {
   cargandoTarjetas.value = true
@@ -125,7 +119,7 @@ async function obtenerEstadisticas() {
     const token = localStorage.getItem('token') || sessionStorage.getItem('token')
     const config = {
       headers: {
-        'Authorization': `Bearer ${token}`, // Le enviamos el pase de entrada a Laravel
+        'Authorization': `Bearer ${token}`,
         'Accept': 'application/json'
       }
     }
@@ -133,32 +127,33 @@ async function obtenerEstadisticas() {
     tarjetas.value = data
   } catch (e) {
     console.error(e)
-    // Si Laravel responde 401, le avisamos de forma amigable al usuario
     if (e.response && e.response.status === 401) {
       error.value = 'Sesión expirada o no autorizada. Por favor, vuelve a iniciar sesión.'
     } else {
       error.value = 'No se pudieron sincronizar los datos de las tarjetas con el servidor.'
     }
   } finally {
-    cargandoTarjetas.value = false
+    gatherStatsCompleted()
   }
 }
 
-const generarPDFGeneral = () => {
-  // Apuntamos a /api/reportes/general directamente sin pasar por /auth/
-  window.open(`http://localhost:8000/api/reportes/general?periodo=${periodoSeleccionado.value}`, '_blank')
+function gatherStatsCompleted() {
+  cargandoTarjetas.value = false
 }
 
+// Botón Superior Maestro: Llama al Balance General Unificado (Ventas vs Compras)
+const generarPDFGeneral = () => {
+  window.open(`http://localhost:8000/api/reportes/general?tipo=general&periodo=${periodoSeleccionado.value}`, '_blank')
+}
+
+// Botones de la Tabla inferior para reportes específicos
 const generarPDFColumna = (id) => {
   if (id === 1) {
     window.open(`http://localhost:8000/api/reportes/general?tipo=ventas&periodo=${periodoSeleccionado.value}`, '_blank')
   } else if (id === 2) {
     window.open(`http://localhost:8000/api/reportes/general?tipo=compras&periodo=${periodoSeleccionado.value}`, '_blank')
-  } else if (id === 3) {
-    window.open(`http://localhost:8000/api/reportes/general?tipo=inventario`, '_blank')
   }
 }
-
 
 onMounted(() => {
   obtenerEstadisticas()
