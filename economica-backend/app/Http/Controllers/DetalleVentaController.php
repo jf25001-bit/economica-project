@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 
-class VentaController extends Controller
+class DetalleVentaController extends Controller
 {
     public function index()
     {
