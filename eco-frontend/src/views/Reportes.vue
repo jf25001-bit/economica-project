@@ -8,10 +8,10 @@
 
       <button
         @click="generarPDFGeneral"
-        class="bg-[#46674A] hover:bg-[#3b5740] text-white px-5 py-3 rounded-xl shadow-md transition font-medium cursor-pointer"
+        class="bg-[#46674A] hover:bg-[#3b5740] text-white px-5 py-3 rounded-xl shadow-md transition font-medium cursor-pointer inline-flex items-center"
       >
-        <i class="bi bi-file-pdf mr-2"></i>
-        Exportar PDF General
+        <i class="bi bi-file-earmark-pdf-fill mr-2"></i>
+        Exportar Balance General
       </button>
     </div>
 
@@ -19,7 +19,7 @@
       <select 
         v-model="periodoSeleccionado" 
         @change="obtenerEstadisticas"
-        class="bg-white border border-gray-300 rounded-xl px-4 py-2 text-sm font-medium text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#46674A]"
+        class="bg-white border border-gray-300 rounded-xl px-4 py-2 text-sm font-medium text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#46674A] cursor-pointer"
       >
         <option value="dia">Reporte de Hoy (Diario)</option>
         <option value="semana">Reporte de la Semana</option>
@@ -31,13 +31,13 @@
       <div class="bg-white rounded-2xl shadow-md p-6 border-l-4 border-green-600">
         <p class="text-gray-500 text-sm font-medium">Ventas del Periodo</p>
         <div v-if="cargandoTarjetas" class="h-8 bg-gray-200 rounded w-24 animate-pulse mt-1"></div>
-        <h2 v-else class="text-3xl font-bold text-gray-800">${{ (tarjetas.ventas_mes || 0).toFixed(2) }}</h2>
+        <h2 v-else class="text-3xl font-bold text-gray-800">${{ (tarjetas.ventas_periodo || 0).toFixed(2) }}</h2>
       </div>
 
       <div class="bg-white rounded-2xl shadow-md p-6 border-l-4 border-blue-600">
         <p class="text-gray-500 text-sm font-medium">Compras del Periodo</p>
         <div v-if="cargandoTarjetas" class="h-8 bg-gray-200 rounded w-24 animate-pulse mt-1"></div>
-        <h2 v-else class="text-3xl font-bold text-gray-800">${{ (tarjetas.compras_mes || 0).toFixed(2) }}</h2>
+        <h2 v-else class="text-3xl font-bold text-gray-800">${{ (tarjetas.compras_periodo || 0).toFixed(2) }}</h2>
       </div>
 
       <div class="bg-white rounded-2xl shadow-md p-6 border-l-4 border-orange-600">
@@ -58,26 +58,26 @@
       <span>{{ error }}</span>
     </div>
 
-    <div class="bg-white rounded-2xl shadow-md overflow-hidden">
+    <div class="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100">
       <table class="w-full">
-        <thead class="bg-gray-100">
-          <tr class="text-left text-gray-700">
-            <th class="px-6 py-4 font-semibold">Reporte</th>
-            <th class="px-6 py-4 font-semibold">Descripción</th>
-            <th class="px-6 py-4 font-semibold">Acción</th>
+        <thead class="bg-gray-50">
+          <tr class="text-left text-gray-700 border-b border-gray-100">
+            <th class="px-6 py-4 font-semibold text-sm">Módulo / Reporte</th>
+            <th class="px-6 py-4 font-semibold text-sm">Descripción Operativa</th>
+            <th class="px-6 py-4 font-semibold text-sm text-center">Acción</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="reporte in reportes" :key="reporte.id" class="border-t hover:bg-gray-50 transition-colors">
-            <td class="px-6 py-4 font-medium text-gray-800">{{ reporte.nombre }}</td>
-            <td class="px-6 py-4 text-gray-600">{{ reporte.descripcion }}</td>
-            <td class="px-6 py-4">
+          <tr v-for="reporte in reportes" :key="reporte.id" class="border-b last:border-none hover:bg-gray-50 transition-colors">
+            <td class="px-6 py-4 font-semibold text-gray-800 text-sm">{{ reporte.nombre }}</td>
+            <td class="px-6 py-4 text-gray-600 text-sm">{{ reporte.descripcion }}</td>
+            <td class="px-6 py-4 text-center">
               <button
                 @click="generarPDFColumna(reporte.id)"
-                class="bg-[#46674A] hover:bg-[#3b5740] text-white px-4 py-2 rounded-lg transition text-sm cursor-pointer inline-flex items-center"
+                class="bg-[#46674A] hover:bg-[#3b5740] text-white px-4 py-2 rounded-lg transition text-xs font-medium cursor-pointer inline-flex items-center shadow-sm"
               >
-                <i class="bi bi-download mr-2"></i>
-                Generar
+                <i class="bi bi-printer-fill mr-1.5"></i>
+                Generar PDF
               </button>
             </td>
           </tr>
@@ -91,68 +91,79 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 
-// URL base de la API
-const API_BASE = 'http://localhost:8000/api/auth'
+// Configuración de Endpoints e Inyección de URL Base
+const API_BASE = 'http://localhost:8000/api'
 
-// Variables reactivas organizadas
+// Estado Reactivo Controlado
 const periodoSeleccionado = ref('mes')
 const cargandoTarjetas = ref(true)
 const error = ref(null)
 
 const tarjetas = ref({
-  ventas_mes: 0,
-  compras_mes: 0,
+  ventas_periodo: 0,
+  compras_periodo: 0,
   productos_totales: 0,
   stock_bajo: 0
 })
 
-// Dejamos únicamente los reportes detallados individuales
+// Catálogo Maestro de Reportes Específicos
 const reportes = ref([
-  { id: 1, nombre: 'Reporte de Ventas', descripcion: 'Muestra todas las ventas realizadas en el periodo seleccionado.' },
-  { id: 2, nombre: 'Reporte de Compras', descripcion: 'Muestra todas las compras registradas a proveedores en el periodo seleccionado.' }
+  { id: 1, nombre: 'Reporte Analítico de Ventas', descripcion: 'Muestra el desglose detallado de ventas, clientes, métodos de pago y artículos despachados.' },
+  { id: 2, nombre: 'Reporte General de Compras', descripcion: 'Auditoría integral de compras registradas a proveedores con número de factura física.' }
 ])
+
+// Recuperación Segura de Token de Sesión Activa
+const obtenerToken = () => localStorage.getItem('token') || sessionStorage.getItem('token')
 
 async function obtenerEstadisticas() {
   cargandoTarjetas.value = true
   error.value = null
   try {
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token')
+    const token = obtenerToken()
     const config = {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Accept': 'application/json'
       }
     }
+    
+    // CORRECCIÓN DE RUTA: Quitamos el "/auth" para que busque bien el endpoint público
     const { data } = await axios.get(`${API_BASE}/reportes/tarjetas?periodo=${periodoSeleccionado.value}`, config)
-    tarjetas.value = data
+    
+    // MAPEO DE DATOS: Aseguramos la compatibilidad con lo que devuelve el backend
+    if (data.status === 'success') {
+      tarjetas.value = {
+        ventas_periodo: data.tarjetas.ventas_periodo,
+        compras_periodo: data.tarjetas.compras_periodo,
+        productos_totales: data.tarjetas.productos_registrados, // Mapeado de productos_registrados
+        stock_bajo: data.tarjetas.productos_bajo_stock          // Mapeado de productos_bajo_stock
+      }
+    }
   } catch (e) {
     console.error(e)
     if (e.response && e.response.status === 401) {
-      error.value = 'Sesión expirada o no autorizada. Por favor, vuelve a iniciar sesión.'
+      error.value = 'Su sesión ha expirado. Por favor, vuelva a ingresar al sistema.'
     } else {
-      error.value = 'No se pudieron sincronizar los datos de las tarjetas con el servidor.'
+      error.value = 'Fallo de enlace: No se pudieron sincronizar los KPIs globales.'
     }
   } finally {
-    gatherStatsCompleted()
+    cargandoTarjetas.value = false
   }
 }
 
-function gatherStatsCompleted() {
-  cargandoTarjetas.value = false
-}
-
-// Botón Superior Maestro: Llama al Balance General Unificado (Ventas vs Compras)
+// Balance General Unificado (Ventas vs Compras)
 const generarPDFGeneral = () => {
-  window.open(`http://localhost:8000/api/reportes/general?tipo=general&periodo=${periodoSeleccionado.value}`, '_blank')
+  const token = obtenerToken()
+  const url = `${API_BASE}/reportes/general?tipo=general&periodo=${periodoSeleccionado.value}&token=${token}`
+  window.open(url, '_blank')
 }
 
-// Botones de la Tabla inferior para reportes específicos
+// Reportes Individuales Filtrados por Fila
 const generarPDFColumna = (id) => {
-  if (id === 1) {
-    window.open(`http://localhost:8000/api/reportes/general?tipo=ventas&periodo=${periodoSeleccionado.value}`, '_blank')
-  } else if (id === 2) {
-    window.open(`http://localhost:8000/api/reportes/general?tipo=compras&periodo=${periodoSeleccionado.value}`, '_blank')
-  }
+  const token = obtenerToken()
+  const tipoReporte = id === 1 ? 'ventas' : 'compras'
+  const url = `${API_BASE}/reportes/general?tipo=${tipoReporte}&periodo=${periodoSeleccionado.value}&token=${token}`
+  window.open(url, '_blank')
 }
 
 onMounted(() => {
