@@ -2,138 +2,144 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Reporte Ejecutivo - La Económica</title>
+    <title>Reporte Gerencial - La Económica</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; color: #2D3748; padding: 45px; background: #fff; line-height: 1.6; }
-        
-        /* Encabezado Corporativo */
-        .brand-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #E2E8F0; padding-bottom: 20px; margin-bottom: 25px; }
-        .logo-section h1 { color: #46674A; font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
-        .logo-section p { color: #718096; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 2px; }
-        .meta-section { text-align: right; font-size: 12px; color: #4A5568; }
-        .meta-section span { color: #1A202C; font-weight: 600; }
-
-        /* Barra del Título del Reporte */
-        .report-title-bar { background-color: #F7FAFC; border-left: 4px solid #46674A; padding: 12px 18px; margin-bottom: 30px; border-radius: 0 4px 4px 0; }
-        .report-title-bar h2 { font-size: 16px; text-transform: uppercase; color: #2D3748; letter-spacing: 0.5px; }
-        
-        /* Tarjetas de Resumen Financiero */
-        .balance-container { display: flex; gap: 15px; margin-bottom: 30px; }
-        .card { flex: 1; padding: 18px; border-radius: 8px; border: 1px solid #E2E8F0; }
-        .card .title { font-size: 11px; text-transform: uppercase; font-weight: 700; color: #718096; letter-spacing: 0.5px; }
-        .card .value { font-size: 24px; font-weight: 800; margin-top: 6px; }
-        
-        /* Colores de las Tarjetas */
-        .card.ventas { background-color: #EBF8FF; border-color: #BEE3F8; color: #2B6CB0; }
-        .card.compras { background-color: #FFF5F5; border-color: #FED7D7; color: #C53030; }
-        .card.balance { background-color: #F0FFF4; border-color: #C6F6D5; color: #22543D; }
-        .card.negativo { background-color: #FFF5F5; border-color: #FED7D7; color: #9B1C1C; }
-
-        /* Estilos de la Tabla */
-        table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 15px; border-radius: 6px; overflow: hidden; border: 1px solid #E2E8F0; }
-        th { background-color: #46674A; color: white; font-size: 11px; font-weight: 600; text-transform: uppercase; padding: 12px 16px; text-align: left; letter-spacing: 0.5px; }
-        td { padding: 12px 16px; border-bottom: 1px solid #E2E8F0; font-size: 13px; color: #4A5568; background: #fff; }
-        tr:last-child td { border-bottom: none; }
-        tr:nth-child(even) td { background-color: #F8FAFC; }
-        
+        @page { margin: 1.5cm; }
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; line-height: 1.4; margin: 0; }
+        .header { margin-bottom: 25px; border-bottom: 3px solid #2e7d32; padding-bottom: 10px; }
+        .logo { font-size: 26px; font-weight: bold; color: #2e7d32; text-transform: uppercase; letter-spacing: 1px; }
+        .subtitle { font-size: 13px; color: #666; margin-top: 5px; }
+        .title-reporte { text-align: center; font-size: 20px; font-weight: bold; color: #1a237e; margin: 20px 0; text-transform: uppercase; }
+        .meta-box { width: 100%; margin-bottom: 25px; border-collapse: collapse; }
+        .meta-box td { padding: 6px; font-size: 13px; }
+        .kpi-container { width: 100%; margin-bottom: 30px; }
+        .kpi-card { background: #f1f8e9; border: 1px solid #c5e1a5; border-radius: 4px; padding: 15px; text-align: center; }
+        .kpi-val { font-size: 22px; font-weight: bold; color: #2e7d32; margin-top: 5px; }
+        table.data-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        table.data-table th { background-color: #2e7d32; color: white; font-size: 12px; font-weight: bold; text-transform: uppercase; padding: 10px; text-align: left; }
+        table.data-table td { padding: 9px 10px; font-size: 12px; border-bottom: 1px solid #e0e0e0; }
+        table.data-table tr:nth-child(even) { background-color: #f9f9f9; }
         .text-right { text-align: right; }
         .text-center { text-align: center; }
-        .badge { background-color: #DEF7EC; color: #03543F; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
-        .no-data { text-align: center; color: #A0AEC0; padding: 40px 0; font-style: italic; font-size: 13px; }
-        .total-row td { background-color: #EDF2F7 !important; font-weight: 700; color: #1A202C; border-top: 2px solid #CBD5E0; font-size: 14px; }
-
-        @media print {
-            body { padding: 0; }
-            @page { margin: 1.5cm; }
-        }
+        .badge { background: #e8f5e9; color: #2e7d32; padding: 3px 8px; border-radius: 12px; font-weight: bold; font-size: 11px; }
+        .footer { position: fixed; bottom: 0; width: 100%; text-align: center; font-size: 10px; color: #999; border-top: 1px solid #eee; padding-top: 5px; }
     </style>
 </head>
 <body>
 
-    <div class="brand-header">
-        <div class="logo-section">
-            <h1>LA ECONÓMICA</h1>
-            <p>Panel de Control & Auditoría</p>
-        </div>
-        <div class="meta-section">
-            <p>Fecha Emisión: <span>{{ date('d/m/Y') }}</span></p>
-            <p>Hora Emisión: <span>{{ date('h:i A') }}</span></p>
-            <p>Periodo: <span>{{ strtoupper($periodo) }}</span></p>
-        </div>
+    <div class="header">
+        <table style="width: 100%;">
+            <tr>
+                <td class="logo">La Económica</td>
+                <td class="text-right" style="font-size: 12px; color: #666;">
+                    <strong>Fecha de Emisión:</strong> {{ date('d/m/Y H:i') }}
+                </td>
+            </tr>
+        </table>
+        <div class="subtitle">Sistema de Control de Inventario y Facturación Automatizada</div>
     </div>
 
-    <div class="report-title-bar">
-        <h2>
-            @if($tipo === 'general') Cierre de Caja & Balance General de Operaciones
-            @elseif($tipo === 'ventas') Libro Auxiliar de Ventas Registradas
-            @else Libro Auxiliar de Adquisiciones y Compras
-            @endif
-        </h2>
-    </div>
+    <table class="meta-box">
+        <tr>
+            <td style="width: 50%;"><strong>Filtro de Periodo:</strong> <span style="text-transform: uppercase;">{{ $periodo }}</span></td>
+            <td class="text-right"><strong>Estado del Sistema:</strong> <span class="badge">Producción Activa</span></td>
+        </tr>
+    </table>
 
-    @if($tipo === 'general')
-        <div class="balance-container">
-            <div class="card ventas">
-                <div class="title">(+) Total Ingresos (Ventas)</div>
-                <div class="value">${{ number_format($totalVentas, 2) }}</div>
-            </div>
-            <div class="card compras">
-                <div class="title">(-) Total Egresos (Compras)</div>
-                <div class="value">${{ number_format($totalCompras, 2) }}</div>
-            </div>
-            <div class="card balance {{ $balanceNeto < 0 ? 'negativo' : '' }}">
-                <div class="title">(=) Rendimiento Neto (Utilidad)</div>
-                <div class="value">${{ number_format($balanceNeto, 2) }}</div>
-            </div>
-        </div>
+    @if($tipo === 'ventas_producto')
+        <div class="title-reporte">Reporte de Ventas por Producto (Ranking de Demanda)</div>
+        <p style="font-size: 13px; color: #555; text-align: center;">Muestra el desglose de los productos más vendidos y el volumen financiero recaudado en el periodo seleccionado.</p>
 
-        <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 8px; color: #46674A; text-transform: uppercase;">Resumen de Actividad Comercial</h3>
-        <p style="font-size: 13px; color: #4A5568;">
-            Durante el rango de tiempo evaluado, el establecimiento consolidó satisfactoriamente un flujo transaccional compuesto por <strong>{{ $ventas->count() }} ventas directas</strong> y un volumen de reabastecimiento logístico de <strong>{{ $compras->count() }} compras a proveedores</strong>, arrojando el balance financiero expresado en las tarjetas superiores.
-        </p>
-
-    @else
-        <div class="balance-container" style="max-width: 320px;">
-            <div class="card {{ $tipo === 'ventas' ? 'ventas' : 'compras' }}">
-                <div class="title">Flujo Total Acumulado</div>
-                <div class="value">${{ number_format($granTotal, 2) }}</div>
-            </div>
-        </div>
-
-        <table>
+        <table class="data-table">
             <thead>
                 <tr>
-                    <th width="15%">Folio / ID</th>
-                    <th width="45%">Fecha y Hora de Registro</th>
-                    <th width="20%" class="text-center">Estado</th>
-                    <th width="20%" class="text-right">Total Operado</th>
+                    <th style="width: 10%;">Top</th>
+                    <th style="width: 50%;">Nombre del Producto</th>
+                    <th style="width: 20%; text-align: center;">Cantidad Vendida</th>
+                    <th style="width: 20%; text-align: right;">Total Recaudado</th>
                 </tr>
             </thead>
             <tbody>
-                @forelse($datos as $reg)
+                @forelse($datos as $index => $item)
                     <tr>
-                        <td style="font-weight: 600;">#{{ $reg->id }}</td>
-                        <td>{{ date('d/m/Y h:i A', strtotime($reg->created_at)) }}</td>
-                        <td class="text-center"><span class="badge">Procesado</span></td>
-                        <td class="text-right" style="font-weight: 600; color: #1A202C;">${{ number_format($reg->total, 2) }}</td>
+                        <td class="text-center"><strong>#{{ $index + 1 }}</strong></td>
+                        <td>{{ $item->producto }}</td>
+                        <td class="text-center"><span style="background: #e3f2fd; color: #0d47a1; padding: 2px 6px; border-radius: 4px;">{{ $item->total_amount ?? $item->total_cantidad }} uds</span></td>
+                        <td class="text-right"><strong>${{ number_format($item->total_recaudado, 2) }}</strong></td>
                     </tr>
                 @empty
-                    <tr><td colspan="4" class="no-data">No se registraron transacciones comerciales en el periodo seleccionado.</td></tr>
+                    <tr>
+                        <td colspan="4" class="text-center" style="color: #999; padding: 20px;">No se registraron transacciones de productos en este periodo.</td>
+                    </tr>
                 @endforelse
-                
-                <tr class="total-row">
-                    <td colspan="3" class="text-right">BALANCE TOTAL DE CAJA:</td>
-                    <td class="text-right">${{ number_format($granTotal, 2) }}</td>
+            </tbody>
+        </table>
+
+    @elseif($tipo === 'general')
+        <div class="title-reporte">Reporte de Balance General Financiero</div>
+        
+        <table class="kpi-container">
+            <tr>
+                <td style="width: 33%; padding-right: 10px;">
+                    <div class="kpi-card">
+                        <div style="font-size: 12px; color: #666; text-transform: uppercase;">Total Ingresos (Ventas)</div>
+                        <div class="kpi-val">${{ number_format($totalVentas, 2) }}</div>
+                    </div>
+                </td>
+                <td style="width: 33%; padding: 0 5px;">
+                    <div class="kpi-card" style="background: #fff3e0; border-color: #ffe0b2;">
+                        <div style="font-size: 12px; color: #666; text-transform: uppercase;">Total Egresos (Compras)</div>
+                        <div class="kpi-val" style="color: #e65100;">${{ number_format($totalCompras, 2) }}</div>
+                    </div>
+                </td>
+                <td style="width: 33%; padding-left: 10px;">
+                    <div class="kpi-card" style="background: #e3f2fd; border-color: #bbdefb;">
+                        <div style="font-size: 12px; color: #666; text-transform: uppercase;">Balance Neto Flujo</div>
+                        <div class="kpi-val" style="color: #0d47a1;">${{ number_format($balanceNeto, 2) }}</div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+        <h3 style="font-size: 14px; color: #2e7d32; text-transform: uppercase;">Resumen de Operaciones Recientes</h3>
+        <p style="font-size: 12px; color: #666;">El documento consolida el flujo de caja total del periodo de forma global.</p>
+
+    @else
+        <div class="title-reporte">Reporte Analítico de {{ ucfirst($tipo) }}</div>
+        
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID Documento</th>
+                    <th>Fecha de Registro</th>
+                    <th class="text-right">Monto Total</th>
                 </tr>
+            </thead>
+            <tbody>
+                @forelse($datos as $item)
+                    <tr>
+                        <td>#{{ $item->id }}</td>
+                        <td>{{ \Carbon\Carbon::parse($item->created_at)->format('d/m/Y H:i') }}</td>
+                        <td class="text-right" style="font-weight: bold;">${{ number_format($item->total, 2) }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="3" class="text-center" style="color: #999; padding: 20px;">No se encontraron registros en el sistema para este rango.</td>
+                    </tr>
+                @endforelse
+                @if(isset($granTotal) && $granTotal > 0)
+                    <tr style="background: #f5f5f5;">
+                        <td colspan="2" class="text-right"><strong>TOTAL ACUMULADO:</strong></td>
+                        <td class="text-right" style="color: #2e7d32; font-weight: bold; font-size: 14px;">${{ number_format($granTotal, 2) }}</td>
+                    </tr>
+                @endif
             </tbody>
         </table>
     @endif
 
-    <script>
-        window.onload = function() {
-            window.print();
-        }
-    </script>
+    <div class="footer">
+        La Económica S.A de C.V. - Reporte Confidencial de Uso Interno - Página 1 de 1
+    </div>
+
 </body>
 </html>
