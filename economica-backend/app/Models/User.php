@@ -11,9 +11,7 @@ class User extends Authenticatable implements JWTSubject
 {
     use HasFactory, Notifiable;
 
-    /**
-     * JWT
-     */
+  
     public function getJWTIdentifier()
     {
         return $this->getKey();
@@ -24,9 +22,7 @@ class User extends Authenticatable implements JWTSubject
         return [];
     }
 
-    /**
-     * Campos permitidos
-     */
+    
     protected $fillable = [
         'name',
         'password',
@@ -34,25 +30,19 @@ class User extends Authenticatable implements JWTSubject
         'activo'
     ];
 
-    /**
-     * Campos ocultos
-     */
+   
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Relación con Rol
-     */
+ 
     public function rol()
     {
         return $this->belongsTo(Rol::class);
     }
 
-    /**
-     * Casts
-     */
+   
     protected function casts(): array
     {
         return [

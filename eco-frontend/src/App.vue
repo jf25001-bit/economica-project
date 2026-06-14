@@ -1,8 +1,8 @@
 <template>
-  <!-- Si la ruta es /login, mostrar SOLO el Login -->
+  
   <router-view v-if="$route.path === '/' || $route.path === '/login'" />
 
-  <!-- Para las demás rutas, mostrar Sidebar + Navbar + contenido -->
+  
  <div v-else class="flex w-full">
     <!-- Sidebar -->
     <Sidebar :isOpen="sidebarOpen" />

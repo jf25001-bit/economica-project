@@ -5,7 +5,7 @@
       isOpen ? 'w-60' : 'w-20'
     ]"
   >
-    <!-- Encabezado / Logo -->
+    <!-- Encabezdo y logo -->
     <div 
       :class="[
         'p-4 border-b border-white/10 flex items-center gap-3 transition-all duration-300',
@@ -24,7 +24,7 @@
       </div>
     </div>
 
-    <!-- Menú de Navegación -->
+    <!-- menu de navegación -->
     <nav class="flex-1 py-0 space-y-1 overflow-y-auto custom-scrollbar">
       <router-link
         v-for="item in menu"
@@ -85,7 +85,7 @@ const rol = user?.rol?.nombre
   { name: 'Proveedores', route: '/proveedores', icon: 'bi bi-building' },
   { name: 'Ventas', route: '/ventas', icon: 'bi bi-cash-coin' },
 
-  // SOLO ADMIN
+  // solo administrador
   ...(rol === 'Administrador'
     ? [
         { name: 'Inventario', route: '/inventario', icon: 'bi bi-archive-fill' },
@@ -121,7 +121,7 @@ const cerrarSesion = async () => {
 </script>
 
 <style scoped>
-/* Opcional: Estilo sutil para la barra de scroll interna del menú si hay muchas opciones */
+
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
 }

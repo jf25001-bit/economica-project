@@ -38,7 +38,7 @@ class ProductoController extends Controller
             'stock' => 'required|integer|min:0',
             'stock_minimo' => 'required|integer|min:0',
             'sub_categoria_id' => 'required|exists:sub_categorias,id',
-            'proveedor_id' => 'required|exists:proveedores,id', // Validando contra tu tabla 'proveedors'
+            'proveedor_id' => 'required|exists:proveedores,id', 
         ]);
 
         $producto = Producto::create($request->all());

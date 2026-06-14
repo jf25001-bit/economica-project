@@ -291,7 +291,7 @@ async function cargar() {
   categorias.value = await getCategorias()
 }
 
-// NUEVA CATEGORIA
+// nueva categoria
 function abrirNuevaCategoria() {
   modal.value = true
   editando.value = false
@@ -303,7 +303,7 @@ function abrirNuevaCategoria() {
   mostrarSubcategorias.value = false
 }
 
-// EDITAR
+// editar
 function editarCategoria(cat) {
   modal.value = true
   editando.value = true
@@ -315,7 +315,7 @@ function editarCategoria(cat) {
   mostrarSubcategorias.value = true
 }
 
-// DESPLEGAR SUBCATEGORIAS
+
 function alternarSubcategorias() {
   mostrarSubcategorias.value = !mostrarSubcategorias.value
   if (!mostrarSubcategorias.value && !editando.value) {
@@ -324,14 +324,14 @@ function alternarSubcategorias() {
   }
 }
 
-// AGREGAR SUB NUEVA
+// agregar nueva subcategoria
 function agregarSub() {
   if (!nuevaSub.value.trim()) return
   subNuevas.value.push({ nombre: nuevaSub.value.trim() })
   nuevaSub.value = ''
 }
 
-// BORRAR SUB BD
+// borrar subcategoria de la base de datos
 async function eliminarSubBD(subId, index) {
   try {
     await deleteSubcategoria(subId)
@@ -341,7 +341,7 @@ async function eliminarSubBD(subId, index) {
   }
 }
 
-// GUARDAR
+// guardar
 async function guardar() {
   if (guardando.value) return
   if (!nombre.value.trim()) return
@@ -438,7 +438,7 @@ async function eliminarCategoria(catId) {
   }
 }
 
-// CERRAR
+
 function cerrar() {
   modal.value = false
   editando.value = false

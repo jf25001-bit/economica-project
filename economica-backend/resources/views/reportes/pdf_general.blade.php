@@ -7,7 +7,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Segoe UI', Arial, sans-serif; color: #2D3748; padding: 45px; background: #fff; line-height: 1.6; }
         
-        /* Encabezado Corporativo */
+        /* Encabezado */
         .brand-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #E2E8F0; padding-bottom: 20px; margin-bottom: 25px; }
         .logo-section h1 { color: #46674A; font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
         .logo-section p { color: #718096; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 2px; }
@@ -18,19 +18,19 @@
         .report-title-bar { background-color: #F7FAFC; border-left: 4px solid #46674A; padding: 12px 18px; margin-bottom: 30px; border-radius: 0 4px 4px 0; }
         .report-title-bar h2 { font-size: 16px; text-transform: uppercase; color: #2D3748; letter-spacing: 0.5px; }
         
-        /* Tarjetas de Resumen Financiero */
+        
         .balance-container { display: flex; gap: 15px; margin-bottom: 30px; }
         .card { flex: 1; padding: 18px; border-radius: 8px; border: 1px solid #E2E8F0; }
         .card .title { font-size: 11px; text-transform: uppercase; font-weight: 700; color: #718096; letter-spacing: 0.5px; }
         .card .value { font-size: 24px; font-weight: 800; margin-top: 6px; }
         
-        /* Colores de las Tarjetas */
+    
         .card.ventas { background-color: #EBF8FF; border-color: #BEE3F8; color: #2B6CB0; }
         .card.compras { background-color: #FFF5F5; border-color: #FED7D7; color: #C53030; }
         .card.balance { background-color: #F0FFF4; border-color: #C6F6D5; color: #22543D; }
         .card.negativo { background-color: #FFF5F5; border-color: #FED7D7; color: #9B1C1C; }
 
-        /* Estilos de la Tabla */
+      
         table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 15px; border-radius: 6px; overflow: hidden; border: 1px solid #E2E8F0; }
         th { background-color: #46674A; color: white; font-size: 11px; font-weight: 600; text-transform: uppercase; padding: 12px 16px; text-align: left; letter-spacing: 0.5px; }
         td { padding: 12px 16px; border-bottom: 1px solid #E2E8F0; font-size: 13px; color: #4A5568; background: #fff; }

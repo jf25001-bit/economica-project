@@ -1,6 +1,6 @@
 <template>
   <div class="p-6">
-    <!-- Encabezado -->
+   
     <div class="flex items-center justify-between mb-6">
       <div>
         <h1 class="text-3xl font-bold text-gray-800">Inventario</h1>
@@ -15,7 +15,7 @@
       </button>
     </div>
 
-    <!-- Barra de búsqueda -->
+    
     <div class="bg-white rounded-2xl shadow-md p-4 mb-6">
       <div class="relative">
         <i
@@ -30,7 +30,7 @@
       </div>
     </div>
 
-    <!-- Tabla -->
+    
     <div class="bg-white rounded-2xl shadow-md overflow-hidden">
       <table class="w-full">
         <thead class="bg-gray-100">

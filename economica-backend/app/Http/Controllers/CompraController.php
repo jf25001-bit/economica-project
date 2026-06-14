@@ -141,7 +141,7 @@ class CompraController extends Controller
                 $detalle = DetalleCompra::find($input['detalle_id']);
                 if (!$detalle) continue;
 
-                // CASO A: La compra pasa a estar completada por primera vez -> Creamos lote e incrementamos stock
+                
                 if ($estadoAnterior !== 'completada' && $compra->estado === 'completada') {
                     
                     if (!$detalle->lotes()->exists()) {
@@ -150,7 +150,7 @@ class CompraController extends Controller
                             'producto_id'       => $detalle->producto_id,
                             'codigo_lote'       => $input['codigo_lote'] ?? null,
                             'fecha_expiracion'  => $input['fecha_expiracion'] ?? null,
-                            'amount_initial'    => $detalle->cantidad, // Asegúrate si tus columnas se llaman cantidad_inicial o amount_initial
+                            'amount_initial'    => $detalle->cantidad, 
                             'cantidad_inicial'  => $detalle->cantidad, 
                             'cantidad_actual'   => $detalle->cantidad
                         ]);
@@ -160,7 +160,7 @@ class CompraController extends Controller
                         }
                     }
 
-                // CASO B: La compra ya estaba completada -> Actualizamos SOLAMENTE el lote existente
+                
                 } else if ($compra->estado === 'completada') {
                     
                     $lote = $detalle->lotes()->first();

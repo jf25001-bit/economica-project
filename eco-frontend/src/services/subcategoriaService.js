@@ -12,17 +12,13 @@ const getHeaders = () => {
   }
 }
 
-/* ======================
-   CREAR
-====================== */
+
 export const createSubcategoria = async (data) => {
   const res = await axios.post(API_URL, data, getHeaders())
   return res.data
 }
 
-/* ======================
-   ELIMINAR (FALTABA ESTO)
-====================== */
+
 export const deleteSubcategoria = async (id) => {
   const res = await axios.delete(
     `${API_URL}/${id}`,
@@ -31,9 +27,7 @@ export const deleteSubcategoria = async (id) => {
   return res.data
 }
 
-/* ======================
-   (OPCIONAL) ACTUALIZAR
-====================== */
+
 export const updateSubcategoria = async (id, data) => {
   const res = await axios.put(
     `${API_URL}/${id}`,
@@ -43,9 +37,7 @@ export const updateSubcategoria = async (id, data) => {
   return res.data
 }
 
-/* ======================
-   (OPCIONAL) GET
-====================== */
+
 export const getSubcategorias = async () => {
   const res = await axios.get(API_URL, getHeaders())
   return res.data

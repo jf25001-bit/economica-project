@@ -107,7 +107,7 @@
     class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-fadeIn"
   >
 
-    <!-- Header Modal -->
+    
     <div class="bg-[#46674A] text-white px-8 py-5 flex justify-between items-center">
       <div>
         <h2 class="text-2xl font-bold">
@@ -178,7 +178,7 @@
 
     </div>
 
-    <!-- Footer -->
+    
     <div class="bg-gray-50 px-8 py-5 flex justify-end gap-3 border-t">
 
       <button
@@ -254,7 +254,7 @@ function abrirNuevoProveedor() {
   mostrarModal.value = true
 }
 
-// Guardar / actualizar
+// Guardar y actualizar
 async function guardarProveedor() {
 
   // Nombre
@@ -419,7 +419,7 @@ async function eliminarProveedor(id) {
   }
 }
 
-// Cerrar modal
+
 function cerrarModal() {
 
   mostrarModal.value = false

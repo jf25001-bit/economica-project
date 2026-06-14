@@ -2,7 +2,7 @@
   <div class="min-h-screen flex items-center justify-center bg-gray-100">
     <div class="bg-white shadow-2xl rounded-3xl overflow-hidden w-full max-w-5xl grid grid-cols-2">
       
-      <!-- Lado izquierdo -->
+     
       <div class="bg-[#46674A] text-white flex flex-col items-center justify-center p-12">
         <img
           src="/logo.jpeg"
@@ -31,7 +31,7 @@
               {{ error }}
         </div>
 
-        <!-- usuario -->
+        <!-- nombre de usuario -->
         <div class="mb-5">
           <label class="block text-gray-700 font-medium mb-2">
             Usuario
@@ -54,7 +54,7 @@
         />
         </div>
 
-        <!-- Botón -->
+       
         <button
           @click="handleLogin"
           :disabled="loading"
@@ -86,7 +86,7 @@ const loading = ref(false)
 
 // Función para iniciar sesión
 const handleLogin = async () => {
-  // limpiar errores anteriores
+  
   error.value = ''
 
   // validar campos vacíos
@@ -104,7 +104,7 @@ const handleLogin = async () => {
       password: password.value
     })
 
-    // guardar token JWT
+    
     localStorage.setItem(
       'token',
       response.access_token
@@ -116,7 +116,7 @@ const handleLogin = async () => {
       JSON.stringify(response.user)
     )
 
-    // redirigir al dashboard
+   
     router.push('/dashboard')
 
   } catch (err) {

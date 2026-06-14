@@ -302,7 +302,7 @@ const modal = ref(false)
 const modalProductos = ref(false)
 const modalCompletar = ref(false)
 
-// Estado para bloquear dobles envíos
+// para evitar eso de doble registro
 const cargando = ref(false)
 
 const detalles = ref([])
@@ -313,7 +313,7 @@ const fechaLlegada = ref('')
 const indexProducto = ref(null)
 const busqueda = ref('')
 
-/* LOAD */
+
 const cargar = async () => {
   compras.value = await getCompras()
 }
@@ -392,7 +392,7 @@ async function guardar() {
   }
 }
 
-/* EDITAR / VER DETALLES */
+/* editar detalles */
 function abrirCompletar(c) {
   compraSeleccionada.value = c
 
@@ -430,9 +430,7 @@ const puedeFinalizar = computed(() =>
   lotes.value.every(l => l.codigo_lote.trim() !== '' && l.fecha_expiracion !== '')
 )
 
-/**
- * Función auxiliar para formatear los lotes.
- */
+
 function mapearDetallesParaBackend() {
   return lotes.value.map(l => ({
     detalle_id: l.detalle_id,
@@ -441,7 +439,7 @@ function mapearDetallesParaBackend() {
   }))
 }
 
-/* PEDIR CONFIRMACIÓN PARA FINALIZAR */
+/* confirmacion para finalizar la compra*/
 async function completarCompra() {
   const confirmar = confirm('¿Finalizar compra y cargar stock?.')
   if (!confirmar) return

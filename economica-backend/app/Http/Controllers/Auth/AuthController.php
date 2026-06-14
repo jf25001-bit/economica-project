@@ -42,38 +42,7 @@ class AuthController extends Controller
 }
     
 
-    public function register(Request $request){
-      //validamos datos a través de Request
-      $validator = Validator::make($request->all(),[
-          'name' => 'required|string|max:191',
-        //   'email' => 'required|string|email|max:191|unique:users',
-          'password' => 'required|string|min:8'
-      ]);
-      if($validator->fails()){
-          return response()->json($validator->errors(),422);
-      }
-      //creamos el usuario
-     $user = User::create([
-    'name' => $request->name,
-    'password' => Hash::make($request->password),
-    'rol_id' => $request->rol_id ?? 1,
-    'activo' => true
-]);
 
-      //Recordatorio--Asignar rol por defecto
-
-      //generamos el token
-      $token = JWTAuth::fromUser($user);
-      //retornamos la respuesta
-
-      return response()->json([
-          'message' => 'Usuario registrado correctamente',
-          'user' => $user,
-          'access_token' => $token,
-          'token_type' => 'bearer',
-           'expires_in' => JWTAuth::factory()->getTTL() * 60
-      ],201);
-  }
 
     protected function responseWithToken($token){
         return response()->json([
@@ -91,7 +60,7 @@ class AuthController extends Controller
     );
 }
 
-    //método para invalidar un token (logout)
+    
     public function logout(){
         JWTAuth::logout();
         return response()->json([
@@ -99,7 +68,7 @@ class AuthController extends Controller
     ]);
     }
 
-    //método para refrescar el token
+    
     public function refresh(){
         return $this->responseWithToken(JWTAuth::refresh());
     }

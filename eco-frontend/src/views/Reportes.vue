@@ -91,10 +91,10 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 
-// URL base de la API
+
 const API_BASE = 'http://localhost:8000/api/auth'
 
-// Variables reactivas organizadas
+
 const periodoSeleccionado = ref('mes')
 const cargandoTarjetas = ref(true)
 const error = ref(null)
@@ -106,7 +106,7 @@ const tarjetas = ref({
   stock_bajo: 0
 })
 
-// Dejamos únicamente los reportes detallados individuales
+
 const reportes = ref([
   { id: 1, nombre: 'Reporte de Ventas', descripcion: 'Muestra todas las ventas realizadas en el periodo seleccionado.' },
   { id: 2, nombre: 'Reporte de Compras', descripcion: 'Muestra todas las compras registradas a proveedores en el periodo seleccionado.' }
@@ -141,12 +141,12 @@ function gatherStatsCompleted() {
   cargandoTarjetas.value = false
 }
 
-// Botón Superior Maestro: Llama al Balance General Unificado (Ventas vs Compras)
+
 const generarPDFGeneral = () => {
   window.open(`http://localhost:8000/api/reportes/general?tipo=general&periodo=${periodoSeleccionado.value}`, '_blank')
 }
 
-// Botones de la Tabla inferior para reportes específicos
+
 const generarPDFColumna = (id) => {
   if (id === 1) {
     window.open(`http://localhost:8000/api/reportes/general?tipo=ventas&periodo=${periodoSeleccionado.value}`, '_blank')

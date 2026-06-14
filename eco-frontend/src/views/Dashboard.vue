@@ -1,7 +1,7 @@
 <template>
   <div class="p-6">
    
-     <!-- Bienvenida -->
+    
     <div class="mb-8">
       <h1 class="text-4xl font-bold text-gray-800">
         Bienvenido a la económica
@@ -12,7 +12,7 @@
       </p>
     </div>
 
-    <!-- Tarjetas -->
+    
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Productos -->
       <router-link

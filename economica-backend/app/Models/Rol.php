@@ -16,9 +16,7 @@ class Rol extends Model
         'descripcion'
     ];
 
-    /**
-     * Un rol tiene muchos usuarios
-     */
+    
     public function usuarios()
     {
         return $this->hasMany(User::class);

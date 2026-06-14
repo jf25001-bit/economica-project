@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
 
-    <!-- HEADER -->
+    
     <div class="flex items-center justify-between mb-8">
       <div>
         <h1 class="text-4xl font-bold text-gray-800">Usuarios</h1>
@@ -17,7 +17,7 @@
       </button>
     </div>
 
-    <!-- FILTROS -->
+    <!-- filtros -->
     <div class="bg-white rounded-2xl shadow-md p-5 mb-6 flex flex-wrap gap-4">
 
       <input
@@ -39,7 +39,7 @@
 
     </div>
 
-    <!-- TABLA -->
+    
     <div class="bg-white rounded-3xl shadow-xl overflow-x-hidden">
 
       <table class="w-full table-fixed">
@@ -72,7 +72,7 @@
               </span>
             </td>
 
-            <!-- ACCIONES -->
+           
             <td class="px-6 py-4">
               <div class="flex items-center gap-2">
 
@@ -104,12 +104,12 @@
       </table>
     </div>
 
-    <!-- MODAL USUARIO -->
+    <!-- modal de usuario -->
     <div v-if="modal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
 
       <div class="bg-white rounded-3xl w-full max-w-xl flex flex-col">
 
-        <!-- HEADER -->
+        
         <div class="bg-[#46674A] text-white px-6 py-5 flex justify-between items-center">
           <h2 class="text-xl font-bold">
             {{ editando ? 'Editar Usuario' : 'Nuevo Usuario' }}
@@ -123,7 +123,7 @@
 </button>
         </div>
 
-        <!-- BODY -->
+        
         <div class="p-6 space-y-2">
 
           <input
@@ -154,7 +154,7 @@
 
         </div>
 
-        <!-- FOOTER -->
+        
         <div class="flex justify-end gap-3 p-4">
 
           <button @click="cerrar" class="px-4 py-2 border rounded-xl">
@@ -174,7 +174,7 @@
       </div>
     </div>
 
-    <!-- MODAL ELIMINAR -->
+    <!-- modal para eliminar -->
     <div v-if="modalEliminar" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
 
       <div class="bg-white p-6 w-[420px] rounded shadow-lg">
@@ -240,7 +240,7 @@ const errores = ref({
   rol_id: ''
 })
 
-/* CARGA */
+
 const cargar = async () => {
   usuarios.value = await getUsuarios()
   roles.value = await getRoles()
@@ -248,7 +248,7 @@ const cargar = async () => {
 
 onMounted(cargar)
 
-/* FILTRO */
+
 const usuariosFiltrados = computed(() => {
   return usuarios.value.filter(u => {
     const nombre = u.name?.toLowerCase() || ''
@@ -258,7 +258,7 @@ const usuariosFiltrados = computed(() => {
   })
 })
 
-/* MODAL */
+
 const abrirModal = () => {
   modal.value = true
   editando.value = false
@@ -270,7 +270,7 @@ const cerrar = () => {
   modal.value = false
 }
 
-/* VALIDACIÓN */
+
 const validar = () => {
   errores.value = { name: '', password: '', rol_id: '' }
   let ok = true
@@ -300,13 +300,13 @@ const validar = () => {
   return ok
 }
 
-/* GUARDAR */
+
 const guardar = async () => {
   if (!validar()) return
 
   loading.value = true
 
-  // 🔥 ALERTA DE CARGA
+ 
   Swal.fire({
     title: editando.value ? 'Actualizando usuario...' : 'Creando usuario...',
     text: 'Por favor espera',
@@ -348,14 +348,14 @@ const guardar = async () => {
   }
 }
 
-/* EDITAR */
+
 const editar = (u) => {
   form.value = { ...u, password: '' }
   editando.value = true
   modal.value = true
 }
 
-/* ELIMINAR (SWEETALERT como categorías) */
+
 const abrirEliminar = async (u) => {
   const result = await Swal.fire({
     title: '¿Eliminar usuario?',
@@ -385,7 +385,7 @@ const abrirEliminar = async (u) => {
   }
 }
 
-/* TOGGLE ESTADO */
+
 const toggleEstado = async (u) => {
   await updateUsuario(u.id, {
     ...u,

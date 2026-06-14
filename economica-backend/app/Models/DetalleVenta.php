@@ -19,13 +19,13 @@ class DetalleVenta extends Model
         'producto_id'
     ];
 
-    // Relación: El detalle pertenece a una venta madre
+   
     public function venta()
     {
         return $this->belongsTo(Venta::class, 'venta_id');
     }
 
-    // Relación: El detalle corresponde a un producto específico
+    
     public function producto()
     {
         return $this->belongsTo(Producto::class, 'producto_id');

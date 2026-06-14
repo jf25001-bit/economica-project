@@ -245,29 +245,29 @@
 import { ref, computed, onMounted, nextTick } from 'vue'
 import axios from 'axios'
 
-// Referencias de datos sincronizadas con la Base de Datos
+
 const ventas = ref([])
 const productosCatalogo = ref([])
 
-// Controles de interfaz
+
 const mostrarNuevaVenta = ref(false)
 const guardandoVenta = ref(false)
 const inputCodigoBarras = ref(null)
 
-// Campos reactivos del Formulario Modal
+
 const nombreCliente = ref('Consumidor Final')
 const codigoInput = ref('')
 const productoManualSeleccionado = ref('')
 const carrito = ref([])
 
-// Cargar información real desde las APIs de Laravel al inicializar la pantalla
+
 const consultarBaseDatos = async () => {
   try {
     const [resVentas, resProductos] = await Promise.all([
       axios.get('http://127.0.0.1:8000/api/ventas'),
       axios.get('http://127.0.0.1:8000/api/productos')
     ])
-    // Se mapea adaptando la estructura que envíe tu API (colección directa o envuelto en un objeto data)
+    
     ventas.value = resVentas.data.data || resVentas.data || []
     productosCatalogo.value = resProductos.data.data || resProductos.data || []
   } catch (error) {
@@ -275,7 +275,7 @@ const consultarBaseDatos = async () => {
   }
 }
 
-// Inicializar y abrir el panel de ventas
+
 const abrirModalVenta = () => {
   nombreCliente.value = 'Consumidor Final'
   codigoInput.value = ''
@@ -283,13 +283,13 @@ const abrirModalVenta = () => {
   carrito.value = []
   mostrarNuevaVenta.value = true
 
-  // Forzar el auto-enfoque en el input para que puedan pasar el lector de inmediato
+  
   nextTick(() => {
     if (inputCodigoBarras.value) inputCodigoBarras.value.focus()
   })
 }
 
-// Calcular el total dinámico sumando los subtotales del carrito
+
 const totalCalculado = computed(() => {
   return carrito.value.reduce(
     (suma, item) => suma + (item.precio_venta * item.cantidad), 
@@ -297,14 +297,13 @@ const totalCalculado = computed(() => {
   )
 })
 
-// MÉTODOS DE INSERCIÓN AL CARRITO
+// Metodos para meter los productos al carrito
 
-// 1. Agregar mediante Lector o Entrada de Código de Barras + ENTER
 const agregarPorCodigo = () => {
   const cod = codigoInput.value.trim()
   if (!cod) return
 
-  // Buscamos coincidencia exacta en el catálogo usando 'codigo_barras' de la DB
+  
   const producto = productosCatalogo.value.find(p => String(p.codigo_barras) === cod)
 
   if (!producto) {
@@ -317,7 +316,7 @@ const agregarPorCodigo = () => {
   codigoInput.value = ''
 }
 
-// 2. Agregar seleccionando manualmente desde el Menú Desplegable (Dropdown)
+
 const agregarPorSeleccionManual = () => {
   if (!productoManualSeleccionado.value) return
 
@@ -326,11 +325,11 @@ const agregarPorSeleccionManual = () => {
     inyectarProducto(producto)
   }
 
-  // Reiniciar el selector manual
+ 
   productoManualSeleccionado.value = ''
 }
 
-// Lógica de validación de stocks compartida antes de meterlo al carrito
+
 const inyectarProducto = (producto) => {
   const stockDisponible = Number(producto.stock)
 
@@ -348,14 +347,14 @@ const inyectarProducto = (producto) => {
     }
     yaExiste.cantidad++
   } else {
-    // Insertamos la estructura limpia basada en las columnas de tu ProductoController
+    
     carrito.value.push({
       producto_id: producto.id,
       nombre: producto.nombre,
       codigo_barras: producto.codigo_barras,
       precio_venta: Number(producto.precio_venta),
       cantidad: 1,
-      stock_maximo: stockDisponible // Candado de seguridad para controlar los inputs numéricos
+      stock_maximo: stockDisponible 
     })
   }
 }
@@ -376,7 +375,7 @@ const eliminarDelCarrito = (idProducto) => {
   carrito.value = carrito.value.filter(item => item.producto_id !== idProducto)
 }
 
-// Cerrar ventana modal y restaurar formularios
+
 const cerrarModal = () => {
   mostrarNuevaVenta.value = false
   codigoInput.value = ''
@@ -384,7 +383,7 @@ const cerrarModal = () => {
   carrito.value = []
 }
 
-// GUARDAR LA TRANSACCIÓN (Envía maestro + detalle estructurado a Laravel)
+
 const finalizarVenta = async () => {
   if (carrito.value.length === 0) {
     alert('Agrega por lo menos un producto para proceder.')
@@ -394,7 +393,7 @@ const finalizarVenta = async () => {
   if (guardandoVenta.value) return
   guardandoVenta.value = true
 
-  // Estructuramos el JSON para que calce con la validación del backend de Laravel
+ 
   const datosVenta = {
     cliente: nombreCliente.value.trim() || 'Consumidor Final',
     total: totalCalculado.value,
@@ -406,7 +405,7 @@ const finalizarVenta = async () => {
   }
 
   try {
-    // Petición HTTP POST al endpoint de Laravel
+    
     await axios.post('http://127.0.0.1:8000/api/ventas', datosVenta)
     
     alert('Venta realizada')
@@ -421,14 +420,14 @@ const finalizarVenta = async () => {
   }
 }
 
-// Utilidad estética para parsear timestamps ISO a formato legible
+
 const formatearFecha = (fechaRaw) => {
   if (!fechaRaw) return 'N/A'
   const objFecha = new Date(fechaRaw)
   return isNaN(objFecha.getTime()) ? fechaRaw : objFecha.toLocaleDateString()
 }
 
-// Al cargar la vista por primera vez
+
 onMounted(() => {
   consultarBaseDatos()
 })

@@ -26,7 +26,7 @@
       </div>
     </div>
 
-    <!-- Usuario -->
+    <!-- usuario(ALGUIEN QUE ARREGLE ESTO) -->
     <div
       class="flex items-center gap-3 bg-white/10 px-6 py-2 rounded-xl"
     >
