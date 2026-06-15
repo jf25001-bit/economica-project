@@ -16,7 +16,7 @@
         </p>
       </div>
 
-    //formulario
+    
       <div class="p-12 flex flex-col justify-center">
         <h2 class="text-3xl font-bold text-gray-800 mb-2">
           Iniciar Sesión
