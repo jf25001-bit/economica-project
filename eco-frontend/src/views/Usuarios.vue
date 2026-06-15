@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
 
-    
+    <!-- HEADER -->
     <div class="flex items-center justify-between mb-8">
       <div>
         <h1 class="text-4xl font-bold text-gray-800">Usuarios</h1>
@@ -17,7 +17,7 @@
       </button>
     </div>
 
-    <!-- filtros -->
+    <!-- FILTROS -->
     <div class="bg-white rounded-2xl shadow-md p-5 mb-6 flex flex-wrap gap-4">
 
       <input
@@ -39,7 +39,7 @@
 
     </div>
 
-    
+    <!-- TABLA -->
     <div class="bg-white rounded-3xl shadow-xl overflow-x-hidden">
 
       <table class="w-full table-fixed">
@@ -72,7 +72,7 @@
               </span>
             </td>
 
-           
+            <!-- ACCIONES -->
             <td class="px-6 py-4">
               <div class="flex items-center gap-2">
 
@@ -104,12 +104,12 @@
       </table>
     </div>
 
-    <!-- modal de usuario -->
+    <!-- MODAL USUARIO -->
     <div v-if="modal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
 
       <div class="bg-white rounded-3xl w-full max-w-xl flex flex-col">
 
-        
+        <!-- HEADER -->
         <div class="bg-[#46674A] text-white px-6 py-5 flex justify-between items-center">
           <h2 class="text-xl font-bold">
             {{ editando ? 'Editar Usuario' : 'Nuevo Usuario' }}
@@ -123,7 +123,7 @@
 </button>
         </div>
 
-        
+        <!-- BODY -->
         <div class="p-6 space-y-2">
 
           <input
@@ -154,7 +154,7 @@
 
         </div>
 
-        
+        <!-- FOOTER -->
         <div class="flex justify-end gap-3 p-4">
 
           <button @click="cerrar" class="px-4 py-2 border rounded-xl">
@@ -174,7 +174,7 @@
       </div>
     </div>
 
-    <!-- modal para eliminar -->
+    <!-- MODAL ELIMINAR -->
     <div v-if="modalEliminar" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
 
       <div class="bg-white p-6 w-[420px] rounded shadow-lg">
@@ -211,22 +211,25 @@
 </template>
 
 <script setup>
+// Importación de funciones de Vue, alertas y servicios del backend
 import { ref, computed, onMounted } from 'vue'
 import Swal from 'sweetalert2'
 import { getUsuarios, createUsuario, updateUsuario, deleteUsuario } from '@/services/usuarioService'
 import { getRoles } from '@/services/rolService'
-
+// Aquí se guardan los usuarios y roles
 const usuarios = ref([])
 const roles = ref([])
-
+// Variables para buscar y filtrar
 const search = ref('')
 const filtroRol = ref('')
-
+// Controla si el modal está abierto
 const modal = ref(false)
+// Sirve para saber si estamos editando o creando
 const editando = ref(false)
-
+// Muestra estado de carga
 const loading = ref(false)
 
+// Datos que se ingresan en el formulario
 const form = ref({
   id: null,
   name: '',
@@ -234,13 +237,14 @@ const form = ref({
   rol_id: ''
 })
 
+// Guarda los errores de validación
 const errores = ref({
   name: '',
   password: '',
   rol_id: ''
 })
 
-
+// Carga usuarios y roles desde la base de datos 
 const cargar = async () => {
   usuarios.value = await getUsuarios()
   roles.value = await getRoles()
@@ -248,7 +252,7 @@ const cargar = async () => {
 
 onMounted(cargar)
 
-
+// Filtra usuarios según la búsqueda realizada
 const usuariosFiltrados = computed(() => {
   return usuarios.value.filter(u => {
     const nombre = u.name?.toLowerCase() || ''
@@ -258,19 +262,19 @@ const usuariosFiltrados = computed(() => {
   })
 })
 
-
+// Abre el formulario para agregar un usuario 
 const abrirModal = () => {
   modal.value = true
   editando.value = false
   form.value = { id: null, name: '', password: '', rol_id: '' }
   errores.value = { name: '', password: '', rol_id: '' }
 }
-
+// Cierra el formulario
 const cerrar = () => {
   modal.value = false
 }
 
-
+// Verifica que los datos ingresados sean correctos
 const validar = () => {
   errores.value = { name: '', password: '', rol_id: '' }
   let ok = true
@@ -300,13 +304,12 @@ const validar = () => {
   return ok
 }
 
-
+// Guarda o actualiza la información del usuario
 const guardar = async () => {
   if (!validar()) return
 
   loading.value = true
 
- 
   Swal.fire({
     title: editando.value ? 'Actualizando usuario...' : 'Creando usuario...',
     text: 'Por favor espera',
@@ -348,14 +351,14 @@ const guardar = async () => {
   }
 }
 
-
+// Carga los datos del usuario para editarlo
 const editar = (u) => {
   form.value = { ...u, password: '' }
   editando.value = true
   modal.value = true
 }
 
-
+// Elimina un usuario después de confirmar la acción
 const abrirEliminar = async (u) => {
   const result = await Swal.fire({
     title: '¿Eliminar usuario?',
@@ -385,7 +388,7 @@ const abrirEliminar = async (u) => {
   }
 }
 
-
+// Cambia el estado del usuario entre activo e inactivo
 const toggleEstado = async (u) => {
   await updateUsuario(u.id, {
     ...u,

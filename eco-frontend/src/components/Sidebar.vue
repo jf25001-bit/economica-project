@@ -5,7 +5,7 @@
       isOpen ? 'w-60' : 'w-20'
     ]"
   >
-    <!-- Encabezdo y logo -->
+    <!-- Encabezado / Logo -->
     <div 
       :class="[
         'p-4 border-b border-white/10 flex items-center gap-3 transition-all duration-300',
@@ -24,7 +24,7 @@
       </div>
     </div>
 
-    <!-- menu de navegación -->
+    <!-- Menú de Navegación -->
     <nav class="flex-1 py-0 space-y-1 overflow-y-auto custom-scrollbar">
       <router-link
         v-for="item in menu"
@@ -75,29 +75,26 @@ defineProps({
 })
 
 const router = useRouter()
-const user = JSON.parse(localStorage.getItem('user'))
-const rol = user?.rol?.nombre
- const menu = [
+
+const menu = [
   { name: 'Inicio', route: '/dashboard', icon: 'bi bi-house-door-fill' },
   { name: 'Categorias', route: '/categorias', icon: 'bi bi-grid-3x3-gap-fill' },
   { name: 'Productos', route: '/productos', icon: 'bi bi-box-seam-fill' },
+  { name: 'Inventario', route: '/inventario', icon: 'bi bi-archive-fill' },
   { name: 'Compras', route: '/compras', icon: 'bi bi-basket2-fill' },
   { name: 'Proveedores', route: '/proveedores', icon: 'bi bi-building' },
   { name: 'Ventas', route: '/ventas', icon: 'bi bi-cash-coin' },
-
-  // solo administrador
-  ...(rol === 'Administrador'
-    ? [
-        { name: 'Inventario', route: '/inventario', icon: 'bi bi-archive-fill' },
-        { name: 'Usuarios', route: '/usuarios', icon: 'bi bi-person-badge-fill' },
-        { name: 'Reportes', route: '/reportes', icon: 'bi bi-bar-chart-line-fill' }
-      ]
-    : [])
+  { name: 'Usuarios', route: '/usuarios', icon: 'bi bi-person-badge-fill' },
+  { name: 'Reportes', route: '/reportes', icon: 'bi bi-bar-chart-line-fill' }
 ]
+// Función para cerrar la sesión del usuario
 const cerrarSesion = async () => {
   try {
+
+    // Obtiene el token guardado
     const token = localStorage.getItem('token')
 
+    // Envía la petición al backend para cerrar sesión
     await axios.post(
       'http://127.0.0.1:8000/api/auth/logout',
       {},
@@ -108,10 +105,11 @@ const cerrarSesion = async () => {
       }
     )
   } catch (error) {
+
+    // Muestra error si falla el cierre de sesión
     console.log('Logout error:', error)
   }
-
-  // eliminar datos locales
+ // Elimina los datos guardados en el navegador
   localStorage.removeItem('token')
   localStorage.removeItem('user')
 
@@ -121,7 +119,7 @@ const cerrarSesion = async () => {
 </script>
 
 <style scoped>
-
+/* Opcional: Estilo sutil para la barra de scroll interna del menú si hay muchas opciones */
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
 }

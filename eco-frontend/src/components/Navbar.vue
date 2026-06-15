@@ -18,34 +18,64 @@
         <i class="bi bi-shop text-lg"></i>
       </div>
 
-      <div>
-        <h1 class="text-lg font-bold leading-none">
+      <h1 class="text-lg font-bold leading-none">
         La economica
-        </h1>
-        
-      </div>
+      </h1>
     </div>
 
-    <!-- usuario(ALGUIEN QUE ARREGLE ESTO) -->
+    <!-- Usuario -->
     <div
       class="flex items-center gap-3 bg-white/10 px-6 py-2 rounded-xl"
     >
       <div
-       
+        class="relative cursor-pointer user-box"
+        @click="toggleInfo"
       >
-        
-      </div>
-
-      <div class="hidden sm:block">
         <p class="text-sm font-semibold">
-          Admin
+          {{ user?.name || 'Usuario' }}
         </p>
-        
+
+        <p class="text-xs text-white/70">
+          {{ user?.rol?.nombre || 'Sin rol' }}
+        </p>
+
+        <!-- DROPDOWN -->
+        <div
+          v-if="mostrarInfo"
+          class="absolute right-0 mt-2 w-48 bg-white text-black rounded-xl shadow-lg p-3 z-50"
+        >
+          <p class="text-xs text-gray-500">Usuario</p>
+          <p class="font-bold">{{ user?.name }}</p>
+
+          <p class="text-xs text-gray-500 mt-2">Rol</p>
+          <p class="font-bold">{{ user?.rol?.nombre }}</p>
+        </div>
       </div>
     </div>
   </header>
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
+
 defineEmits(['toggle-sidebar'])
+
+const user = ref(null)
+const mostrarInfo = ref(false)
+
+onMounted(() => {
+  user.value = JSON.parse(localStorage.getItem('user'))
+
+  // cerrar si se hace click fuera
+  window.addEventListener('click', (e) => {
+    const el = document.querySelector('.user-box')
+    if (el && !el.contains(e.target)) {
+      mostrarInfo.value = false
+    }
+  })
+})
+
+const toggleInfo = () => {
+  mostrarInfo.value = !mostrarInfo.value
+}
 </script>

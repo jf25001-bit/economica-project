@@ -8,7 +8,7 @@ use Illuminate\Http\JsonResponse;
 
 class RolController extends Controller
 {
-    
+    //lista todos los roles
     public function index(): JsonResponse
     {
         return response()->json(
@@ -17,7 +17,7 @@ class RolController extends Controller
         );
     }
 
-    
+    //crear un rol
     public function store(Request $request): JsonResponse
     {
         $request->validate([
@@ -36,7 +36,8 @@ class RolController extends Controller
         ], 201);
     }
 
-   
+    //Muestra un rol
+     
     public function show(Rol $rol): JsonResponse
     {
         return response()->json(
@@ -45,7 +46,7 @@ class RolController extends Controller
         );
     }
 
-   
+    //actualiza datos del rol
     public function update(Request $request, Rol $rol): JsonResponse
     {
         $request->validate([
@@ -64,7 +65,7 @@ class RolController extends Controller
         ], 200);
     }
 
-    
+   //elimina un rol
     public function destroy(Rol $rol): JsonResponse
     {
         $rol->delete();

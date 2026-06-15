@@ -8,8 +8,9 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
+
+//se listan  todos los usuarios
     public function index()
-    
 {
     return response()->json(
         User::with('rol')
@@ -18,7 +19,7 @@ class UserController extends Controller
         200
     );
 }
-
+//aqui se crean usuarios 
     public function store(Request $request)
 {
     $request->validate([
@@ -39,7 +40,7 @@ class UserController extends Controller
         'data' => $usuario
     ], 201);
 }
-
+//muestra un usuario
     public function show($id)
     {
         $usuario = User::with('rol')->find($id);
@@ -52,7 +53,7 @@ class UserController extends Controller
 
         return response()->json($usuario);
     }
-
+//actualiza los datos
     public function update(Request $request, $id)
 {
     $usuario = User::find($id);
@@ -87,7 +88,7 @@ class UserController extends Controller
         'data' => $usuario
     ]);
 }
-
+//eliminar un usuario
     public function destroy($id)
     {
         $usuario = User::find($id);

@@ -16,7 +16,7 @@
         </p>
       </div>
 
-      <!-- Formulario -->
+    //formulario
       <div class="p-12 flex flex-col justify-center">
         <h2 class="text-3xl font-bold text-gray-800 mb-2">
           Iniciar Sesión
@@ -40,7 +40,7 @@
            border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]" />
         </div>
 
-        <!-- Contraseña -->
+       
         <div class="mb-6">
           <label class="block text-gray-700 font-medium mb-2">
             Contraseña
@@ -68,7 +68,7 @@
 </template>
 
 <script setup>
-
+// importa las funciones necesarias de vue y vue router
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { login } from '../services/authService'
@@ -76,11 +76,11 @@ import { login } from '../services/authService'
 // Router para redirigir páginas
 const router = useRouter()
 
-// Variables del formulario
+// variables que almacenan los datos ingresados en el formulario
 const name = ref('')
 const password = ref('')
 
-// Estados del login
+// muestra errores y controla el estado de carga
 const error = ref('')
 const loading = ref(false)
 

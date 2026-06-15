@@ -12,6 +12,7 @@ use App\Models\User;
 
 class AuthController extends Controller
 {
+    //verifica usuarios 
     public function login(Request $request)
 {
     $credenciales = $request->only('name','password');
@@ -41,9 +42,40 @@ class AuthController extends Controller
     ]);
 }
     
+//se crean usuarios nuevos
+    public function register(Request $request){
+      //validamos datos a través de Request
+      $validator = Validator::make($request->all(),[
+          'name' => 'required|string|max:191',
+        //   'email' => 'required|string|email|max:191|unique:users',
+          'password' => 'required|string|min:8'
+      ]);
+      if($validator->fails()){
+          return response()->json($validator->errors(),422);
+      }
+      //creamos el usuario
+     $user = User::create([
+    'name' => $request->name,
+    'password' => Hash::make($request->password),
+    'rol_id' => $request->rol_id ?? 1,
+    'activo' => true
+]);
 
+      //Recordatorio Asignar rol por defecto
 
+      //generamos el token
+      $token = JWTAuth::fromUser($user);
+      // se retornamos la respuesta
 
+      return response()->json([
+          'message' => 'Usuario registrado correctamente',
+          'user' => $user,
+          'access_token' => $token,
+          'token_type' => 'bearer',
+           'expires_in' => JWTAuth::factory()->getTTL() * 60
+      ],201);
+  }
+ //debuelve datos de la sesion
     protected function responseWithToken($token){
         return response()->json([
             'access_token' => $token,
@@ -52,7 +84,7 @@ class AuthController extends Controller
             'expires_in' => JWTAuth::factory()->getTTL() * 60
         ]);
     }
-
+ //muestra los datos del usuario actual
  public function me()
 {
     return response()->json(
@@ -60,7 +92,10 @@ class AuthController extends Controller
     );
 }
 
-    
+   
+
+
+//ba cerrar la sesion del usuario
     public function logout(){
         JWTAuth::logout();
         return response()->json([
@@ -68,7 +103,9 @@ class AuthController extends Controller
     ]);
     }
 
-    
+    //método para refrescar el token
+
+    //retornara un token de acceso
     public function refresh(){
         return $this->responseWithToken(JWTAuth::refresh());
     }
