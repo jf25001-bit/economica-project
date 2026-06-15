@@ -2,6 +2,8 @@ import axios from 'axios'
 
 const API_URL = 'http://127.0.0.1:8000/api/categorias'
 
+
+//comprueba si esta el token para mostrar todo esto
 const getHeaders = () => {
   const token = localStorage.getItem('token')
 

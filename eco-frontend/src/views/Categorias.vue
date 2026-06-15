@@ -279,6 +279,7 @@ const mostrarSubcategorias = ref(false)
 const guardando = ref(false)
 const filtro = ref('')
 
+//buscador de categorias
 const categoriasFiltradas = computed(() => {
   return categorias.value.filter(cat =>
     cat.nombre.toLowerCase().includes(filtro.value.toLowerCase())
@@ -315,7 +316,7 @@ function editarCategoria(cat) {
   mostrarSubcategorias.value = true
 }
 
-
+// abre o cierra la sección de subcategorías y borra el texto escrito si decide ocultarla
 function alternarSubcategorias() {
   mostrarSubcategorias.value = !mostrarSubcategorias.value
   if (!mostrarSubcategorias.value && !editando.value) {
@@ -324,7 +325,7 @@ function alternarSubcategorias() {
   }
 }
 
-// agregar nueva subcategoria
+// agregar nueva subcategoria temporal
 function agregarSub() {
   if (!nuevaSub.value.trim()) return
   subNuevas.value.push({ nombre: nuevaSub.value.trim() })
@@ -335,7 +336,7 @@ function agregarSub() {
 async function eliminarSubBD(subId, index) {
   try {
     await deleteSubcategoria(subId)
-    subExistentes.value.splice(index, 1)
+    subExistentes.value.splice(index, 1) // Quita la subcategoria de la pantalla tambien
   } catch (error) {
     console.error(error)
   }
@@ -352,11 +353,13 @@ async function guardar() {
     let res
     const subcategoriasPorCrear = [...subNuevas.value]
     
+    //por si se olvida de darle al boton de mas al agregar una subcategoria
     if (mostrarSubcategorias.value && nuevaSub.value.trim()) {
       subcategoriasPorCrear.push({ nombre: nuevaSub.value.trim() })
       nuevaSub.value = ''
     }
 
+    //se crea la categoria
     if (editando.value) {
       res = await updateCategoria(id.value, {
         nombre: nombre.value.trim()
@@ -367,13 +370,15 @@ async function guardar() {
       })
     }
 
+    //busca el id
     const catId = res?.data?.data?.id || res?.data?.id || res?.id || id.value
+
 
     const creadas = []
     for (const s of subcategoriasPorCrear) {
       const subRes = await createSubcategoria({
         nombre: s.nombre,
-        categoria_id: catId
+        categoria_id: catId //la id buscada se usa aqui
       })
       creadas.push(subRes?.data || subRes || { nombre: s.nombre, id: Date.now() })
     }
@@ -406,8 +411,9 @@ async function guardar() {
   }
 }
 
-// ELIMINAR CATEGORIA
+// eliminar cateogoria
 async function eliminarCategoria(catId) {
+  //muestra lo de sweetalert
   const result = await Swal.fire({
     title: '¿Eliminar categoría?',
     text: 'Esta acción no se puede deshacer',
@@ -418,7 +424,7 @@ async function eliminarCategoria(catId) {
     confirmButtonText: 'Sí, eliminar'
   })
 
-  if (!result.isConfirmed) return
+  if (!result.isConfirmed) return //no hace nada si se dice que no
 
   try {
     await deleteCategoria(catId)

@@ -313,24 +313,26 @@ const fechaLlegada = ref('')
 const indexProducto = ref(null)
 const busqueda = ref('')
 
-
+//carga las compras
 const cargar = async () => {
   compras.value = await getCompras()
 }
 
+//carga los productos
 const cargarProductos = async () => {
   productos.value = await getProductos()
 }
 
+//para que se ejecuten cuando todo cargue
 onMounted(() => {
   cargar()
   cargarProductos()
 })
 
-/* NUEVA */
+//nueva compra
 function abrirModal() {
   modal.value = true
-  detalles.value = []
+  detalles.value = [] //borra lo que ya estaba
 }
 
 function add() {
@@ -345,18 +347,21 @@ function cerrar() {
   modal.value = false
 }
 
-/* PRODUCTOS */
+//productos
 function abrirSelector(i) {
+  //guarda el indice de la fila para asignar el producto
   indexProducto.value = i
   modalProductos.value = true
 }
 
 function seleccionarProducto(p) {
+  //Asigna el id y el precio de compra a la fila que lo solicita
   detalles.value[indexProducto.value].producto_id = p.id
   detalles.value[indexProducto.value].precio_compra = p.precio_compra
   modalProductos.value = false
 }
 
+//para buscar productos en tiempo real
 const productosFiltrados = computed(() =>
   productos.value.filter(p =>
     p.nombre.toLowerCase().includes(busqueda.value.toLowerCase())
@@ -371,11 +376,12 @@ function getProductoPrecio(id) {
   return productos.value.find(p => p.id === id)?.precio_compra
 }
 
-/* GUARDAR NUEVA COMPRA */
+//guardar nueva compra
 async function guardar() {
   if (detalles.value.length === 0) return alert('Debes agregar al menos un producto')
   if (cargando.value) return 
 
+  //desactiva el boton despues del primer click
   cargando.value = true
   try {
     await createCompra({
@@ -392,16 +398,17 @@ async function guardar() {
   }
 }
 
-/* editar detalles */
+//editar detalles
 function abrirCompletar(c) {
   compraSeleccionada.value = c
 
   if (c.fecha_llegada) {
+    //toma solo la fecha y ignora la hora
     fechaLlegada.value = c.fecha_llegada.split(' ')[0]
   } else {
     fechaLlegada.value = new Date().toISOString().split('T')[0]
   }
-
+  //trae los atos de laravel
   lotes.value = (c.detalles || []).map(d => {
     const prodLocal = productos.value.find(p => p.id === d.producto_id)
     const loteExistente = d.lotes && d.lotes.length > 0 ? d.lotes[0] : null
@@ -424,13 +431,14 @@ const esPendiente = computed(() =>
   compraSeleccionada.value?.estado === 'pendiente'
 )
 
+//bloquea el boton de finalizar compra si o se llena el numero de lote y fecha de vencimiento
 const puedeFinalizar = computed(() =>
   lotes.value.length > 0 && 
   fechaLlegada.value !== '' && 
   lotes.value.every(l => l.codigo_lote.trim() !== '' && l.fecha_expiracion !== '')
 )
 
-
+//filtra y solo manda los datos que importan al backend
 function mapearDetallesParaBackend() {
   return lotes.value.map(l => ({
     detalle_id: l.detalle_id,
@@ -439,7 +447,7 @@ function mapearDetallesParaBackend() {
   }))
 }
 
-/* confirmacion para finalizar la compra*/
+//confirmacion para finalizar compra
 async function completarCompra() {
   const confirmar = confirm('¿Finalizar compra y cargar stock?.')
   if (!confirmar) return
@@ -447,6 +455,7 @@ async function completarCompra() {
 
   cargando.value = true
   try {
+    //envia los datos al backend y cambia el estado a completado
     await updateCompra(compraSeleccionada.value.id, {
       estado: 'completada',
       fecha_llegada: fechaLlegada.value,
@@ -462,7 +471,7 @@ async function completarCompra() {
   }
 }
 
-/* GUARDAR CAMBIOS */
+//guarda cambios de compras ya completadas
 async function guardarCambios() {
   if (cargando.value) return
 
@@ -483,7 +492,7 @@ async function guardarCambios() {
   }
 }
 
-/* CANCELAR COMPRA */
+//cancelar compra
 async function cancelarCompra() {
   if (!confirm('¿Seguro que deseas cancelar esta compra?')) return
   if (cargando.value) return
