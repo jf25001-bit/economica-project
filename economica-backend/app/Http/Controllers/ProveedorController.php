@@ -8,7 +8,6 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
-
 class ProveedorController extends Controller
 {
     /**
@@ -16,27 +15,18 @@ class ProveedorController extends Controller
      */
     public function index()
     {
-       try{
-
-            $proveedores = Proveedor::all();
+        try {
+            // Cargar la relación de productos junto con los proveedores
+            $proveedores = Proveedor::with('productos')->get();
 
             return response()->json($proveedores);
 
-        }catch(\Exception $e){
-
+        } catch(\Exception $e) {
             return response()->json([
                 'message' => 'Error interno del servidor',
                 'error' => $e->getMessage()
-            ],500);
+            ], 500);
         }
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
     }
 
     /**
@@ -44,80 +34,76 @@ class ProveedorController extends Controller
      */
     public function store(Request $request)
     {
-         try{
-
+        try {
             $request->validate(
                 [
                     'nombre_proveedor' => 'required|string|min:2|max:80|unique:proveedores,nombre_proveedor',
                     'telefono' => 'required|string|max:15',
-                    'direccion' => 'required|string|max:255'
+                    'direccion' => 'required|string|max:255',
+                    'productos' => 'nullable|array',
+                    'productos.*' => 'exists:productos,id' // Valida que los IDs existan
                 ],
                 [
                     'nombre_proveedor.unique' => 'Ya existe un proveedor con este nombre'
                 ]
             );
 
+            // 1. Crear el proveedor
             $proveedor = Proveedor::create([
                 'nombre_proveedor' => $request->nombre_proveedor,
                 'telefono' => $request->telefono,
                 'direccion' => $request->direccion
             ]);
 
+            // 2. Sincronizar los productos en la tabla pivote
+            if ($request->has('productos')) {
+                $proveedor->productos()->sync($request->productos);
+            }
+
+            // Cargar la relación para devolver el objeto completo
+            $proveedor->load('productos');
+
             return response()->json([
                 'message' => 'Proveedor registrado correctamente',
                 'proveedor' => $proveedor
-            ],201);
+            ], 201);
 
         } catch (ValidationException $e) {
-
             return response()->json([
                 'message' => 'Error de validación.',
                 'errores' => $e->errors()
-            ],422);
+            ], 422);
 
-        } catch(\Exception $e){
-
+        } catch(\Exception $e) {
             return response()->json([
                 'message' => 'Error interno del servidor',
                 'error' => $e->getMessage()
-            ],500);
+            ], 500);
         }
-       
     }
-       
 
     /**
      * Display the specified resource.
      */
     public function show(string $id)
     {
-        try{
+        try {
+            // Cargar el proveedor con sus productos
+            $proveedor = Proveedor::findOrFail($id)->load('productos');
 
-        $proveedor = Proveedor::findOrFail($id);
+            return response()->json($proveedor);
 
-        return response()->json($proveedor);
+        } catch(ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Proveedor no encontrado con ID = '.$id
+            ], 404);
 
-    } catch(ModelNotFoundException $e){
-
-        return response()->json([
-            'message' => 'Proveedor no encontrado    con ID = '.$id
-        ],404);
-
-    } catch(\Exception $e){
-
-        return response()->json([
-            'message' => 'Proveedor no encontrado',
-            'error' => $e->getMessage()
-        ],500);
-    }
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Proveedor $proveedor)
-    {
-        //
+        } catch(\Exception $e) {
+            return response()->json([
+                'message' => 'Error al obtener el proveedor',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -125,42 +111,48 @@ class ProveedorController extends Controller
      */
     public function update(Request $request, string $id)
     {
-         try{
+        try {
+            $proveedor = Proveedor::findOrFail($id);
 
-        $proveedor = Proveedor::findOrFail($id);
-
-        $request->validate(
-            [
+            $request->validate([
                 'nombre_proveedor' => [
                     'required',
                     'string',
                     'min:2',
                     'max:80',
-                    Rule::unique('proveedores','nombre_proveedor')->ignore($id)
+                    Rule::unique('proveedores', 'nombre_proveedor')->ignore($id)
                 ],
                 'telefono' => 'required|string|max:15',
-                'direccion' => 'required|string|max:255'
-            ]
-        );
+                'direccion' => 'required|string|max:255',
+                'productos' => 'nullable|array',
+                'productos.*' => 'exists:productos,id'
+            ]);
 
-        $proveedor->update([
-            'nombre_proveedor' => $request->nombre_proveedor,
-            'telefono' => $request->telefono,
-            'direccion' => $request->direccion
-        ]);
+            // 1. Actualizar los datos del proveedor
+            $proveedor->update([
+                'nombre_proveedor' => $request->nombre_proveedor,
+                'telefono' => $request->telefono,
+                'direccion' => $request->direccion
+            ]);
 
-        return response()->json([
-            'message' => 'Proveedor actualizado correctamente',
-            'proveedor' => $proveedor
-        ],202);
+            // 2. Actualizar las relaciones en la tabla pivote
+            if ($request->has('productos')) {
+                $proveedor->productos()->sync($request->productos);
+            }
 
-    } catch(\Exception $e){
+            $proveedor->load('productos');
 
-        return response()->json([
-            'message' => 'Proveedor no encontrado',
-            'error' => $e->getMessage()
-        ],500);
-    }
+            return response()->json([
+                'message' => 'Proveedor actualizado correctamente',
+                'proveedor' => $proveedor
+            ], 200);
+
+        } catch(\Exception $e) {
+            return response()->json([
+                'message' => 'Error al actualizar el proveedor',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -168,28 +160,27 @@ class ProveedorController extends Controller
      */
     public function destroy(string $id)
     {
-         try {
+        try {
+            $proveedor = Proveedor::findOrFail($id);
 
-        $proveedor = Proveedor::findOrFail($id);
+            // Desvincular productos de la tabla pivote antes de eliminar
+            $proveedor->productos()->detach();
+            $proveedor->delete();
 
-        $proveedor->delete();
+            return response()->json([
+                'message' => 'Proveedor eliminado correctamente'
+            ], 200);
 
-        return response()->json([
-            'message' => 'Proveedor eliminado correctamente'
-        ], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Proveedor no encontrado con ID = ' . $id
+            ], 404);
 
-    } catch (ModelNotFoundException $e) {
-
-        return response()->json([
-            'message' => 'Proveedor no encontrado con ID = ' . $id
-        ], 404);
-
-    } catch (\Exception $e) {
-
-        return response()->json([
-            'message' => 'Error interno del servidor',
-            'error' => $e->getMessage()
-        ], 500);
-    }
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error interno del servidor',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

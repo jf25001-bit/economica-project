@@ -5,7 +5,6 @@ export const getProductos = () => api.get('/productos')
 export const getAuxiliares = () => Promise.all([
   api.get('/categorias').catch(() => ({ data: [] })),
   api.get('/subcategorias').catch(() => ({ data: [] })),
-  api.get('/proveedores').catch(() => ({ data: [] })),
   api.get('/unidades-medida').catch(() => ({ data: [] }))
 ])
 

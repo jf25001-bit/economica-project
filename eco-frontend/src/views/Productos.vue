@@ -202,26 +202,17 @@
               </button>
             </div>
             <div>
-              <label class="block text-xs font-semibold text-gray-600 mb-1">Proveedor</label>
-              <button type="button" @click="abrirBuscador('proveedor')" class="w-full flex justify-between items-center px-4 py-2 border rounded-xl text-left text-sm bg-gray-50 hover:bg-gray-100 transition truncate">
-                <span class="truncate">{{ nombreProveedorSeleccionado || 'Seleccionar...' }}</span>
-                <i class="bi bi-search text-gray-400 ml-1"></i>
-              </button>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-4">
-            <div>
               <label class="block text-xs font-semibold text-gray-600 mb-1">Unidad de Medida</label>
               <button type="button" @click="abrirBuscador('unidad_medida')" class="w-full flex justify-between items-center px-4 py-2 border rounded-xl text-left text-sm bg-gray-50 hover:bg-gray-100 transition truncate">
                 <span class="truncate">{{ nombreUnidadMedidaSeleccionada || 'Seleccionar...' }}</span>
                 <i class="bi bi-search text-gray-400 ml-1"></i>
               </button>
             </div>
-            <div>
-              <label class="block text-xs font-semibold text-gray-600 mb-1">Precio Venta ($)</label>
-              <input type="number" step="0.01" v-model="nuevoProducto.precio_venta" required placeholder="0.00" class="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-[#46674A] outline-none" />
-            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Precio Venta ($)</label>
+            <input type="number" step="0.01" v-model="nuevoProducto.precio_venta" required placeholder="0.00" class="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-[#46674A] outline-none" />
           </div>
 
           <div class="grid grid-cols-2 gap-4">
@@ -248,12 +239,12 @@
       </div>
     </div>
 
-    <!-- MODAL BUSCADOR SECUNDARIO (Subcategoría / Proveedor / Unidad de Medida) -->
+    <!-- MODAL BUSCADOR SECUNDARIO (Subcategoría / Unidad de Medida) -->
     <div v-if="mostrarBuscador" class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
       <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden border">
         <div class="px-5 py-4 border-b flex justify-between items-center bg-gray-50">
           <h4 class="font-bold text-gray-800 text-base">
-            Buscar {{ tipoBuscador === 'subcategoria' ? 'Subcategoría' : (tipoBuscador === 'proveedor' ? 'Proveedor' : 'Unidad de Medida') }}
+            Buscar {{ tipoBuscador === 'subcategoria' ? 'Subcategoría' : 'Unidad de Medida' }}
           </h4>
           <button type="button" class="text-gray-400 hover:text-gray-600" @click="cerrarBuscador"><i class="bi bi-x-lg"></i></button>
         </div>
@@ -277,7 +268,7 @@
               @click="seleccionarItemBuscador(item)"
               class="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#46674A] font-medium transition flex justify-between items-center"
             >
-              <span class="truncate">{{ tipoBuscador === 'proveedor' ? item.nombre_proveedor : item.nombre }}</span>
+              <span class="truncate">{{ item.nombre }}</span>
               <span class="text-[10px] bg-gray-200 text-gray-500 px-2 py-0.5 rounded-md font-mono">ID: {{ item.id }}</span>
             </button>
             <div v-if="listaFiltradaBuscador.length === 0" class="text-center py-6 text-xs text-gray-400 italic">
@@ -303,7 +294,6 @@ import {
 const productos = ref([]) 
 const categorias = ref([]) 
 const subcategorias = ref([]) 
-const proveedores = ref([]) 
 const unidadesMedida = ref([]) 
 
 const mostrarModal = ref(false)
@@ -319,7 +309,6 @@ const mostrarBuscador = ref(false)
 const tipoBuscador = ref('') 
 const filtroBuscadorInterno = ref('')
 const nombreSubcategoriaSeleccionada = ref('')
-const nombreProveedorSeleccionado = ref('')
 const nombreUnidadMedidaSeleccionada = ref('')
 
 const buscar = ref('')
@@ -331,7 +320,6 @@ const modeloProductoLimpio = () => ({
   codigo_barras: '',
   nombre: '',
   sub_categoria_id: '',
-  proveedor_id: '',
   unidad_medida_id: '',
   stock: 0,
   stock_minimo: 5,
@@ -414,8 +402,6 @@ const listaFiltradaBuscador = computed(() => {
   const query = filtroBuscadorInterno.value.toLowerCase().trim()
   if (tipoBuscador.value === 'subcategoria') {
     return subcategorias.value.filter(sc => (sc.nombre || '').toLowerCase().includes(query))
-  } else if (tipoBuscador.value === 'proveedor') {
-    return proveedores.value.filter(p => (p.nombre_proveedor || '').toLowerCase().includes(query))
   } else if (tipoBuscador.value === 'unidad_medida') {
     return unidadesMedida.value.filter(um => (um.nombre || '').toLowerCase().includes(query))
   }
@@ -437,9 +423,6 @@ const seleccionarItemBuscador = (item) => {
   if (tipoBuscador.value === 'subcategoria') {
     nuevoProducto.value.sub_categoria_id = item.id
     nombreSubcategoriaSeleccionada.value = item.nombre
-  } else if (tipoBuscador.value === 'proveedor') {
-    nuevoProducto.value.proveedor_id = item.id
-    nombreProveedorSeleccionado.value = item.nombre_proveedor
   } else if (tipoBuscador.value === 'unidad_medida') {
     nuevoProducto.value.unidad_medida_id = item.id
     nombreUnidadMedidaSeleccionada.value = item.nombre
@@ -451,10 +434,9 @@ const seleccionarItemBuscador = (item) => {
 
 const cargarAuxiliaresFormulario = async () => {
   try {
-    const [resCat, resSub, resProv, resUnidades] = await getAuxiliares()
+    const [resCat, resSub, resUnidades] = await getAuxiliares()
     categorias.value = resCat.data.data || resCat.data
     subcategorias.value = resSub.data.data || resSub.data
-    proveedores.value = resProv.data.data || resProv.data
     unidadesMedida.value = resUnidades.data.data || resUnidades.data
   } catch (err) {
     console.error('Error cargando catálogos:', err)
@@ -472,8 +454,8 @@ const cargarProductos = async () => {
 
 const guardarProducto = async () => {
   if (guardando.value) return 
-  if (!nuevoProducto.value.sub_categoria_id || !nuevoProducto.value.proveedor_id || !nuevoProducto.value.unidad_medida_id) {
-    alert('Por favor selecciona Subcategoría, Proveedor y Unidad de Medida válidos.')
+  if (!nuevoProducto.value.sub_categoria_id || !nuevoProducto.value.unidad_medida_id) {
+    alert('Por favor selecciona Subcategoría y Unidad de Medida válidos.')
     return
   }
 
@@ -518,7 +500,6 @@ const eliminarProducto = async (id) => {
 const abrirModalForm = () => { 
   esEditando.value = false
   nombreSubcategoriaSeleccionada.value = ''
-  nombreProveedorSeleccionado.value = ''
   nombreUnidadMedidaSeleccionada.value = ''
   removerImagen()
   mostrarModal.value = true 
@@ -529,7 +510,6 @@ const cerrarModal = () => {
   esEditando.value = false
   productoIdSeleccionado.value = null
   nombreSubcategoriaSeleccionada.value = ''
-  nombreProveedorSeleccionado.value = ''
   nombreUnidadMedidaSeleccionada.value = ''
   removerImagen()
   nuevoProducto.value = modeloProductoLimpio()
@@ -540,14 +520,12 @@ const editarProducto = (producto) => {
   productoIdSeleccionado.value = producto.id
   
   nombreSubcategoriaSeleccionada.value = producto.subcategoria?.nombre || (producto.sub_categoria_id ? 'ID: ' + producto.sub_categoria_id : '')
-  nombreProveedorSeleccionado.value = producto.proveedor?.nombre_proveedor || (producto.proveedor_id ? 'ID: ' + producto.proveedor_id : '')
   nombreUnidadMedidaSeleccionada.value = producto.unidad_medida?.nombre || (producto.unidad_medida_id ? 'ID: ' + producto.unidad_medida_id : '')
 
   nuevoProducto.value = {
     codigo_barras: producto.codigo_barras || '',
     nombre: producto.nombre || '',
     sub_categoria_id: producto.sub_categoria_id || '',
-    proveedor_id: producto.proveedor_id || '',
     unidad_medida_id: producto.unidad_medida_id || '',
     stock: producto.stock || 0,
     stock_minimo: producto.stock_minimo || 5,

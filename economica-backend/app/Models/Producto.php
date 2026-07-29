@@ -19,18 +19,18 @@ class Producto extends Model
         'stock',
         'stock_minimo',
         'sub_categoria_id',
-        'proveedor_id',
         'unidad_medida_id',
     ];
+
+    public function proveedores()
+    {
+        return $this->belongsToMany(Proveedor::class, 'producto_proveedor')
+                    ->withTimestamps();
+    }
 
     public function subcategoria()
     {
         return $this->belongsTo(SubCategoria::class, 'sub_categoria_id');
-    }
-
-    public function proveedor()
-    {
-        return $this->belongsTo(Proveedor::class, 'proveedor_id');
     }
 
     public function imagenes()
@@ -39,7 +39,7 @@ class Producto extends Model
     }
 
     public function unidadMedida()
-{
-    return $this->belongsTo(UnidadMedida::class, 'unidad_medida_id');
-}
+    {
+        return $this->belongsTo(UnidadMedida::class, 'unidad_medida_id');
+    }
 }

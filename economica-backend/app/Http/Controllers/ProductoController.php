@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Producto;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ProductoController extends Controller
 {
@@ -12,8 +13,14 @@ class ProductoController extends Controller
      */
     public function index()
     {
-        // Trae el producto con su proveedor, su subcategoría y la categoría de esa subcategoría
-        $productos = Producto::with(['subcategoria.categoria', 'proveedor', 'imagenes', 'unidadMedida'])->get();
+        // Trae el producto con sus proveedores, subcategoría, imágenes y unidad de medida
+        $productos = Producto::with([
+            'subcategoria.categoria', 
+            'proveedores', 
+            'imagenes', 
+            'unidadMedida'
+        ])->get();
+
         return response()->json($productos, 200);
     }
 
@@ -31,22 +38,33 @@ class ProductoController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'codigo_barras' => 'nullable|string|max:50|unique:productos,codigo_barras',
-            'nombre' => 'required|string|max:100|unique:productos,nombre',
-            // 'precio_compra' eliminado de la validación
-            'precio_venta' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
-            'stock_minimo' => 'required|integer|min:0',
+            'codigo_barras'    => 'nullable|string|max:50|unique:productos,codigo_barras',
+            'nombre'           => 'required|string|max:100|unique:productos,nombre',
+            'precio_venta'     => 'required|numeric|min:0',
+            'stock'            => 'required|integer|min:0',
+            'stock_minimo'     => 'required|integer|min:0',
             'sub_categoria_id' => 'required|exists:sub_categorias,id',
-            'proveedor_id' => 'required|exists:proveedores,id', 
+            'unidad_medida_id' => 'nullable|exists:unidad_medidas,id',
+            // Validamos que 'proveedores' sea un array y que cada ID exista en la tabla proveedores
+            'proveedores'      => 'nullable|array',
+            'proveedores.*'    => 'exists:proveedores,id',
         ]);
 
-        $producto = Producto::create($request->all());
+        return DB::transaction(function () use ($request) {
+            // Guardamos el producto (excluyendo el array de proveedores para no romper el create)
+            $producto = Producto::create($request->except('proveedores'));
 
-        return response()->json([
-            'message' => 'Producto creado con éxito',
-            'data' => $producto
-        ], 201);
+            // Sincronizamos los proveedores en la tabla pivote
+            if ($request->has('proveedores')) {
+                $producto->proveedores()->sync($request->proveedores);
+            }
+
+            // Retornamos el producto cargado con sus relaciones actualizadas
+            return response()->json([
+                'message' => 'Producto creado con éxito',
+                'data'    => $producto->load('proveedores')
+            ], 201);
+        });
     }
 
     /**
@@ -54,7 +72,12 @@ class ProductoController extends Controller
      */
     public function show($id)
     {
-        $producto = Producto::with(['subcategoria.categoria', 'proveedor'])->find($id);
+        $producto = Producto::with([
+            'subcategoria.categoria', 
+            'proveedores', 
+            'imagenes', 
+            'unidadMedida'
+        ])->find($id);
 
         if (!$producto) {
             return response()->json(['message' => 'Producto no encontrado'], 404);
@@ -83,22 +106,32 @@ class ProductoController extends Controller
         }
 
         $request->validate([
-            'codigo_barras' => 'nullable|string|max:50|unique:productos,codigo_barras,' . $id,
-            'nombre' => 'required|string|max:100|unique:productos,nombre,' . $id,
-            'precio_venta' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
-            'stock_minimo' => 'required|integer|min:0',
+            'codigo_barras'    => 'nullable|string|max:50|unique:productos,codigo_barras,' . $id,
+            'nombre'           => 'required|string|max:100|unique:productos,nombre,' . $id,
+            'precio_venta'     => 'required|numeric|min:0',
+            'stock'            => 'required|integer|min:0',
+            'stock_minimo'     => 'required|integer|min:0',
             'sub_categoria_id' => 'required|exists:sub_categorias,id',
-            'proveedor_id' => 'required|exists:proveedores,id',
-            'unidad_medida_id' => 'nullable|exists:unidad_medidas,id'
+            'unidad_medida_id' => 'nullable|exists:unidad_medidas,id',
+            'proveedores'      => 'nullable|array',
+            'proveedores.*'    => 'exists:proveedores,id',
         ]);
 
-        $producto->update($request->all());
+        return DB::transaction(function () use ($request, $producto) {
+            // Actualizamos los datos del producto
+            $producto->update($request->except('proveedores'));
 
-        return response()->json([
-            'message' => 'Producto actualizado con éxito',
-            'data' => $producto
-        ], 200);
+            // Actualizamos la relación en la tabla pivote
+            if ($request->has('proveedores')) {
+                // sync() elimina los proveedores viejos y asigna la lista nueva
+                $producto->proveedores()->sync($request->proveedores);
+            }
+
+            return response()->json([
+                'message' => 'Producto actualizado con éxito',
+                'data'    => $producto->load('proveedores')
+            ], 200);
+        });
     }
 
     /**
@@ -112,6 +145,7 @@ class ProductoController extends Controller
             return response()->json(['message' => 'Producto no encontrado'], 404);
         }
 
+        // Al eliminar el producto, el onDelete('cascade') de la BD limpia automáticamente la tabla pivote
         $producto->delete();
 
         return response()->json(['message' => 'Producto eliminado con éxito'], 200);

@@ -7,20 +7,17 @@
           <h1 class="text-4xl font-bold text-gray-800">
             Proveedores
           </h1>
-          <p>Sección de proveedores</p>
-          
+          <p class="text-gray-500 mt-1">Sección de administración de proveedores y sus productos</p>
         </div>
 
-       <button
-        @click="abrirNuevoProveedor"
-        class="group relative overflow-hidden bg-[#46674A] hover:bg-[#3b5740] text-white px-7 py-3 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 flex items-center gap-3 font-semibold"
-      >
-        <div class="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-
-        <i class="bi bi-plus-circle-fill text-lg"></i>
-
-        <span>Nuevo proveedor</span>
-      </button>
+        <button
+          @click="abrirNuevoProveedor"
+          class="group relative overflow-hidden bg-[#46674A] hover:bg-[#3b5740] text-white px-7 py-3 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 flex items-center gap-3 font-semibold"
+        >
+          <div class="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+          <i class="bi bi-plus-circle-fill text-lg"></i>
+          <span>Nuevo proveedor</span>
+        </button>
       </div>
 
       <!-- Tabla -->
@@ -33,6 +30,7 @@
                 <th class="px-6 py-5 text-left">Nombre</th>
                 <th class="px-6 py-5 text-left">Teléfono</th>
                 <th class="px-6 py-5 text-left">Dirección</th>
+                <th class="px-6 py-5 text-left">Productos Suministrados</th>
                 <th class="px-6 py-5 text-center">Acciones</th>
               </tr>
             </thead>
@@ -41,12 +39,10 @@
               <tr
                 v-for="proveedor in proveedores"
                 :key="proveedor.id"
-                class="border-b border-gray-100 hover:bg-green-50 transition-all duration-200"
+                class="border-b border-gray-100 hover:bg-green-50/50 transition-all duration-200"
               >
                 <td class="px-6 py-5">
-                  <span
-                    class="bg-[#46674A]/10 text-[#46674A] px-3 py-1 rounded-full text-xs font-bold"
-                  >
+                  <span class="bg-[#46674A]/10 text-[#46674A] px-3 py-1 rounded-full text-xs font-bold">
                     #{{ proveedor.id }}
                   </span>
                 </td>
@@ -63,11 +59,26 @@
                   {{ proveedor.direccion }}
                 </td>
 
+                <!-- Columna de productos asociados -->
+                <td class="px-6 py-5">
+                  <div v-if="proveedor.productos && proveedor.productos.length > 0" class="flex flex-wrap gap-1">
+                    <span
+                      v-for="prod in proveedor.productos"
+                      :key="prod.id"
+                      class="bg-gray-100 border border-gray-200 text-gray-700 px-2.5 py-0.5 rounded-lg text-xs font-medium"
+                    >
+                      {{ prod.nombre || prod.nombre_producto }}
+                    </span>
+                  </div>
+                  <span v-else class="text-xs text-gray-400 italic">Sin productos</span>
+                </td>
+
                 <td class="px-6 py-5">
                   <div class="flex justify-center gap-3">
                     <button
                       @click="editarProveedor(proveedor)"
                       class="w-10 h-10 rounded-full border border-blue-300 bg-blue-50 text-blue-600 hover:bg-blue-100 transition-all flex items-center justify-center"
+                      title="Editar"
                     >
                       <i class="bi bi-pencil"></i>
                     </button>
@@ -75,6 +86,7 @@
                     <button
                       @click="eliminarProveedor(proveedor.id)"
                       class="w-10 h-10 rounded-full border border-red-300 bg-red-50 text-red-500 hover:bg-red-100 transition-all flex items-center justify-center"
+                      title="Eliminar"
                     >
                       <i class="bi bi-trash"></i>
                     </button>
@@ -83,7 +95,7 @@
               </tr>
 
               <tr v-if="proveedores.length === 0">
-                <td colspan="5" class="py-16 text-center">
+                <td colspan="6" class="py-16 text-center">
                   <div class="flex flex-col items-center">
                     <i class="bi bi-folder-x text-5xl text-gray-300"></i>
                     <p class="mt-3 text-gray-400">
@@ -98,136 +110,266 @@
       </div>
     </div>
 
-   <!-- Modal -->
-<div
-  v-if="mostrarModal"
-  class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
->
-  <div
-    class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-fadeIn"
-  >
+    <!-- Modal Formulario Principal -->
+    <div
+      v-if="mostrarModal"
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-40 p-4"
+    >
+      <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-fadeIn my-8">
+        
+        <!-- Header Modal -->
+        <div class="bg-[#46674A] text-white px-8 py-5 flex justify-between items-center">
+          <div>
+            <h2 class="text-2xl font-bold">
+              {{ editandoId ? 'Editar Proveedor' : 'Nuevo Proveedor' }}
+            </h2>
+            <p class="text-white/70 text-sm">
+              Complete los datos del proveedor y asigne sus productos
+            </p>
+          </div>
 
-    
-    <div class="bg-[#46674A] text-white px-8 py-5 flex justify-between items-center">
-      <div>
-        <h2 class="text-2xl font-bold">
-          {{ editandoId ? 'Editar Proveedor' : 'Nuevo Proveedor' }}
-        </h2>
-        <p class="text-white/70 text-sm">
-          Complete la información del proveedor
-        </p>
+          <button
+            @click="cerrarModal"
+            class="w-10 h-10 rounded-full hover:bg-white/20 transition flex items-center justify-center"
+          >
+            <i class="bi bi-x-lg text-xl"></i>
+          </button>
+        </div>
+
+        <!-- Contenido Modal -->
+        <div class="p-8 space-y-5 max-h-[75vh] overflow-y-auto">
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Nombre -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">
+                <i class="bi bi-person-badge mr-2 text-[#46674A]"></i>
+                Nombre del proveedor
+              </label>
+
+              <input
+                v-model="nombre"
+                type="text"
+                placeholder="Ingrese el nombre"
+                class="w-full px-4 py-3 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-[#46674A] focus:border-[#46674A] outline-none transition"
+              />
+            </div>
+
+            <!-- Teléfono -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">
+                <i class="bi bi-telephone mr-2 text-[#46674A]"></i>
+                Teléfono
+              </label>
+
+              <input
+                v-model="telefono"
+                type="text"
+                maxlength="8"
+                placeholder="Ej: 77778888"
+                @input="telefono = telefono.replace(/[^0-9]/g, '')"
+                class="w-full px-4 py-3 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-[#46674A] focus:border-[#46674A] outline-none transition"
+              />
+            </div>
+          </div>
+
+          <!-- Dirección -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              <i class="bi bi-geo-alt mr-2 text-[#46674A]"></i>
+              Dirección
+            </label>
+
+            <textarea
+              v-model="direccion"
+              rows="2"
+              placeholder="Ingrese la dirección"
+              class="w-full px-4 py-3 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-[#46674A] focus:border-[#46674A] outline-none resize-none transition"
+            ></textarea>
+          </div>
+
+          <!-- Botón Disparador del Modal de Productos Suministrados -->
+          <div class="border-t pt-4">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              <i class="bi bi-box-seam mr-2 text-[#46674A]"></i>
+              Productos Suministrados
+            </label>
+
+            <button
+              type="button"
+              @click="abrirBuscadorProductos"
+              class="w-full flex items-center justify-between px-5 py-3.5 bg-gray-50 hover:bg-gray-100 border border-gray-300 rounded-2xl text-left transition group"
+            >
+              <div class="flex items-center gap-3">
+                <i class="bi bi-card-checklist text-xl text-[#46674A]"></i>
+                <div>
+                  <p class="text-sm font-semibold text-gray-800">
+                    {{ productosSeleccionados.length > 0 
+                      ? `${productosSeleccionados.length} producto(s) seleccionado(s)` 
+                      : 'Seleccionar productos suministrados...' }}
+                  </p>
+                  <p class="text-xs text-gray-400">
+                    Haga clic para abrir el catálogo y gestionar la selección
+                  </p>
+                </div>
+              </div>
+              <i class="bi bi-chevron-right text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Footer Modal -->
+        <div class="bg-gray-50 px-8 py-5 flex justify-end gap-3 border-t">
+          <button
+            @click="cerrarModal"
+            class="px-6 py-3 rounded-xl border border-gray-300 hover:bg-gray-100 font-medium transition text-gray-700"
+          >
+            Cancelar
+          </button>
+
+          <button
+            @click="guardarProveedor"
+            class="px-6 py-3 rounded-xl bg-[#46674A] text-white font-semibold hover:bg-[#3b5740] shadow-lg hover:shadow-xl transition"
+          >
+            <i class="bi bi-check-circle me-2"></i>
+            {{ editandoId ? 'Actualizar' : 'Guardar Proveedor' }}
+          </button>
+        </div>
+
       </div>
-
-      <button
-        @click="cerrarModal"
-        class="w-10 h-10 rounded-full hover:bg-white/20 transition flex items-center justify-center"
-      >
-        <i class="bi bi-x-lg text-xl"></i>
-      </button>
     </div>
 
-    <!-- Contenido -->
-    <div class="p-8 space-y-6">
+    <!-- MODAL SECUNDARIO: Buscador Amplio de Productos Suministrados -->
+    <div
+      v-if="mostrarBuscadorProductos"
+      class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4"
+    >
+      <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-fadeIn border border-gray-100">
+        
+        <!-- Header Buscador -->
+        <div class="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
+          <div>
+            <h3 class="font-bold text-gray-800 text-lg flex items-center gap-2">
+              <i class="bi bi-boxes text-[#46674A]"></i>
+              Asignar Productos Suministrados
+            </h3>
+            <p class="text-xs text-gray-500">Marque o desmarque los productos que provee este distribuidor</p>
+          </div>
+          <button
+            type="button"
+            class="w-8 h-8 rounded-full hover:bg-gray-200 transition flex items-center justify-center text-gray-500"
+            @click="cerrarBuscadorProductos"
+          >
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
 
-      <!-- Nombre -->
-      <div>
-        <label class="block text-sm font-semibold text-gray-700 mb-2">
-          <i class="bi bi-person-badge mr-2 text-[#46674A]"></i>
-          Nombre del proveedor
-        </label>
+        <!-- Cuerpo del Buscador -->
+        <div class="p-6 space-y-4">
+          <!-- Input de búsqueda -->
+          <div class="relative flex items-center">
+            <i class="bi bi-search absolute left-4 text-gray-400"></i>
+            <input
+              v-model="filtroProducto"
+              type="text"
+              placeholder="Buscar producto por nombre..."
+              class="w-full pl-11 pr-4 py-3 border border-gray-300 text-sm rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
+            />
+          </div>
 
-        <input
-          v-model="nombre"
-          type="text"
-          placeholder="Ingrese el nombre"
-          class="w-full px-4 py-3 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-[#46674A] focus:border-[#46674A] outline-none transition"
-        />
+          <!-- Contenedor amplio de checkboxes con scroll -->
+          <div class="max-h-[350px] overflow-y-auto border border-gray-200 rounded-2xl p-4 bg-gray-50/50">
+            <div v-if="productosFiltrados.length > 0" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <label
+                v-for="producto in productosFiltrados"
+                :key="producto.id"
+                class="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-xl hover:border-[#46674A]/50 cursor-pointer transition select-none shadow-xs"
+              >
+                <input
+                  type="checkbox"
+                  :value="producto.id"
+                  v-model="productosSeleccionados"
+                  class="w-5 h-5 text-[#46674A] focus:ring-[#46674A] rounded border-gray-300 accent-[#46674A]"
+                />
+                <div class="truncate">
+                  <p class="text-sm font-medium text-gray-800 truncate">
+                    {{ producto.nombre || producto.nombre_producto }}
+                  </p>
+                  <p v-if="producto.codigo_barras" class="text-[11px] text-gray-400 font-mono">
+                    SKU: {{ producto.codigo_barras }}
+                  </p>
+                </div>
+              </label>
+            </div>
+
+            <p v-else class="text-center text-sm text-gray-400 py-10 italic">
+              No se encontraron productos coincidentes
+            </p>
+          </div>
+        </div>
+
+        <!-- Footer Buscador -->
+        <div class="bg-gray-50 px-6 py-4 flex justify-between items-center border-t">
+          <span class="text-xs font-semibold text-gray-500">
+            Marcados: <span class="text-[#46674A] text-sm font-bold">{{ productosSeleccionados.length }}</span>
+          </span>
+
+          <button
+            type="button"
+            @click="cerrarBuscadorProductos"
+            class="px-6 py-2.5 bg-[#46674A] text-white rounded-xl font-medium hover:bg-[#3b5740] transition shadow-md"
+          >
+            Aceptar
+          </button>
+        </div>
+
       </div>
-
-      <!-- Teléfono -->
-      <div>
-        <label class="block text-sm font-semibold text-gray-700 mb-2">
-          <i class="bi bi-telephone mr-2 text-[#46674A]"></i>
-          Teléfono
-        </label>
-
-        <input
-          v-model="telefono"
-          type="text"
-          maxlength="8"
-          placeholder="Ej: 77778888"
-          @input="telefono = telefono.replace(/[^0-9]/g, '')"
-          class="w-full px-4 py-3 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-[#46674A] focus:border-[#46674A] outline-none transition"
-        />
-      </div>
-
-      <!-- Dirección -->
-      <div>
-        <label class="block text-sm font-semibold text-gray-700 mb-2">
-          <i class="bi bi-geo-alt mr-2 text-[#46674A]"></i>
-          Dirección
-        </label>
-
-        <textarea
-          v-model="direccion"
-          rows="3"
-          placeholder="Ingrese la dirección"
-          class="w-full px-4 py-3 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-[#46674A] focus:border-[#46674A] outline-none resize-none transition"
-        ></textarea>
-      </div>
-
     </div>
 
-    
-    <div class="bg-gray-50 px-8 py-5 flex justify-end gap-3 border-t">
-
-      <button
-        @click="cerrarModal"
-        class="px-6 py-3 rounded-xl border border-gray-300 hover:bg-gray-100 font-medium transition"
-      >
-        Cancelar
-      </button>
-
-      <button
-        @click="guardarProveedor"
-        class="px-6 py-3 rounded-xl bg-[#46674A] text-white font-semibold hover:bg-[#3b5740] shadow-lg hover:shadow-xl transition"
-      >
-        <i class="bi bi-check-circle me-2"></i>
-        {{ editandoId ? 'Actualizar' : 'Guardar Proveedor' }}
-      </button>
-
-    </div>
-
-  </div>
-</div>
   </div>
 </template>
 
 <script setup>
-
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import Swal from 'sweetalert2'
 import {
   getProveedores,
+  getProductos,
   createProveedor,
   updateProveedor,
   deleteProveedor
 } from '../services/proveedorService'
 
 const mostrarModal = ref(false)
+const mostrarBuscadorProductos = ref(false)
 
 const nombre = ref('')
 const telefono = ref('')
 const direccion = ref('')
+const productosSeleccionados = ref([])
 
 const editandoId = ref(null)
 
 const proveedores = ref([])
+const catalogoProductos = ref([])
+const filtroProducto = ref('')
+
+// Cargar catálogo de productos
+const cargarProductos = async () => {
+  try {
+    const res = await getProductos()
+    catalogoProductos.value = Array.isArray(res) ? res : (res.data || [])
+  } catch (error) {
+    console.error('Error al cargar productos:', error)
+  }
+}
 
 // Cargar proveedores
 const cargarProveedores = async () => {
   try {
-    proveedores.value = await getProveedores()
+    const res = await getProveedores()
+    proveedores.value = Array.isArray(res) ? res : (res.data || [])
   } catch (error) {
     console.error(error)
 
@@ -239,9 +381,31 @@ const cargarProveedores = async () => {
   }
 }
 
+// Filtro computado de productos para el modal secundario
+const productosFiltrados = computed(() => {
+  if (!filtroProducto.value.trim()) return catalogoProductos.value
+  const query = filtroProducto.value.toLowerCase().trim()
+  return catalogoProductos.value.filter(p => {
+    const nombreProd = (p.nombre || p.nombre_producto || '').toLowerCase()
+    const sku = (p.codigo_barras || '').toLowerCase()
+    return nombreProd.includes(query) || sku.includes(query)
+  })
+})
+
 onMounted(() => {
   cargarProveedores()
+  cargarProductos()
 })
+
+// Abrir/cerrar buscador secundario
+function abrirBuscadorProductos() {
+  filtroProducto.value = ''
+  mostrarBuscadorProductos.value = true
+}
+
+function cerrarBuscadorProductos() {
+  mostrarBuscadorProductos.value = false
+}
 
 // Abrir modal nuevo
 function abrirNuevoProveedor() {
@@ -250,6 +414,8 @@ function abrirNuevoProveedor() {
   nombre.value = ''
   telefono.value = ''
   direccion.value = ''
+  productosSeleccionados.value = []
+  filtroProducto.value = ''
 
   mostrarModal.value = true
 }
@@ -317,7 +483,8 @@ async function guardarProveedor() {
   const data = {
     nombre_proveedor: nombre.value,
     telefono: telefono.value,
-    direccion: direccion.value
+    direccion: direccion.value,
+    productos: productosSeleccionados.value
   }
 
   try {
@@ -375,6 +542,15 @@ function editarProveedor(proveedor) {
   nombre.value = proveedor.nombre_proveedor
   telefono.value = proveedor.telefono
   direccion.value = proveedor.direccion
+  
+  // Asignar los IDs de los productos ya seleccionados
+  if (proveedor.productos && Array.isArray(proveedor.productos)) {
+    productosSeleccionados.value = proveedor.productos.map(p => p.id)
+  } else {
+    productosSeleccionados.value = []
+  }
+
+  filtroProducto.value = ''
 }
 
 // Eliminar
@@ -419,16 +595,17 @@ async function eliminarProveedor(id) {
   }
 }
 
-
 function cerrarModal() {
 
   mostrarModal.value = false
+  mostrarBuscadorProductos.value = false
 
   editandoId.value = null
 
   nombre.value = ''
   telefono.value = ''
   direccion.value = ''
+  productosSeleccionados.value = []
+  filtroProducto.value = ''
 }
-
 </script>
