@@ -15,6 +15,7 @@ use App\Http\Controllers\DetalleVentaController;
 use App\Http\Controllers\LoteController;
 use App\Http\Controllers\ImagenController;
 use App\Http\Controllers\ReporteController;
+use App\Http\Controllers\UnidadMedidaController;
 
 Route::get('/reportes/general', [ReporteController::class, 'reporteGeneral']);
 
@@ -48,3 +49,4 @@ Route::apiResource('detallecompras', DetalleCompraController::class);
 Route::apiResource('detalleventas', DetalleVentaController::class);
 Route::apiResource('lotes', LoteController::class);
 Route::apiResource('imagenes', ImagenController::class);
+Route::apiResource('unidades-medida', UnidadMedidaController::class);

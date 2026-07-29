@@ -6,28 +6,21 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('productos', function (Blueprint $table) {
             $table->id();
             $table->string('codigo_barras', 50)->unique()->nullable();
             $table->string('nombre', 100)->unique();
-            $table->decimal('precio_compra', 10, 2)->default(0.00);
             $table->decimal('precio_venta', 10, 2)->default(0.00);
+            $table->string('unidad_medida', 20)->default('pza');
             $table->integer('stock')->default(0);
             $table->integer('stock_minimo')->default(5);
-            // $table->string('imagen')->nullable();
 
-            // RELACIONES (Llaves Foráneas)
-            // 1. Relación con sub_categorias
             $table->foreignId('sub_categoria_id')
                   ->constrained('sub_categorias')
                   ->onDelete('cascade');
 
-            // 2. Relación con proveedors (recuerda que tu tabla se llama proveedors)
             $table->foreignId('proveedor_id')
                   ->constrained('proveedors')
                   ->onDelete('cascade');
@@ -36,9 +29,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('productos');

@@ -19,7 +19,8 @@ class Producto extends Model
         'stock',
         'stock_minimo',
         'sub_categoria_id',
-        'proveedor_id'
+        'proveedor_id',
+        'unidad_medida_id',
     ];
 
     public function subcategoria()
@@ -36,4 +37,9 @@ class Producto extends Model
     {
         return $this->hasMany(Imagen::class, 'producto_id');
     }
+
+    public function unidadMedida()
+{
+    return $this->belongsTo(UnidadMedida::class, 'unidad_medida_id');
+}
 }

@@ -13,7 +13,7 @@ class ProductoController extends Controller
     public function index()
     {
         // Trae el producto con su proveedor, su subcategoría y la categoría de esa subcategoría
-        $productos = Producto::with([ 'subcategoria.categoria','proveedor','imagenes'])->get();
+        $productos = Producto::with(['subcategoria.categoria', 'proveedor', 'imagenes', 'unidadMedida'])->get();
         return response()->json($productos, 200);
     }
 
@@ -33,7 +33,7 @@ class ProductoController extends Controller
         $request->validate([
             'codigo_barras' => 'nullable|string|max:50|unique:productos,codigo_barras',
             'nombre' => 'required|string|max:100|unique:productos,nombre',
-            'precio_compra' => 'required|numeric|min:0',
+            // 'precio_compra' eliminado de la validación
             'precio_venta' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'stock_minimo' => 'required|integer|min:0',
@@ -85,12 +85,12 @@ class ProductoController extends Controller
         $request->validate([
             'codigo_barras' => 'nullable|string|max:50|unique:productos,codigo_barras,' . $id,
             'nombre' => 'required|string|max:100|unique:productos,nombre,' . $id,
-            'precio_compra' => 'required|numeric|min:0',
             'precio_venta' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'stock_minimo' => 'required|integer|min:0',
             'sub_categoria_id' => 'required|exists:sub_categorias,id',
-            'proveedor_id' => 'required|exists:proveedores,id'
+            'proveedor_id' => 'required|exists:proveedores,id',
+            'unidad_medida_id' => 'nullable|exists:unidad_medidas,id'
         ]);
 
         $producto->update($request->all());

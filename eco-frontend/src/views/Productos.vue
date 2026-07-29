@@ -50,12 +50,12 @@
           <table class="w-full text-left border-collapse">
             <thead class="bg-gray-100 border-b border-gray-200">
               <tr class="text-gray-700 text-sm font-semibold">
-                <th class="px-6 py-4" style="width: 15%;">SKU / Código</th>
-                <th class="px-6 py-4" style="width: 12%;">Imagen</th>
-                <th class="px-6 py-4" style="width: 23%;">Producto</th>
+                <th class="px-6 py-4" style="width: 14%;">SKU / Código</th>
+                <th class="px-6 py-4" style="width: 10%;">Imagen</th>
+                <th class="px-6 py-4" style="width: 20%;">Producto</th>
                 <th class="px-6 py-4" style="width: 18%;">Categoría / Subcategoría</th>
-                <th class="px-6 py-4" style="width: 13%;">Estado</th>
-                <th class="px-6 py-4" style="width: 9%;">Stock</th>
+                <th class="px-6 py-4" style="width: 12%;">Estado</th>
+                <th class="px-6 py-4" style="width: 12%;">Stock / Unidad</th>
                 <th class="px-6 py-4" style="width: 10%;">Precio Venta</th>
                 <th class="px-6 py-4 text-right" style="width: 10%;">Acciones</th>
               </tr>
@@ -94,8 +94,12 @@
                   <span :class="Number(producto.stock) <= (Number(producto.stock_minimo) || 5) ? 'text-amber-600 font-bold' : 'text-gray-700'">
                     {{ producto.stock }}
                   </span>
+                  <span class="text-xs text-gray-400 ml-1">
+                    ({{ producto.unidad_medida?.nombre || producto.unidad_medida_id || 'pza' }})
+                  </span>
                 </td>
-                <td class="px-6 py-4 font-medium text-gray-990">${{ producto.precio_venta }}</td>
+
+                <td class="px-6 py-4 font-medium text-gray-900">${{ producto.precio_venta }}</td>
                 
                 <td class="px-6 py-4 text-right">
                   <div class="flex gap-2 justify-end">
@@ -141,6 +145,7 @@
       </div>
     </div>
 
+    <!-- MODAL REGISTRO / EDICIÓN -->
     <div v-if="mostrarModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-40 p-4">
       <div class="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
         <div class="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
@@ -207,8 +212,11 @@
 
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-semibold text-gray-600 mb-1">Precio Compra ($)</label>
-              <input type="number" step="0.01" v-model="nuevoProducto.precio_compra" required placeholder="0.00" class="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-[#46674A] outline-none" />
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Unidad de Medida</label>
+              <button type="button" @click="abrirBuscador('unidad_medida')" class="w-full flex justify-between items-center px-4 py-2 border rounded-xl text-left text-sm bg-gray-50 hover:bg-gray-100 transition truncate">
+                <span class="truncate">{{ nombreUnidadMedidaSeleccionada || 'Seleccionar...' }}</span>
+                <i class="bi bi-search text-gray-400 ml-1"></i>
+              </button>
             </div>
             <div>
               <label class="block text-xs font-semibold text-gray-600 mb-1">Precio Venta ($)</label>
@@ -240,11 +248,12 @@
       </div>
     </div>
 
+    <!-- MODAL BUSCADOR SECUNDARIO (Subcategoría / Proveedor / Unidad de Medida) -->
     <div v-if="mostrarBuscador" class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
       <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden border">
         <div class="px-5 py-4 border-b flex justify-between items-center bg-gray-50">
           <h4 class="font-bold text-gray-800 text-base">
-            Buscar {{ tipoBuscador === 'subcategoria' ? 'Subcategoría' : 'Proveedor' }}
+            Buscar {{ tipoBuscador === 'subcategoria' ? 'Subcategoría' : (tipoBuscador === 'proveedor' ? 'Proveedor' : 'Unidad de Medida') }}
           </h4>
           <button type="button" class="text-gray-400 hover:text-gray-600" @click="cerrarBuscador"><i class="bi bi-x-lg"></i></button>
         </div>
@@ -268,7 +277,7 @@
               @click="seleccionarItemBuscador(item)"
               class="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#46674A] font-medium transition flex justify-between items-center"
             >
-              <span class="truncate">{{ tipoBuscador === 'subcategoria' ? item.nombre : item.nombre_proveedor }}</span>
+              <span class="truncate">{{ tipoBuscador === 'proveedor' ? item.nombre_proveedor : item.nombre }}</span>
               <span class="text-[10px] bg-gray-200 text-gray-500 px-2 py-0.5 rounded-md font-mono">ID: {{ item.id }}</span>
             </button>
             <div v-if="listaFiltradaBuscador.length === 0" class="text-center py-6 text-xs text-gray-400 italic">
@@ -283,12 +292,19 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import axios from 'axios'
+import { 
+  getProductos, 
+  getAuxiliares, 
+  guardarProductoAPI, 
+  subirImagenAPI, 
+  eliminarProductoAPI 
+} from '@/services/productoService'
 
 const productos = ref([]) 
 const categorias = ref([]) 
 const subcategorias = ref([]) 
 const proveedores = ref([]) 
+const unidadesMedida = ref([]) 
 
 const mostrarModal = ref(false)
 const esEditando = ref(false)
@@ -304,6 +320,7 @@ const tipoBuscador = ref('')
 const filtroBuscadorInterno = ref('')
 const nombreSubcategoriaSeleccionada = ref('')
 const nombreProveedorSeleccionado = ref('')
+const nombreUnidadMedidaSeleccionada = ref('')
 
 const buscar = ref('')
 const filtroCategoria = ref('')
@@ -315,9 +332,9 @@ const modeloProductoLimpio = () => ({
   nombre: '',
   sub_categoria_id: '',
   proveedor_id: '',
+  unidad_medida_id: '',
   stock: 0,
   stock_minimo: 5,
-  precio_compra: 0,
   precio_venta: 0
 })
 
@@ -345,7 +362,6 @@ const productosFiltrados = computed(() => {
     resultado = resultado.filter(p => {
       const limiteMinimo = Number(p.stock_minimo) || 5
       const esBajoStock = Number(p.stock) <= limiteMinimo
-      
       if (filtroEstado.value === 'bajo_stock') return esBajoStock
       if (filtroEstado.value === 'disponible') return !esBajoStock
       return true
@@ -391,17 +407,17 @@ const manejarCambioImagen = (e) => {
 const removerImagen = () => {
   imagenSeleccionada.value = null
   imagenPreview.value = null
-  if (fileInput.value) {
-    fileInput.value.value = ''
-  }
+  if (fileInput.value) fileInput.value.value = ''
 }
 
 const listaFiltradaBuscador = computed(() => {
   const query = filtroBuscadorInterno.value.toLowerCase().trim()
   if (tipoBuscador.value === 'subcategoria') {
-    return subcategorias.value.filter(sc => sc.nombre.toLowerCase().includes(query))
+    return subcategorias.value.filter(sc => (sc.nombre || '').toLowerCase().includes(query))
   } else if (tipoBuscador.value === 'proveedor') {
     return proveedores.value.filter(p => (p.nombre_proveedor || '').toLowerCase().includes(query))
+  } else if (tipoBuscador.value === 'unidad_medida') {
+    return unidadesMedida.value.filter(um => (um.nombre || '').toLowerCase().includes(query))
   }
   return []
 })
@@ -424,96 +440,75 @@ const seleccionarItemBuscador = (item) => {
   } else if (tipoBuscador.value === 'proveedor') {
     nuevoProducto.value.proveedor_id = item.id
     nombreProveedorSeleccionado.value = item.nombre_proveedor
+  } else if (tipoBuscador.value === 'unidad_medida') {
+    nuevoProducto.value.unidad_medida_id = item.id
+    nombreUnidadMedidaSeleccionada.value = item.nombre
   }
   cerrarBuscador()
 }
 
+// --- CONEXIÓN AL SERVICIO ---
+
 const cargarAuxiliaresFormulario = async () => {
   try {
-    const [resCat, resSub, resProv] = await Promise.all([
-      axios.get('http://127.0.0.1:8000/api/categorias').catch(() => ({ data: [] })),
-      axios.get('http://127.0.0.1:8000/api/subcategorias').catch(() => ({ data: [] })),
-      axios.get('http://127.0.0.1:8000/api/proveedores').catch(() => ({ data: [] }))
-    ])
+    const [resCat, resSub, resProv, resUnidades] = await getAuxiliares()
     categorias.value = resCat.data.data || resCat.data
     subcategorias.value = resSub.data.data || resSub.data
     proveedores.value = resProv.data.data || resProv.data
+    unidadesMedida.value = resUnidades.data.data || resUnidades.data
   } catch (err) {
-    console.error('Error cargando catálogos auxiliares:', err)
+    console.error('Error cargando catálogos:', err)
   }
 }
 
 const cargarProductos = async () => {
   try {
-    const response = await axios.get('http://127.0.0.1:8000/api/productos')
-    productos.value = response.data.data || response.data
+    const res = await getProductos()
+    productos.value = res.data.data || res.data
   } catch (error) {
-    console.error('Error cargando productos desde el servidor:', error)
+    console.error('Error cargando productos:', error)
   }
 }
 
 const guardarProducto = async () => {
   if (guardando.value) return 
-  
-  if (!nuevoProducto.value.sub_categoria_id || !nuevoProducto.value.proveedor_id) {
-    alert('Por favor selecciona una Subcategoría y un Proveedor válidos usando los buscadores.')
+  if (!nuevoProducto.value.sub_categoria_id || !nuevoProducto.value.proveedor_id || !nuevoProducto.value.unidad_medida_id) {
+    alert('Por favor selecciona Subcategoría, Proveedor y Unidad de Medida válidos.')
     return
   }
 
   guardando.value = true 
-  
-  const productoData = {
-    codigo_barras: nuevoProducto.value.codigo_barras,
-    nombre: nuevoProducto.value.nombre,
-    sub_categoria_id: nuevoProducto.value.sub_categoria_id,
-    proveedor_id: nuevoProducto.value.proveedor_id,
-    stock: nuevoProducto.value.stock,
-    stock_minimo: nuevoProducto.value.stock_minimo,
-    precio_compra: nuevoProducto.value.precio_compra,
-    precio_venta: nuevoProducto.value.precio_venta
-  }
 
   try {
-    let url = 'http://127.0.0.1:8000/api/productos'
-    let resProducto
-    
-    if (esEditando.value) {
-      url += `/${productoIdSeleccionado.value}`
-      resProducto = await axios.put(url, productoData)
-    } else {
-      resProducto = await axios.post(url, productoData)
-    }
+    const res = await guardarProductoAPI(nuevoProducto.value, esEditando.value ? productoIdSeleccionado.value : null)
 
     if (imagenSeleccionada.value) {
       const productoId = esEditando.value 
         ? productoIdSeleccionado.value 
-        : (resProducto.data.data?.id || resProducto.data.id)
+        : (res.data.data?.id || res.data.id)
 
       if (productoId) {
         const formDataImagen = new FormData()
         formDataImagen.append('imagen', imagenSeleccionada.value)
         formDataImagen.append('producto_id', productoId)
-
-        await axios.post('http://127.0.0.1:8000/api/imagenes', formDataImagen, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        })
+        await subirImagenAPI(formDataImagen)
       }
     }
 
     cerrarModal()
     await cargarProductos()
   } catch (error) {
-    console.error('Error al guardar el producto o imagen:', error)
-    alert('Ocurrió un error. Verifica los datos o revisa la consola.')
+    console.error('Error al guardar:', error)
+    alert('Ocurrió un error al procesar la solicitud.')
   } finally {
     guardando.value = false 
   }
 }
 
 const eliminarProducto = async (id) => {
-  if (!confirm('¿Estás completamente seguro de eliminar este producto?')) return
+  if (!confirm('¿Estás seguro de eliminar este producto?')) return
   try {
-    await axios.delete(`http://127.0.0.1:8000/api/productos/${id}`)
+    await eliminarProductoAPI(id)
     cargarProductos()
   } catch (error) {
     console.error('Error al eliminar:', error)
@@ -524,6 +519,7 @@ const abrirModalForm = () => {
   esEditando.value = false
   nombreSubcategoriaSeleccionada.value = ''
   nombreProveedorSeleccionado.value = ''
+  nombreUnidadMedidaSeleccionada.value = ''
   removerImagen()
   mostrarModal.value = true 
 }
@@ -534,6 +530,7 @@ const cerrarModal = () => {
   productoIdSeleccionado.value = null
   nombreSubcategoriaSeleccionada.value = ''
   nombreProveedorSeleccionado.value = ''
+  nombreUnidadMedidaSeleccionada.value = ''
   removerImagen()
   nuevoProducto.value = modeloProductoLimpio()
 }
@@ -542,17 +539,18 @@ const editarProducto = (producto) => {
   esEditando.value = true
   productoIdSeleccionado.value = producto.id
   
-  nombreSubcategoriaSeleccionada.value = producto.subcategoria?.nombre || 'ID: ' + producto.sub_categoria_id
-  nombreProveedorSeleccionado.value = producto.proveedor?.nombre_proveedor || 'ID: ' + producto.proveedor_id
+  nombreSubcategoriaSeleccionada.value = producto.subcategoria?.nombre || (producto.sub_categoria_id ? 'ID: ' + producto.sub_categoria_id : '')
+  nombreProveedorSeleccionado.value = producto.proveedor?.nombre_proveedor || (producto.proveedor_id ? 'ID: ' + producto.proveedor_id : '')
+  nombreUnidadMedidaSeleccionada.value = producto.unidad_medida?.nombre || (producto.unidad_medida_id ? 'ID: ' + producto.unidad_medida_id : '')
 
   nuevoProducto.value = {
     codigo_barras: producto.codigo_barras || '',
     nombre: producto.nombre || '',
     sub_categoria_id: producto.sub_categoria_id || '',
     proveedor_id: producto.proveedor_id || '',
+    unidad_medida_id: producto.unidad_medida_id || '',
     stock: producto.stock || 0,
     stock_minimo: producto.stock_minimo || 5,
-    precio_compra: producto.precio_compra || 0,
     precio_venta: producto.precio_venta || 0
   }
 
