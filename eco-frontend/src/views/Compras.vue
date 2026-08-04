@@ -6,7 +6,7 @@
 
       <button
         @click="abrirModal"
-        class="bg-green-700 text-white px-4 py-2 rounded"
+        class="bg-[#5B80B0] text-white px-4 py-2 rounded"
       >
         Nueva Compra
       </button>
@@ -33,7 +33,7 @@
             <span
               :class="{
                 'text-yellow-600 font-bold': c.estado === 'pendiente',
-                'text-green-600 font-bold': c.estado === 'completada',
+                'text-[#5B80B0] font-bold': c.estado === 'completada',
                 'text-red-600 font-bold': c.estado === 'cancelada'
               }"
             >
@@ -116,7 +116,7 @@
           <button 
             @click="guardar" 
             :disabled="cargando"
-            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+            class="bg-[#5B80B0] hover:bg-[#5B80B0] text-white px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {{ cargando ? 'Guardando...' : 'Guardar' }}
           </button>
@@ -265,7 +265,7 @@
               v-if="esPendiente"
               :disabled="!puedeFinalizar || cargando"
               @click="completarCompra"
-              class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              class="bg-[#5B80B0] hover:bg-[#5B80B0] text-white px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
               {{ cargando ? 'Procesando...' : 'Finalizar compra' }}
             </button>

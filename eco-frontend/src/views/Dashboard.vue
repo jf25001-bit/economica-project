@@ -30,8 +30,8 @@
             </h2>
           </div>
 
-          <div class="w-14 h-14 rounded-2xl bg-green-100 flex items-center justify-center">
-            <i class="bi bi-box-seam text-2xl text-green-700"></i>
+          <div class="w-14 h-14 rounded-2xl bg-[#5B80B0]/10 flex items-center justify-center">
+            <i class="bi bi-box-seam text-2xl text-[#5B80B0]"></i>
           </div>
           </div> 
  </router-link>
@@ -51,8 +51,8 @@
         </h2> 
           </div>
 
-          <div class="w-14 h-14 rounded-2xl bg-[#46674A]/10 flex items-center justify-center">
-            <i class="bi bi-grid text-2xl text-[#46674A]"></i>
+          <div class="w-14 h-14 rounded-2xl bg-[#5B80B0]/10 flex items-center justify-center">
+            <i class="bi bi-grid text-2xl text-[#5B80B0]"></i>
           </div>
           </div>
          </router-link>
@@ -116,9 +116,9 @@
 
       <div class="space-y-4">
 
-        <div class="flex items-center gap-4 p-4 rounded-2xl bg-green-50">
-          <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-            <i class="bi bi-plus-circle-fill text-green-600"></i>
+        <div class="flex items-center gap-4 p-4 rounded-2xl bg-[#5B80B0]/10">
+          <div class="w-10 h-10 rounded-full bg-[#5B80B0]/10 flex items-center justify-center">
+            <i class="bi bi-plus-circle-fill text-[#5B80B0]"></i>
           </div>
 
           <div>

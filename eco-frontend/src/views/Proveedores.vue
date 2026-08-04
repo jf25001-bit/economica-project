@@ -13,7 +13,7 @@
 
        <button
         @click="abrirNuevoProveedor"
-        class="group relative overflow-hidden bg-[#46674A] hover:bg-[#3b5740] text-white px-7 py-3 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 flex items-center gap-3 font-semibold"
+        class="group relative overflow-hidden bg-[#5B80B0] hover:bg-[#5B80B0] text-white px-7 py-3 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 flex items-center gap-3 font-semibold"
       >
         <div class="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
 
@@ -41,11 +41,11 @@
               <tr
                 v-for="proveedor in proveedores"
                 :key="proveedor.id"
-                class="border-b border-gray-100 hover:bg-green-50 transition-all duration-200"
+                class="border-b border-gray-100 hover:bg-[#5B80B0]/10 transition-all duration-200"
               >
                 <td class="px-6 py-5">
                   <span
-                    class="bg-[#46674A]/10 text-[#46674A] px-3 py-1 rounded-full text-xs font-bold"
+                    class="bg-[#5B80B0]/10 text-[#5B80B0] px-3 py-1 rounded-full text-xs font-bold"
                   >
                     #{{ proveedor.id }}
                   </span>
@@ -108,7 +108,7 @@
   >
 
     
-    <div class="bg-[#46674A] text-white px-8 py-5 flex justify-between items-center">
+    <div class="bg-[#5B80B0] text-white px-8 py-5 flex justify-between items-center">
       <div>
         <h2 class="text-2xl font-bold">
           {{ editandoId ? 'Editar Proveedor' : 'Nuevo Proveedor' }}
@@ -132,7 +132,7 @@
       <!-- Nombre -->
       <div>
         <label class="block text-sm font-semibold text-gray-700 mb-2">
-          <i class="bi bi-person-badge mr-2 text-[#46674A]"></i>
+          <i class="bi bi-person-badge mr-2 text-[#5B80B0]"></i>
           Nombre del proveedor
         </label>
 
@@ -140,14 +140,14 @@
           v-model="nombre"
           type="text"
           placeholder="Ingrese el nombre"
-          class="w-full px-4 py-3 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-[#46674A] focus:border-[#46674A] outline-none transition"
+          class="w-full px-4 py-3 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-[#5B80B0] focus:border-[#5B80B0] outline-none transition"
         />
       </div>
 
       <!-- Teléfono -->
       <div>
         <label class="block text-sm font-semibold text-gray-700 mb-2">
-          <i class="bi bi-telephone mr-2 text-[#46674A]"></i>
+          <i class="bi bi-telephone mr-2 text-[#5B80B0]"></i>
           Teléfono
         </label>
 
@@ -157,14 +157,14 @@
           maxlength="8"
           placeholder="Ej: 77778888"
           @input="telefono = telefono.replace(/[^0-9]/g, '')"
-          class="w-full px-4 py-3 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-[#46674A] focus:border-[#46674A] outline-none transition"
+          class="w-full px-4 py-3 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-[#5B80B0] focus:border-[#5B80B0] outline-none transition"
         />
       </div>
 
       <!-- Dirección -->
       <div>
         <label class="block text-sm font-semibold text-gray-700 mb-2">
-          <i class="bi bi-geo-alt mr-2 text-[#46674A]"></i>
+          <i class="bi bi-geo-alt mr-2 text-[#5B80B0]"></i>
           Dirección
         </label>
 
@@ -172,7 +172,7 @@
           v-model="direccion"
           rows="3"
           placeholder="Ingrese la dirección"
-          class="w-full px-4 py-3 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-[#46674A] focus:border-[#46674A] outline-none resize-none transition"
+          class="w-full px-4 py-3 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-[#5B80B0] focus:border-[#5B80B0] outline-none resize-none transition"
         ></textarea>
       </div>
 
@@ -190,7 +190,7 @@
 
       <button
         @click="guardarProveedor"
-        class="px-6 py-3 rounded-xl bg-[#46674A] text-white font-semibold hover:bg-[#3b5740] shadow-lg hover:shadow-xl transition"
+        class="px-6 py-3 rounded-xl bg-[#5B80B0] text-white font-semibold hover:bg-[#5B80B0] shadow-lg hover:shadow-xl transition"
       >
         <i class="bi bi-check-circle me-2"></i>
         {{ editandoId ? 'Actualizar' : 'Guardar Proveedor' }}
@@ -385,7 +385,7 @@ async function eliminarProveedor(id) {
     text: 'Esta acción no se puede deshacer',
     icon: 'warning',
     showCancelButton: true,
-    confirmButtonColor: '#46674A',
+    confirmButtonColor: '#5B80B0',
     cancelButtonColor: '#d33',
     confirmButtonText: 'Sí, eliminar',
     cancelButtonText: 'Cancelar'

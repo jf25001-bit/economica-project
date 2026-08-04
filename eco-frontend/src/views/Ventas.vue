@@ -7,7 +7,7 @@
 
       <button
         @click="abrirModalVenta"
-        class="bg-[#46674A] hover:bg-[#3b5740] text-white px-5 py-3 rounded-xl shadow-md transition font-medium"
+        class="bg-[#5B80B0] hover:bg-[#5B80B0] text-white px-5 py-3 rounded-xl shadow-md transition font-medium"
       >
         <i class="bi bi-plus-lg mr-2"></i>
         Nueva Venta
@@ -52,7 +52,7 @@
             </td>
             <td class="px-6 py-4">
               <span
-                class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium"
+                class="bg-[#5B80B0]/10 text-[#5B80B0] px-3 py-1 rounded-full text-sm font-medium"
               >
                 Completada
               </span>
@@ -90,9 +90,9 @@
 
         <div class="p-6">
           
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-4 mb-6">
             
-            <div>
+            <div class="min-w-0">
               <label class="block text-gray-700 font-medium mb-2">
                 Nombre del Cliente
               </label>
@@ -100,11 +100,11 @@
                 v-model="nombreCliente"
                 type="text"
                 placeholder="Consumidor Final"
-                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
+                class="w-full h-11 px-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5B80B0]"
               />
             </div>
 
-            <div>
+            <div class="min-w-0">
               <label class="block text-gray-700 font-medium mb-2">
                 Código de Barras (Escáner)
               </label>
@@ -113,19 +113,19 @@
                 @keyup.enter="agregarPorCodigo"
                 type="text"
                 placeholder="Escanee y presione Enter"
-                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
+                class="w-full h-11 px-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5B80B0]"
                 ref="inputCodigoBarras"
               />
             </div>
 
-            <div>
+            <div class="min-w-0">
               <label class="block text-gray-700 font-medium mb-2">
                 Agregar Manualmente
               </label>
               <select
                 v-model="productoManualSeleccionado"
                 @change="agregarPorSeleccionManual"
-                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A] bg-white"
+                class="w-full h-11 px-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5B80B0] bg-white truncate"
               >
                 <option value="">-- Busque o seleccione un producto --</option>
                 <option 
@@ -180,7 +180,7 @@
                       min="1"
                       :max="item.stock_maximo"
                       @id="validarCantidadInput(index)"
-                      class="w-full px-2 py-1 border rounded-lg text-center focus:ring-2 focus:ring-[#46674A] outline-none"
+                      class="w-full px-2 py-1 border rounded-lg text-center focus:ring-2 focus:ring-[#5B80B0] outline-none"
                     />
                   </td>
                   <td class="px-4 py-3 font-semibold">
@@ -211,7 +211,7 @@
           <div class="flex justify-end mb-6">
             <div class="bg-gray-100 rounded-xl px-6 py-4 min-w-[220px]">
               <p class="text-gray-600 text-sm">Total de la Venta</p>
-              <p class="text-3xl font-bold text-[#46674A]">
+              <p class="text-3xl font-bold text-[#5B80B0]">
                 ${{ totalCalculado.toFixed(2) }}
               </p>
             </div>
@@ -228,7 +228,7 @@
 
             <button
               @click="finalizarVenta"
-              class="bg-[#46674A] hover:bg-[#3b5740] text-white px-5 py-3 rounded-xl font-semibold flex items-center gap-2 disabled:opacity-50"
+              class="bg-[#5B80B0] hover:bg-[#5B80B0] text-white px-5 py-3 rounded-xl font-semibold flex items-center gap-2 disabled:opacity-50"
               :disabled="guardandoVenta || carrito.length === 0"
             >
               <span v-if="guardandoVenta" class="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>

@@ -3,7 +3,7 @@
     <div class="bg-white shadow-2xl rounded-3xl overflow-hidden w-full max-w-5xl grid grid-cols-2">
       
      
-      <div class="bg-[#46674A] text-white flex flex-col items-center justify-center p-12">
+      <div class="bg-[#5B80B0] text-white flex flex-col items-center justify-center p-12">
         <img
           src="/logo.jpeg"
           alt="Logo"
@@ -37,7 +37,7 @@
             Usuario
           </label>
           <input v-model="name" type="text" placeholder="Ingrese usuario" class="w-full px-4 py-3 border
-           border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]" />
+           border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5B80B0]" />
         </div>
 
        
@@ -50,7 +50,7 @@
           type="password"
           placeholder="••••••••"
           @keyup.enter="handleLogin"
-          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
+          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5B80B0]"
         />
         </div>
 
@@ -58,7 +58,7 @@
         <button
           @click="handleLogin"
           :disabled="loading"
-          class="w-full bg-[#46674A] hover:bg-[#3b5740] text-white py-3 rounded-xl font-semibold shadow-md transition disabled:opacity-50"
+          class="w-full bg-[#5B80B0] hover:bg-[#5B80B0] text-white py-3 rounded-xl font-semibold shadow-md transition disabled:opacity-50"
         >
           {{ loading ? 'Ingresando...' : 'Ingresar' }}
       </button>

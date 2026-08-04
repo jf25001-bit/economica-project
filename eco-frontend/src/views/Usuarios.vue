@@ -10,7 +10,7 @@
 
       <button
         @click="abrirModal"
-        class="bg-[#46674A] hover:bg-[#3b5740] text-white px-6 py-3 rounded-2xl shadow-lg transition"
+        class="bg-[#5B80B0] hover:bg-[#5B80B0] text-white px-6 py-3 rounded-2xl shadow-lg transition"
       >
         <i class="bi bi-plus-lg mr-2"></i>
         Nuevo Usuario
@@ -24,12 +24,12 @@
         v-model="search"
         type="text"
         placeholder="Buscar usuario..."
-        class="flex-1 px-4 py-3 border rounded-2xl focus:ring-2 focus:ring-[#46674A]"
+        class="flex-1 px-4 py-3 border rounded-2xl focus:ring-2 focus:ring-[#5B80B0]"
       />
 
       <select
         v-model="filtroRol"
-        class="px-4 py-3 border rounded-2xl focus:ring-2 focus:ring-[#46674A]"
+        class="px-4 py-3 border rounded-2xl focus:ring-2 focus:ring-[#5B80B0]"
       >
         <option value="">Todos los roles</option>
         <option v-for="r in roles" :key="r.id" :value="r.id">
@@ -67,7 +67,7 @@
             </td>
 
             <td class="px-6 py-4">
-              <span :class="u.activo ? 'text-green-600' : 'text-red-600'">
+              <span :class="u.activo ? 'text-[#5B80B0]' : 'text-red-600'">
                 {{ u.activo ? 'Activo' : 'Inactivo' }}
               </span>
             </td>
@@ -110,7 +110,7 @@
       <div class="bg-white rounded-3xl w-full max-w-xl flex flex-col">
 
         <!-- HEADER -->
-        <div class="bg-[#46674A] text-white px-6 py-5 flex justify-between items-center">
+        <div class="bg-[#5B80B0] text-white px-6 py-5 flex justify-between items-center">
           <h2 class="text-xl font-bold">
             {{ editando ? 'Editar Usuario' : 'Nuevo Usuario' }}
           </h2>
@@ -164,7 +164,7 @@
           <button
             @click="guardar"
             :disabled="loading"
-            class="px-4 py-2 bg-[#46674A] text-white rounded-xl disabled:opacity-50"
+            class="px-4 py-2 bg-[#5B80B0] text-white rounded-xl disabled:opacity-50"
           >
             {{ loading ? 'Guardando...' : 'Guardar' }}
           </button>
@@ -365,7 +365,7 @@ const abrirEliminar = async (u) => {
     text: 'Esta acción no se puede deshacer',
     icon: 'warning',
     showCancelButton: true,
-    confirmButtonColor: '#46674A',
+    confirmButtonColor: '#5B80B0',
     cancelButtonColor: '#d33',
     confirmButtonText: 'Sí, eliminar'
   })

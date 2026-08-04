@@ -8,7 +8,7 @@
       </div>
 
       <button
-        class="bg-[#46674A] hover:bg-[#3b5740] text-white px-5 py-3 rounded-xl shadow-md transition font-medium"
+        class="bg-[#5B80B0] hover:bg-[#5B80B0] text-white px-5 py-3 rounded-xl shadow-md transition font-medium"
       >
         <i class="bi bi-arrow-repeat mr-2"></i>
         Actualizar Stock
@@ -25,7 +25,7 @@
         <input
           type="text"
           placeholder="Buscar en inventario..."
-          class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
+          class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5B80B0]"
         />
       </div>
     </div>
@@ -63,7 +63,7 @@
                 :class="[
                   'px-3 py-1 rounded-full text-sm font-medium',
                   item.stock > item.minimo
-                    ? 'bg-green-100 text-green-700'
+                    ? 'bg-[#5B80B0]/10 text-[#5B80B0]'
                     : 'bg-red-100 text-red-700'
                 ]"
               >

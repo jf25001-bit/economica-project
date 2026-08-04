@@ -1,6 +1,6 @@
 <template>
   <header
-    class="bg-[#46674A] text-white shadow-lg h-16 flex items-center justify-between px-6 border-b border-[#3b5740]"
+    class="bg-[#5B80B0] text-white shadow-lg h-16 flex items-center justify-between px-6 border-b border-[#5B80B0]"
   >
     <!-- Botón menú -->
     <button
