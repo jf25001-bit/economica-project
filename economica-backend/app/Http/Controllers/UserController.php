@@ -24,12 +24,16 @@ class UserController extends Controller
 {
     $request->validate([
         'name' => 'required|string|max:255',
-        'password' => 'required|string|min:6',
+        'apellido' => 'required|string|max:255',
+        'email' => 'required|email|max:255|unique:users,email',
+        'password' => 'required|string|min:8',
         'rol_id' => 'required|exists:rols,id',
     ]);
 
     $usuario = User::create([
         'name' => $request->name,
+        'apellido' => $request->apellido,
+        'email' => $request->email,
         'password' => bcrypt($request->password),
         'rol_id' => $request->rol_id,
         'activo' => true
@@ -66,13 +70,17 @@ class UserController extends Controller
 
     $request->validate([
         'name' => 'required|string|max:255',
-        'password' => 'nullable|string|min:6',
+        'apellido' => 'required|string|max:255',
+        'email' => 'required|email|max:255|unique:users,email,' . $id,
+        'password' => 'nullable|string|min:8',
         'rol_id' => 'required|exists:rols,id',
         'activo' => 'required|boolean'
     ]);
 
     $data = [
         'name' => $request->name,
+        'apellido' => $request->apellido,
+        'email' => $request->email,
         'rol_id' => $request->rol_id,
         'activo' => $request->activo
     ];

@@ -1,7 +1,7 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
+  <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 lg:p-6">
     <!-- Header -->
-    <div class="max-w-7xl mx-auto">
+    <div class="w-full max-w-none">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
           <h1 class="text-4xl font-bold text-gray-800">
@@ -12,7 +12,7 @@
 
         <button
           @click="abrirNuevoProveedor"
-          class="group relative overflow-hidden bg-[#46674A] hover:bg-[#3b5740] text-white px-7 py-3 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 flex items-center gap-3 font-semibold"
+          class="group relative overflow-hidden bg-[#47B5AC] hover:bg-[#47B5AC] text-white px-7 py-3 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 flex items-center gap-3 font-semibold"
         >
           <div class="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
           <i class="bi bi-plus-circle-fill text-lg"></i>
@@ -21,9 +21,17 @@
       </div>
 
       <!-- Tabla -->
-      <div class="bg-white rounded-3xl shadow-xl border border-gray-200 overflow-hidden">
+      <div class="bg-white rounded-3xl shadow-xl border border-gray-200 overflow-hidden w-full">
         <div class="overflow-x-auto">
-          <table class="w-full">
+          <table class="w-full min-w-[1040px] table-fixed">
+            <colgroup>
+              <col class="w-[8%]" />
+              <col class="w-[18%]" />
+              <col class="w-[14%]" />
+              <col class="w-[24%]" />
+              <col class="w-[24%]" />
+              <col class="w-[12%]" />
+            </colgroup>
             <thead class="bg-gradient-to-r from-gray-100 to-gray-50">
               <tr class="text-gray-600 text-sm uppercase">
                 <th class="px-6 py-5 text-left">ID</th>
@@ -42,26 +50,26 @@
                 class="border-b border-gray-100 hover:bg-green-50/50 transition-all duration-200"
               >
                 <td class="px-6 py-5">
-                  <span class="bg-[#46674A]/10 text-[#46674A] px-3 py-1 rounded-full text-xs font-bold">
+                  <span class="bg-[#47B5AC]/10 text-[#47B5AC] px-3 py-1 rounded-full text-xs font-bold">
                     #{{ proveedor.id }}
                   </span>
                 </td>
 
-                <td class="px-6 py-5 font-medium text-gray-800">
+                <td class="px-6 py-5 font-medium text-gray-800 truncate">
                   {{ proveedor.nombre_proveedor }}
                 </td>
 
-                <td class="px-6 py-5 text-gray-600">
+                <td class="px-6 py-5 text-gray-600 truncate">
                   {{ proveedor.telefono }}
                 </td>
 
-                <td class="px-6 py-5 text-gray-600">
+                <td class="px-6 py-5 text-gray-600 truncate">
                   {{ proveedor.direccion }}
                 </td>
 
                 <!-- Columna de productos asociados -->
                 <td class="px-6 py-5">
-                  <div v-if="proveedor.productos && proveedor.productos.length > 0" class="flex flex-wrap gap-1">
+                  <div v-if="proveedor.productos && proveedor.productos.length > 0" class="flex flex-wrap gap-1 max-h-16 overflow-y-auto pr-1">
                     <span
                       v-for="prod in proveedor.productos"
                       :key="prod.id"
@@ -95,7 +103,7 @@
               </tr>
 
               <tr v-if="proveedores.length === 0">
-                <td colspan="6" class="py-16 text-center">
+                <td colspan="6" class="py-28 text-center">
                   <div class="flex flex-col items-center">
                     <i class="bi bi-folder-x text-5xl text-gray-300"></i>
                     <p class="mt-3 text-gray-400">
@@ -115,35 +123,35 @@
       v-if="mostrarModal"
       class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-40 p-4"
     >
-      <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-fadeIn my-8">
+      <div class="bg-white rounded-[22px] shadow-2xl w-full max-w-[675px] overflow-hidden animate-fadeIn my-8 border border-gray-200">
         
         <!-- Header Modal -->
-        <div class="bg-[#46674A] text-white px-8 py-5 flex justify-between items-center">
-          <div>
-            <h2 class="text-2xl font-bold">
+        <div class="bg-[#47B5AC] text-white h-[112px] px-8 flex justify-between items-start pt-8">
+          <div class="space-y-3">
+            <h2 class="text-2xl font-bold leading-none">
               {{ editandoId ? 'Editar Proveedor' : 'Nuevo Proveedor' }}
             </h2>
-            <p class="text-white/70 text-sm">
+            <p class="text-white/85 text-sm">
               Complete los datos del proveedor y asigne sus productos
             </p>
           </div>
 
           <button
             @click="cerrarModal"
-            class="w-10 h-10 rounded-full hover:bg-white/20 transition flex items-center justify-center"
+            class="w-11 h-11 rounded-full bg-[#DDF3F1] text-gray-800 shadow-md hover:bg-white transition flex items-center justify-center"
           >
             <i class="bi bi-x-lg text-xl"></i>
           </button>
         </div>
 
         <!-- Contenido Modal -->
-        <div class="p-8 space-y-5 max-h-[75vh] overflow-y-auto">
+        <div class="px-8 pt-8 pb-7 space-y-5 max-h-[75vh] overflow-y-auto overflow-x-hidden">
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <!-- Nombre -->
             <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-2">
-                <i class="bi bi-person-badge mr-2 text-[#46674A]"></i>
+              <label class="flex items-center text-sm font-bold text-gray-800 mb-2">
+                <i class="bi bi-person-badge mr-2 text-[#47B5AC]"></i>
                 Nombre del proveedor
               </label>
 
@@ -151,14 +159,14 @@
                 v-model="nombre"
                 type="text"
                 placeholder="Ingrese el nombre"
-                class="w-full px-4 py-3 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-[#46674A] focus:border-[#46674A] outline-none transition"
+                class="box-border block w-full h-10 px-4 rounded-[14px] border border-gray-300 focus:ring-2 focus:ring-[#47B5AC] focus:border-[#47B5AC] outline-none transition"
               />
             </div>
 
             <!-- Teléfono -->
             <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-2">
-                <i class="bi bi-telephone mr-2 text-[#46674A]"></i>
+              <label class="flex items-center text-sm font-bold text-gray-800 mb-2">
+                <i class="bi bi-telephone mr-2 text-[#47B5AC]"></i>
                 Teléfono
               </label>
 
@@ -168,15 +176,15 @@
                 maxlength="8"
                 placeholder="Ej: 77778888"
                 @input="telefono = telefono.replace(/[^0-9]/g, '')"
-                class="w-full px-4 py-3 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-[#46674A] focus:border-[#46674A] outline-none transition"
+                class="box-border block w-full h-10 px-4 rounded-[14px] border border-gray-300 focus:ring-2 focus:ring-[#47B5AC] focus:border-[#47B5AC] outline-none transition"
               />
             </div>
           </div>
 
           <!-- Dirección -->
           <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-2">
-              <i class="bi bi-geo-alt mr-2 text-[#46674A]"></i>
+            <label class="flex items-center text-sm font-bold text-gray-800 mb-2">
+              <i class="bi bi-geo-alt mr-2 text-[#47B5AC]"></i>
               Dirección
             </label>
 
@@ -184,31 +192,31 @@
               v-model="direccion"
               rows="2"
               placeholder="Ingrese la dirección"
-              class="w-full px-4 py-3 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-[#46674A] focus:border-[#46674A] outline-none resize-none transition"
+              class="box-border block w-full min-h-[56px] px-4 py-3 rounded-[14px] border border-gray-300 focus:ring-2 focus:ring-[#47B5AC] focus:border-[#47B5AC] outline-none resize-none transition"
             ></textarea>
           </div>
 
           <!-- Botón Disparador del Modal de Productos Suministrados -->
-          <div class="border-t pt-4">
-            <label class="block text-sm font-semibold text-gray-700 mb-2">
-              <i class="bi bi-box-seam mr-2 text-[#46674A]"></i>
+          <div class="pt-4">
+            <label class="flex items-center text-sm font-bold text-gray-800 mb-2">
+              <i class="bi bi-box-seam mr-2 text-[#47B5AC]"></i>
               Productos Suministrados
             </label>
 
             <button
               type="button"
               @click="abrirBuscadorProductos"
-              class="w-full flex items-center justify-between px-5 py-3.5 bg-gray-50 hover:bg-gray-100 border border-gray-300 rounded-2xl text-left transition group"
+              class="box-border w-full min-h-[94px] flex items-center justify-between px-5 py-4 bg-gray-50 hover:bg-gray-100 border border-gray-300 rounded-[14px] text-left transition group shadow-sm"
             >
-              <div class="flex items-center gap-3">
-                <i class="bi bi-card-checklist text-xl text-[#46674A]"></i>
-                <div>
-                  <p class="text-sm font-semibold text-gray-800">
+              <div class="flex items-center gap-3 min-w-0">
+                <i class="bi bi-card-checklist text-xl text-[#47B5AC]"></i>
+                <div class="min-w-0">
+                  <p class="text-sm font-bold text-gray-800 truncate">
                     {{ productosSeleccionados.length > 0 
                       ? `${productosSeleccionados.length} producto(s) seleccionado(s)` 
                       : 'Seleccionar productos suministrados...' }}
                   </p>
-                  <p class="text-xs text-gray-400">
+                  <p class="text-xs text-gray-400 mt-2">
                     Haga clic para abrir el catálogo y gestionar la selección
                   </p>
                 </div>
@@ -220,17 +228,17 @@
         </div>
 
         <!-- Footer Modal -->
-        <div class="bg-gray-50 px-8 py-5 flex justify-end gap-3 border-t">
+        <div class="bg-gray-50 px-8 h-[86px] flex items-center justify-end gap-3">
           <button
             @click="cerrarModal"
-            class="px-6 py-3 rounded-xl border border-gray-300 hover:bg-gray-100 font-medium transition text-gray-700"
+            class="h-11 px-7 rounded-[10px] border border-gray-300 bg-gray-100 hover:bg-gray-200 font-medium transition text-gray-700"
           >
             Cancelar
           </button>
 
           <button
             @click="guardarProveedor"
-            class="px-6 py-3 rounded-xl bg-[#46674A] text-white font-semibold hover:bg-[#3b5740] shadow-lg hover:shadow-xl transition"
+            class="h-11 px-7 rounded-[10px] bg-[#47B5AC] text-white font-semibold hover:bg-[#47B5AC] shadow-lg hover:shadow-xl transition flex items-center"
           >
             <i class="bi bi-check-circle me-2"></i>
             {{ editandoId ? 'Actualizar' : 'Guardar Proveedor' }}
@@ -251,7 +259,7 @@
         <div class="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
           <div>
             <h3 class="font-bold text-gray-800 text-lg flex items-center gap-2">
-              <i class="bi bi-boxes text-[#46674A]"></i>
+              <i class="bi bi-boxes text-[#47B5AC]"></i>
               Asignar Productos Suministrados
             </h3>
             <p class="text-xs text-gray-500">Marque o desmarque los productos que provee este distribuidor</p>
@@ -274,7 +282,7 @@
               v-model="filtroProducto"
               type="text"
               placeholder="Buscar producto por nombre..."
-              class="w-full pl-11 pr-4 py-3 border border-gray-300 text-sm rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
+              class="w-full pl-11 pr-4 py-3 border border-gray-300 text-sm rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#47B5AC]"
             />
           </div>
 
@@ -284,13 +292,13 @@
               <label
                 v-for="producto in productosFiltrados"
                 :key="producto.id"
-                class="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-xl hover:border-[#46674A]/50 cursor-pointer transition select-none shadow-xs"
+                class="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-xl hover:border-[#47B5AC]/50 cursor-pointer transition select-none shadow-xs"
               >
                 <input
                   type="checkbox"
                   :value="producto.id"
                   v-model="productosSeleccionados"
-                  class="w-5 h-5 text-[#46674A] focus:ring-[#46674A] rounded border-gray-300 accent-[#46674A]"
+                  class="w-5 h-5 text-[#47B5AC] focus:ring-[#47B5AC] rounded border-gray-300 accent-[#47B5AC]"
                 />
                 <div class="truncate">
                   <p class="text-sm font-medium text-gray-800 truncate">
@@ -312,13 +320,13 @@
         <!-- Footer Buscador -->
         <div class="bg-gray-50 px-6 py-4 flex justify-between items-center border-t">
           <span class="text-xs font-semibold text-gray-500">
-            Marcados: <span class="text-[#46674A] text-sm font-bold">{{ productosSeleccionados.length }}</span>
+            Marcados: <span class="text-[#47B5AC] text-sm font-bold">{{ productosSeleccionados.length }}</span>
           </span>
 
           <button
             type="button"
             @click="cerrarBuscadorProductos"
-            class="px-6 py-2.5 bg-[#46674A] text-white rounded-xl font-medium hover:bg-[#3b5740] transition shadow-md"
+            class="px-6 py-2.5 bg-[#47B5AC] text-white rounded-xl font-medium hover:bg-[#47B5AC] transition shadow-md"
           >
             Aceptar
           </button>
@@ -561,7 +569,7 @@ async function eliminarProveedor(id) {
     text: 'Esta acción no se puede deshacer',
     icon: 'warning',
     showCancelButton: true,
-    confirmButtonColor: '#46674A',
+    confirmButtonColor: '#47B5AC',
     cancelButtonColor: '#d33',
     confirmButtonText: 'Sí, eliminar',
     cancelButtonText: 'Cancelar'

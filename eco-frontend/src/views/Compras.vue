@@ -1,11 +1,11 @@
 <template>
-  <div class="main-interface-container p-6 font-sans text-slate-800 bg-[#F1F5F9] min-h-screen">
-    <div class="mx-auto max-w-7xl space-y-6">
+  <div class="main-interface-container p-4 lg:p-6 font-sans text-slate-800 bg-[#F1F5F9] min-h-screen">
+    <div class="w-full max-w-none space-y-6">
 
       <!-- NAVBAR SUPERIOR -->
       <div class="top-strict-navbar flex items-center justify-between bg-white rounded-2xl shadow-md p-4">
         <div class="flex items-center gap-3">
-          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#46674A]/10 text-[#46674A]">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#47B5AC]/10 text-[#47B5AC]">
             <i class="bi bi-cart-check-fill text-xl"></i>
           </div>
           <div>
@@ -17,7 +17,7 @@
         <div class="top-right-actions flex items-center gap-4">
           <button 
             @click="abrirModal"
-            class="bg-[#46674A] hover:bg-[#3b5740] text-white px-5 py-3 rounded-xl shadow-md transition font-medium text-sm flex items-center gap-2"
+            class="bg-[#47B5AC] hover:bg-[#47B5AC] text-white px-5 py-3 rounded-xl shadow-md transition font-medium text-sm flex items-center gap-2"
           >
             <i class="bi bi-plus-lg"></i>
             Nueva Compra
@@ -26,10 +26,10 @@
       </div>
 
       <!-- DISPOSICIÓN PRINCIPAL EN COLUMNAS -->
-      <div class="content-layout-flex flex flex-col lg:flex-row gap-6 items-start w-full">
+      <div class="content-layout-flex flex flex-col xl:flex-row gap-5 items-start w-full">
         
         <!-- PANEL IZQUIERDO: TABLA -->
-        <div class="left-content-panel w-full lg:w-3/4 bg-white rounded-2xl shadow-md p-6">
+        <div class="left-content-panel w-full xl:flex-1 xl:min-w-0 bg-white rounded-2xl shadow-md p-6 min-h-[calc(100vh-13rem)] flex flex-col">
           <div class="section-header-row flex justify-between items-center mb-6">
             <div class="title-block">
               <h2 class="text-xl font-bold text-gray-800">Órdenes de Compra</h2>
@@ -37,7 +37,7 @@
             </div>
           </div>
 
-          <div class="table-card-wrapper border border-gray-200 rounded-xl overflow-hidden">
+          <div class="table-card-wrapper border border-gray-200 rounded-xl overflow-hidden flex-1">
             <div class="overflow-x-auto">
               <table class="w-full text-left border-collapse">
                 <thead class="bg-gray-100 border-b border-gray-200">
@@ -85,7 +85,7 @@
                   </tr>
 
                   <tr v-if="compras.length === 0">
-                    <td colspan="5" class="text-center py-12 text-gray-400 italic">
+                    <td colspan="5" class="text-center py-28 text-gray-400 italic">
                       <i class="bi bi-inbox text-3xl block mb-2 text-gray-300"></i>
                       No hay compras registradas.
                     </td>
@@ -97,37 +97,37 @@
         </div>
 
         <!-- PANEL DERECHO: WIDGET DE MÉTRICAS -->
-        <div class="right-widgets-panel w-full lg:w-1/4 flex flex-col gap-4">
-          <div class="inventory-card-widget bg-white rounded-2xl shadow-md p-4 border border-gray-100">
-            <h2 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-4">Resumen de Compras</h2>
+        <div class="right-widgets-panel w-full xl:w-[240px] 2xl:w-[260px] xl:shrink-0 flex flex-col gap-4">
+          <div class="inventory-card-widget bg-white rounded-2xl shadow-md p-3 border border-gray-100 h-fit">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Resumen de Compras</h2>
             
-            <div class="widget-metric-row flex justify-between items-center p-3 bg-gray-50 rounded-xl mb-2">
+            <div class="widget-metric-row flex justify-between items-center p-2.5 bg-gray-50 rounded-xl mb-2">
               <div>
                 <span class="block text-xs text-gray-500">Total Órdenes</span>
                 <span class="text-xl font-bold text-gray-800">{{ compras.length }}</span>
               </div>
             </div>
 
-            <div class="widget-metric-row flex justify-between items-center p-3 bg-amber-50 rounded-xl mb-2">
+            <div class="widget-metric-row flex justify-between items-center p-2.5 bg-amber-50 rounded-xl mb-2">
               <div>
                 <span class="block text-xs text-amber-600">Órdenes Pendientes</span>
                 <span class="text-xl font-bold text-amber-700">
                   {{ compras.filter(c => c.estado === 'pendiente').length }}
                 </span>
               </div>
-              <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+              <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
                 <i class="bi bi-clock-history"></i>
               </span>
             </div>
 
-            <div class="widget-metric-row flex justify-between items-center p-3 bg-green-50 rounded-xl">
+            <div class="widget-metric-row flex justify-between items-center p-2.5 bg-green-50 rounded-xl">
               <div>
                 <span class="block text-xs text-green-600">Completadas</span>
                 <span class="text-xl font-bold text-green-700">
                   {{ compras.filter(c => c.estado === 'completada').length }}
                 </span>
               </div>
-              <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100 text-green-700">
+              <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-green-100 text-green-700">
                 <i class="bi bi-check2-circle"></i>
               </span>
             </div>
@@ -143,19 +143,29 @@
       <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full overflow-hidden flex flex-col max-h-[90vh]">
         
         <!-- Encabezado -->
-        <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-white">
+        <div class="px-6 py-4 flex justify-between items-center bg-[#47B5AC]">
           <div class="flex items-center gap-3">
-            <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#46674A]/10 text-[#46674A]">
+            <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 text-white">
               <i class="bi bi-bag-plus-fill text-lg"></i>
             </div>
             <div>
-              <h3 class="font-bold text-gray-800 text-base">Registrar Nueva Orden de Compra</h3>
-              <p class="text-xs text-gray-400">Agrega productos, define cantidades y sus costos de entrada</p>
+              <h3 class="font-bold text-white text-base">Registrar Nueva Orden de Compra</h3>
+              <p class="text-xs text-white/80">Agrega productos, define cantidades y sus costos de entrada</p>
             </div>
           </div>
-          <button class="text-gray-400 hover:text-gray-600 transition p-1.5 rounded-lg hover:bg-gray-100" @click="cerrar">
-            <i class="bi bi-x-lg text-sm"></i>
-          </button>
+          <div class="flex items-center gap-3">
+            <button
+              type="button"
+              @click="abrirModalProductoCompra"
+              class="px-4 py-2 rounded-xl bg-white text-[#47B5AC] text-xs font-bold shadow-md hover:bg-[#DDF3F1] transition flex items-center gap-2"
+            >
+              <i class="bi bi-plus-lg"></i>
+              Nuevo Producto
+            </button>
+            <button class="w-11 h-11 rounded-full bg-[#DDF3F1] text-gray-800 shadow-md hover:bg-white flex items-center justify-center transition" @click="cerrar">
+              <i class="bi bi-x-lg text-xl"></i>
+            </button>
+          </div>
         </div>
 
         <!-- Contenido principal con scroll -->
@@ -181,13 +191,13 @@
                     <button
                       type="button"
                       @click="abrirSelector(i)"
-                      class="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-white hover:border-[#46674A] hover:bg-[#46674A]/5 text-gray-700 transition text-left group"
+                      class="box-border w-full h-9 flex items-center justify-between gap-2 px-3 rounded-lg border border-gray-400 bg-white hover:border-[#47B5AC] hover:bg-[#47B5AC]/5 text-gray-700 transition text-left group"
                     >
                       <span class="truncate font-medium text-xs text-gray-800">
-                        <i class="bi bi-box-seam mr-1.5 text-gray-400 group-hover:text-[#46674A]"></i>
+                        <i class="bi bi-box-seam mr-1.5 text-gray-400 group-hover:text-[#47B5AC]"></i>
                         {{ getProductoNombre(d.producto_id) || 'Seleccionar producto...' }}
                       </span>
-                      <i class="bi bi-search text-gray-400 group-hover:text-[#46674A] text-xs"></i>
+                      <i class="bi bi-search text-gray-400 group-hover:text-[#47B5AC] text-xs"></i>
                     </button>
                   </td>
 
@@ -198,7 +208,7 @@
                       type="number"
                       min="1"
                       placeholder="1"
-                      class="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs font-semibold text-gray-800 bg-white outline-none focus:border-[#46674A] focus:ring-1 focus:ring-[#46674A] transition"
+                      class="box-border w-full h-9 px-3 border border-gray-400 rounded-lg text-xs font-semibold text-gray-800 bg-white outline-none focus:border-[#47B5AC] focus:ring-1 focus:ring-[#47B5AC] transition"
                     />
                   </td>
 
@@ -212,7 +222,7 @@
                         step="0.01"
                         min="0"
                         placeholder="0.00"
-                        class="w-full pl-6 pr-3 py-2 border border-gray-200 rounded-lg text-xs font-bold text-[#46674A] bg-white outline-none focus:border-[#46674A] focus:ring-1 focus:ring-[#46674A] transition"
+                        class="box-border w-full h-9 pl-6 pr-3 border border-gray-400 rounded-lg text-xs font-bold text-[#47B5AC] bg-white outline-none focus:border-[#47B5AC] focus:ring-1 focus:ring-[#47B5AC] transition"
                       />
                     </div>
                   </td>
@@ -242,7 +252,7 @@
           <button
             @click="add"
             type="button"
-            class="w-full py-2.5 rounded-xl border border-dashed border-gray-300 hover:border-[#46674A] text-xs font-semibold text-gray-600 hover:text-[#46674A] hover:bg-[#46674A]/5 transition flex items-center justify-center gap-2"
+            class="w-full py-2.5 rounded-xl border border-dashed border-gray-300 hover:border-[#47B5AC] text-xs font-semibold text-gray-600 hover:text-[#47B5AC] hover:bg-[#47B5AC]/5 transition flex items-center justify-center gap-2"
           >
             <i class="bi bi-plus-lg"></i> Agregar otro producto
           </button>
@@ -267,7 +277,7 @@
             <button
               @click="guardar"
               :disabled="cargando"
-              class="px-6 py-2 rounded-xl bg-[#46674A] hover:bg-[#3b5740] text-xs font-bold text-white shadow-md transition disabled:opacity-50 flex items-center gap-2"
+              class="px-6 py-2 rounded-xl bg-[#47B5AC] hover:bg-[#47B5AC] text-xs font-bold text-white shadow-md transition disabled:opacity-50 flex items-center gap-2"
             >
               <i v-if="!cargando" class="bi bi-check-lg"></i>
               {{ cargando ? 'Guardando...' : 'Guardar Compra' }}
@@ -275,6 +285,180 @@
           </div>
         </div>
 
+      </div>
+    </div>
+
+    <!-- MODAL: NUEVO PRODUCTO DESDE COMPRA -->
+    <div v-if="modalProductoCompra" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-[14px] shadow-xl max-w-md w-full overflow-hidden">
+        <div class="h-24 px-6 flex justify-between items-center bg-[#47B5AC]">
+          <h3 class="font-bold text-white text-lg">Agregar Nuevo Producto</h3>
+          <button type="button" class="w-11 h-11 rounded-full bg-[#DDF3F1] text-gray-800 shadow-md hover:bg-white flex items-center justify-center transition" @click="cerrarModalProductoCompra">
+            <i class="bi bi-x-lg text-xl"></i>
+          </button>
+        </div>
+
+        <form @submit.prevent="guardarProductoCompra" class="p-6 flex flex-col gap-4 max-h-[calc(100vh-8rem)] overflow-y-auto overflow-x-hidden" enctype="multipart/form-data">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Imagen del Producto</label>
+            <div class="flex items-center gap-4 mt-1">
+              <div class="relative w-20 h-20 rounded-xl overflow-hidden bg-gray-50 flex items-center justify-center flex-shrink-0">
+                <img v-if="imagenProductoPreview" :src="imagenProductoPreview" alt="Preview" class="w-full h-full object-cover" />
+                <i v-else class="bi bi-image text-gray-300 text-2xl"></i>
+                <button
+                  v-if="imagenProductoPreview"
+                  type="button"
+                  @click="removerImagenProductoCompra"
+                  class="absolute top-0 right-0 bg-red-500 text-white rounded-bl p-1 leading-none shadow-md hover:bg-red-600 transition"
+                  title="Quitar imagen"
+                >
+                  <i class="bi bi-x text-xs"></i>
+                </button>
+              </div>
+
+              <div class="w-full">
+                <label class="box-border w-full h-[72px] flex flex-col items-center justify-center px-4 bg-white text-gray-500 rounded-xl border border-gray-300 border-dashed cursor-pointer hover:bg-gray-50 hover:text-gray-700 transition text-center">
+                  <i class="bi bi-cloud-upload text-lg mb-1 text-[#47B5AC]"></i>
+                  <span class="text-xs font-medium">Seleccionar imagen archivo</span>
+                  <input type="file" ref="fileInputProductoCompra" accept="image/*" class="hidden" @change="manejarCambioImagenProductoCompra" />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Nombre del Producto</label>
+            <input type="text" v-model="nuevoProductoCompra.nombre" required placeholder="Ej. MacBook Pro M3" class="box-border w-full h-8 px-4 border border-gray-900 rounded-[14px] focus:ring-2 focus:ring-[#47B5AC] outline-none" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Código de Barras / SKU</label>
+            <input type="text" v-model="nuevoProductoCompra.codigo_barras" required placeholder="Ej. 7501055300075" class="box-border w-full h-8 px-4 border border-gray-900 rounded-[14px] focus:ring-2 focus:ring-[#47B5AC] outline-none" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Categoría</label>
+              <button type="button" @click="abrirBuscadorProductoCompra('subcategoria')" class="box-border w-full h-9 flex justify-between items-center px-4 border border-gray-900 rounded-[14px] text-left text-sm bg-gray-50 hover:bg-gray-100 transition truncate">
+                <span class="truncate">{{ nombreSubcategoriaProductoCompra || 'Seleccionar...' }}</span>
+                <i class="bi bi-search text-gray-400 ml-1"></i>
+              </button>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Unidad de Medida</label>
+              <button type="button" @click="abrirBuscadorProductoCompra('unidad_medida')" class="box-border w-full h-9 flex justify-between items-center px-4 border border-gray-900 rounded-[14px] text-left text-sm bg-gray-50 hover:bg-gray-100 transition truncate">
+                <span class="truncate">{{ nombreUnidadProductoCompra || 'Seleccionar...' }}</span>
+                <i class="bi bi-search text-gray-400 ml-1"></i>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Precio Venta ($)</label>
+            <input type="number" step="0.01" v-model="nuevoProductoCompra.precio_venta" required placeholder="0.00" class="box-border w-full h-8 px-4 border border-gray-900 rounded-[14px] focus:ring-2 focus:ring-[#47B5AC] outline-none" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Stock Mínimo</label>
+            <input type="number" v-model="nuevoProductoCompra.stock_minimo" required class="box-border w-full h-8 px-4 border border-gray-900 rounded-[14px] focus:ring-2 focus:ring-[#47B5AC] outline-none" />
+          </div>
+
+          <div class="flex justify-end gap-3 mt-8">
+            <button type="button" class="h-9 px-5 bg-gray-100 text-gray-700 rounded-xl border border-gray-400 hover:bg-gray-200" :disabled="guardandoProductoCompra" @click="cerrarModalProductoCompra">Cancelar</button>
+            <button type="submit" class="h-9 px-5 bg-[#47B5AC] text-white rounded-xl border border-gray-500 hover:bg-[#47B5AC] flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" :disabled="guardandoProductoCompra">
+              <span v-if="guardandoProductoCompra" class="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
+              {{ guardandoProductoCompra ? 'Procesando...' : 'Guardar Producto' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL BUSCADOR PRODUCTO DESDE COMPRA -->
+    <div v-if="modalBuscadorProductoCompra" class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-[60] p-4">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden border">
+        <div class="px-5 py-4 border-b flex justify-between items-center bg-gray-50">
+          <h4 class="font-bold text-gray-800 text-base">
+            Buscar {{ tipoBuscadorProductoCompra === 'subcategoria' ? 'Categoría' : 'Unidad de Medida' }}
+          </h4>
+          <button type="button" class="text-gray-400 hover:text-gray-600" @click="cerrarBuscadorProductoCompra"><i class="bi bi-x-lg"></i></button>
+        </div>
+
+        <div class="p-4 flex flex-col gap-3">
+          <div class="relative flex items-center">
+            <i class="bi bi-search absolute left-3 text-gray-400 text-sm"></i>
+            <input
+              v-model="filtroBuscadorProductoCompra"
+              type="text"
+              placeholder="Filtrar por nombre..."
+              class="w-full pl-9 pr-4 py-2 border text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-[#47B5AC]"
+            />
+          </div>
+
+          <div v-if="tipoBuscadorProductoCompra === 'subcategoria'" class="max-h-[300px] overflow-y-auto border border-gray-100 rounded-xl bg-gray-50 flex flex-col divide-y">
+            <div
+              v-for="cat in categoriasFiltradasBuscadorProductoCompra"
+              :key="cat.id"
+              class="bg-white"
+            >
+              <button
+                type="button"
+                @click="cat.subcategoriasFiltradas.length === 0 ? seleccionarCategoriaBuscadorProductoCompra(cat) : alternarCategoriaBuscadorProductoCompra(cat.id)"
+                class="w-full text-left px-4 py-3 text-sm text-gray-800 hover:text-[#47B5AC] hover:bg-[#47B5AC]/5 font-bold transition flex justify-between items-center"
+              >
+                <span class="truncate">
+                  <i class="bi bi-folder-fill mr-2 text-[#47B5AC]"></i>
+                  {{ cat.nombre }}
+                </span>
+                <i
+                  v-if="cat.subcategoriasFiltradas.length > 0"
+                  :class="categoriaBuscadorProductoCompraAbierta === cat.id ? 'bi bi-chevron-up' : 'bi bi-chevron-down'"
+                  class="text-[#47B5AC]"
+                ></i>
+                <span v-else class="text-[10px] bg-[#47B5AC]/10 text-[#47B5AC] px-2 py-0.5 rounded-md font-bold">
+                  Usar categoría
+                </span>
+              </button>
+
+              <div v-if="categoriaBuscadorProductoCompraAbierta === cat.id" class="bg-gray-50 border-t border-gray-100">
+                <button
+                  type="button"
+                  v-for="sub in cat.subcategoriasFiltradas"
+                  :key="sub.id"
+                  @click="seleccionarItemBuscadorProductoCompra(sub)"
+                  class="w-full text-left pl-10 pr-4 py-2.5 text-sm text-gray-700 hover:bg-white hover:text-[#47B5AC] font-medium transition flex justify-between items-center"
+                >
+                  <span class="truncate">{{ sub.nombre }}</span>
+                  <span class="text-[10px] bg-gray-200 text-gray-500 px-2 py-0.5 rounded-md font-mono">ID: {{ sub.id }}</span>
+                </button>
+
+                <div v-if="cat.subcategoriasFiltradas.length === 0" class="pl-10 pr-4 py-3 text-xs text-gray-400 italic">
+                  Sin subcategorías.
+                </div>
+              </div>
+            </div>
+
+            <div v-if="categoriasFiltradasBuscadorProductoCompra.length === 0" class="text-center py-6 text-xs text-gray-400 italic">
+              No hay coincidencias.
+            </div>
+          </div>
+
+          <div v-else class="max-h-[250px] overflow-y-auto border border-gray-100 rounded-xl bg-gray-50 flex flex-col divide-y">
+            <button
+              type="button"
+              v-for="item in listaFiltradaBuscadorProductoCompra"
+              :key="item.id"
+              @click="seleccionarItemBuscadorProductoCompra(item)"
+              class="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#47B5AC] font-medium transition flex justify-between items-center"
+            >
+              <span class="truncate">{{ item.nombre }}</span>
+              <span class="text-[10px] bg-gray-200 text-gray-500 px-2 py-0.5 rounded-md font-mono">ID: {{ item.id }}</span>
+            </button>
+            <div v-if="listaFiltradaBuscadorProductoCompra.length === 0" class="text-center py-6 text-xs text-gray-400 italic">
+              No hay coincidencias.
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -293,7 +477,7 @@
             <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
             <input
               v-model="busqueda"
-              class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-xl text-xs outline-none focus:ring-2 focus:ring-[#46674A]/20"
+              class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-xl text-xs outline-none focus:ring-2 focus:ring-[#47B5AC]/20"
               placeholder="Escribe para buscar producto..."
             />
           </div>
@@ -303,7 +487,7 @@
               v-for="p in productosFiltrados"
               :key="p.id"
               @click="seleccionarProducto(p)"
-              class="p-3 rounded-xl border border-gray-200 bg-white cursor-pointer hover:border-[#46674A] hover:bg-[#46674A]/5 transition flex justify-between items-center"
+              class="p-3 rounded-xl border border-gray-200 bg-white cursor-pointer hover:border-[#47B5AC] hover:bg-[#47B5AC]/5 transition flex justify-between items-center"
             >
               <div>
                 <p class="font-bold text-gray-800 text-xs">{{ p.nombre }}</p>
@@ -347,7 +531,7 @@
               <input
                 v-model="fechaLlegada"
                 type="date"
-                class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-xs bg-white outline-none focus:ring-2 focus:ring-[#46674A]/20"
+                class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-xs bg-white outline-none focus:ring-2 focus:ring-[#47B5AC]/20"
                 :disabled="!esPendiente || cargando"
               />
             </div>
@@ -380,14 +564,14 @@
                     <div class="flex flex-col gap-1.5">
                       <input
                         v-model="d.codigo_lote"
-                        class="w-full p-1.5 border border-gray-300 rounded-lg text-[11px] bg-white outline-none focus:ring-2 focus:ring-[#46674A]/20"
+                        class="w-full p-1.5 border border-gray-300 rounded-lg text-[11px] bg-white outline-none focus:ring-2 focus:ring-[#47B5AC]/20"
                         placeholder="Cód. Lote"
                         :disabled="compraSeleccionada?.estado === 'cancelada' || cargando"
                       />
                       <input
                         v-model="d.fecha_expiracion"
                         type="date"
-                        class="w-full p-1.5 border border-gray-300 rounded-lg text-[11px] bg-white outline-none focus:ring-2 focus:ring-[#46674A]/20"
+                        class="w-full p-1.5 border border-gray-300 rounded-lg text-[11px] bg-white outline-none focus:ring-2 focus:ring-[#47B5AC]/20"
                         :disabled="compraSeleccionada?.estado === 'cancelada' || cargando"
                       />
                     </div>
@@ -418,7 +602,7 @@
                 v-if="esPendiente"
                 :disabled="cargando"
                 @click="completarCompra"
-                class="px-5 py-2 bg-[#46674A] hover:bg-[#3b5740] text-white rounded-xl text-xs font-bold shadow-md transition disabled:opacity-50"
+                class="px-5 py-2 bg-[#47B5AC] hover:bg-[#47B5AC] text-white rounded-xl text-xs font-bold shadow-md transition disabled:opacity-50"
               >
                 {{ cargando ? 'Procesando...' : 'Completar y Cargar Inventario' }}
               </button>
@@ -444,15 +628,21 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { getCompras, createCompra, updateCompra } from '../services/compraService'
-import { getProductos } from '../services/productoService'
+import { getProductos, getAuxiliares, guardarProductoAPI, subirImagenAPI } from '../services/productoService'
 
 const compras = ref([])
 const productos = ref([])
+const categorias = ref([])
+const subcategorias = ref([])
+const unidadesMedida = ref([])
 
 const modal = ref(false)
 const modalProductos = ref(false)
 const modalCompletar = ref(false)
+const modalProductoCompra = ref(false)
+const modalBuscadorProductoCompra = ref(false)
 const cargando = ref(false)
+const guardandoProductoCompra = ref(false)
 
 const detalles = ref([])
 const lotes = ref([])
@@ -461,6 +651,27 @@ const compraSeleccionada = ref(null)
 const fechaLlegada = ref('')
 const indexProducto = ref(null)
 const busqueda = ref('')
+const fileInputProductoCompra = ref(null)
+const imagenProductoSeleccionada = ref(null)
+const imagenProductoPreview = ref(null)
+const tipoBuscadorProductoCompra = ref('')
+const filtroBuscadorProductoCompra = ref('')
+const categoriaBuscadorProductoCompraAbierta = ref(null)
+const nombreSubcategoriaProductoCompra = ref('')
+const nombreUnidadProductoCompra = ref('')
+
+const modeloProductoCompraLimpio = () => ({
+  codigo_barras: '',
+  nombre: '',
+  categoria_id: '',
+  sub_categoria_id: '',
+  unidad_medida_id: '',
+  stock: 0,
+  stock_minimo: 5,
+  precio_venta: 0
+})
+
+const nuevoProductoCompra = ref(modeloProductoCompraLimpio())
 
 const cargar = async () => {
   try {
@@ -484,9 +695,27 @@ const cargarProductos = async () => {
   }
 }
 
+const cargarAuxiliaresProductoCompra = async () => {
+  try {
+    const [resCat, resSub, resUnidades] = await getAuxiliares()
+    const dataCat = resCat.data?.data || resCat.data || []
+    const dataSub = resSub.data?.data || resSub.data || []
+    const dataUnidades = resUnidades.data?.data || resUnidades.data || []
+    categorias.value = Array.isArray(dataCat) ? dataCat : []
+    subcategorias.value = Array.isArray(dataSub) ? dataSub : []
+    unidadesMedida.value = Array.isArray(dataUnidades) ? dataUnidades : []
+  } catch (err) {
+    console.error('Error cargando catálogos de producto:', err)
+    categorias.value = []
+    subcategorias.value = []
+    unidadesMedida.value = []
+  }
+}
+
 onMounted(() => {
   cargar()
   cargarProductos()
+  cargarAuxiliaresProductoCompra()
 })
 
 // MODAL NUEVA COMPRA
@@ -522,8 +751,21 @@ function abrirSelector(i) {
 
 function seleccionarProducto(p) {
   detalles.value[indexProducto.value].producto_id = p.id
-  detalles.value[indexProducto.value].precio_compra = p.precio_compra || p.precio_venta || null
+  detalles.value[indexProducto.value].precio_compra = obtenerUltimoPrecioCompra(p.id)
   modalProductos.value = false
+}
+
+function obtenerUltimoPrecioCompra(productoId) {
+  for (const compra of compras.value) {
+    const detalle = (compra.detalles || []).find(d => String(d.producto_id) === String(productoId))
+    const precio = Number(detalle?.precio_compra)
+
+    if (detalle && !Number.isNaN(precio)) {
+      return precio
+    }
+  }
+
+  return null
 }
 
 const productosFiltrados = computed(() => {
@@ -534,10 +776,145 @@ const productosFiltrados = computed(() => {
   )
 })
 
+const listaFiltradaBuscadorProductoCompra = computed(() => {
+  const query = filtroBuscadorProductoCompra.value.toLowerCase().trim()
+  if (tipoBuscadorProductoCompra.value === 'unidad_medida') {
+    return unidadesMedida.value.filter(item => (item.nombre || '').toLowerCase().includes(query))
+  }
+  return []
+})
+
+const categoriasFiltradasBuscadorProductoCompra = computed(() => {
+  const query = filtroBuscadorProductoCompra.value.toLowerCase().trim()
+
+  return categorias.value
+    .map(cat => {
+      const subcategoriasCategoria = Array.isArray(cat.subcategorias)
+        ? cat.subcategorias
+        : subcategorias.value.filter(sub => String(sub.categoria_id) === String(cat.id))
+
+      const categoriaCoincide = (cat.nombre || '').toLowerCase().includes(query)
+      const subcategoriasFiltradas = query && !categoriaCoincide
+        ? subcategoriasCategoria.filter(sub => (sub.nombre || '').toLowerCase().includes(query))
+        : subcategoriasCategoria
+
+      return {
+        ...cat,
+        subcategoriasFiltradas
+      }
+    })
+    .filter(cat => {
+      if (!query) return true
+      return (cat.nombre || '').toLowerCase().includes(query) || cat.subcategoriasFiltradas.length > 0
+    })
+})
+
 function getProductoNombre(id) {
   if (!Array.isArray(productos.value)) return ''
   const prod = productos.value.find(p => String(p.id) === String(id))
   return prod ? prod.nombre : ''
+}
+
+function abrirModalProductoCompra() {
+  nuevoProductoCompra.value = modeloProductoCompraLimpio()
+  nombreSubcategoriaProductoCompra.value = ''
+  nombreUnidadProductoCompra.value = ''
+  removerImagenProductoCompra()
+  modalProductoCompra.value = true
+}
+
+function cerrarModalProductoCompra() {
+  modalProductoCompra.value = false
+  modalBuscadorProductoCompra.value = false
+  tipoBuscadorProductoCompra.value = ''
+  filtroBuscadorProductoCompra.value = ''
+  categoriaBuscadorProductoCompraAbierta.value = null
+  nombreSubcategoriaProductoCompra.value = ''
+  nombreUnidadProductoCompra.value = ''
+  removerImagenProductoCompra()
+  nuevoProductoCompra.value = modeloProductoCompraLimpio()
+}
+
+function manejarCambioImagenProductoCompra(e) {
+  const file = e.target.files[0]
+  if (file) {
+    imagenProductoSeleccionada.value = file
+    imagenProductoPreview.value = URL.createObjectURL(file)
+  }
+}
+
+function removerImagenProductoCompra() {
+  imagenProductoSeleccionada.value = null
+  imagenProductoPreview.value = null
+  if (fileInputProductoCompra.value) fileInputProductoCompra.value.value = ''
+}
+
+function abrirBuscadorProductoCompra(tipo) {
+  tipoBuscadorProductoCompra.value = tipo
+  filtroBuscadorProductoCompra.value = ''
+  categoriaBuscadorProductoCompraAbierta.value = null
+  modalBuscadorProductoCompra.value = true
+}
+
+function cerrarBuscadorProductoCompra() {
+  modalBuscadorProductoCompra.value = false
+  tipoBuscadorProductoCompra.value = ''
+  categoriaBuscadorProductoCompraAbierta.value = null
+}
+
+function alternarCategoriaBuscadorProductoCompra(categoriaId) {
+  categoriaBuscadorProductoCompraAbierta.value = categoriaBuscadorProductoCompraAbierta.value === categoriaId ? null : categoriaId
+}
+
+function seleccionarCategoriaBuscadorProductoCompra(categoria) {
+  nuevoProductoCompra.value.categoria_id = categoria.id
+  nuevoProductoCompra.value.sub_categoria_id = ''
+  nombreSubcategoriaProductoCompra.value = categoria.nombre
+  cerrarBuscadorProductoCompra()
+}
+
+function seleccionarItemBuscadorProductoCompra(item) {
+  if (tipoBuscadorProductoCompra.value === 'subcategoria') {
+    nuevoProductoCompra.value.categoria_id = item.categoria_id || item.categoria?.id || ''
+    nuevoProductoCompra.value.sub_categoria_id = item.id
+    nombreSubcategoriaProductoCompra.value = item.nombre
+  } else if (tipoBuscadorProductoCompra.value === 'unidad_medida') {
+    nuevoProductoCompra.value.unidad_medida_id = item.id
+    nombreUnidadProductoCompra.value = item.nombre
+  }
+
+  cerrarBuscadorProductoCompra()
+}
+
+async function guardarProductoCompra() {
+  if (guardandoProductoCompra.value) return
+
+  if ((!nuevoProductoCompra.value.sub_categoria_id && !nuevoProductoCompra.value.categoria_id) || !nuevoProductoCompra.value.unidad_medida_id) {
+    alert('Por favor selecciona Categoría y Unidad de Medida válidos.')
+    return
+  }
+
+  guardandoProductoCompra.value = true
+
+  try {
+    const res = await guardarProductoAPI(nuevoProductoCompra.value)
+    const productoId = res.data?.data?.id || res.data?.id
+
+    if (imagenProductoSeleccionada.value && productoId) {
+      const formDataImagen = new FormData()
+      formDataImagen.append('imagen', imagenProductoSeleccionada.value)
+      formDataImagen.append('producto_id', productoId)
+      await subirImagenAPI(formDataImagen)
+    }
+
+    await cargarProductos()
+    cerrarModalProductoCompra()
+  } catch (error) {
+    console.error('Error al guardar producto desde compra:', error)
+    alert('Ocurrió un error al guardar el producto.')
+  } finally {
+    guardandoProductoCompra.value = false
+  }
 }
 
 // GUARDAR NUEVA COMPRA

@@ -11,7 +11,7 @@
 
       <button
         @click="abrirNuevaCategoria"
-        class="bg-[#46674A] hover:bg-[#3b5740] text-white px-6 py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex items-center gap-2"
+        class="bg-[#47B5AC] hover:bg-[#47B5AC] text-white px-6 py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex items-center gap-2"
       >
         <i class="bi bi-plus-lg"></i>
         Nueva Categoría
@@ -23,7 +23,7 @@
         v-model="filtro"
         type="text"
         placeholder="Buscar categoría..."
-        class="w-full px-4 py-3 border border-gray-300 rounded-2xl shadow-sm focus:ring-2 focus:ring-[#46674A] focus:border-transparent outline-none"
+        class="w-full px-4 py-3 border border-gray-300 rounded-2xl shadow-sm focus:ring-2 focus:ring-[#47B5AC] focus:border-transparent outline-none"
       />
     </div>
 
@@ -61,7 +61,7 @@
                 <span
                   v-for="sub in cat.subcategorias"
                   :key="sub.id"
-                  class="inline-block bg-[#46674A]/10 text-[#46674A] px-3 py-1 rounded-full text-sm mr-2 mb-1"
+                  class="inline-block bg-[#47B5AC]/10 text-[#47B5AC] px-3 py-1 rounded-full text-sm mr-2 mb-1"
                 >
                   {{ sub.nombre }}
                 </span>
@@ -107,34 +107,34 @@
 
     <div
       v-if="modal"
-      class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
     >
-      <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden">
+      <div class="bg-white rounded-[22px] shadow-2xl w-full max-w-[660px] overflow-hidden border border-gray-200">
 
-        <div class="bg-[#46674A] text-white px-8 py-5 flex justify-between items-center">
-          <div>
-            <h2 class="text-2xl font-bold">
+        <div class="bg-[#47B5AC] text-white h-[112px] px-8 flex justify-between items-start pt-8">
+          <div class="space-y-3">
+            <h2 class="text-2xl font-bold leading-none">
               {{ editando ? 'Editar Categoría' : 'Nueva Categoría' }}
             </h2>
 
-            <p class="text-white/70 text-sm">
+            <p class="text-white/85 text-sm">
               Administración de categorías y subcategorías
             </p>
           </div>
 
           <button
             @click="cerrar"
-            class="w-10 h-10 rounded-full hover:bg-white/20 transition flex items-center justify-center"
+            class="w-11 h-11 rounded-full bg-[#DDF3F1] text-gray-800 shadow-md hover:bg-white transition flex items-center justify-center"
           >
             <i class="bi bi-x-lg text-xl"></i>
           </button>
         </div>
 
-        <div class="p-8 space-y-6">
+        <div class="px-8 pt-6 pb-6 space-y-5">
 
           <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-2">
-              <i class="bi bi-folder-fill mr-2 text-[#46674A]"></i>
+            <label class="flex items-center text-sm font-bold text-gray-800 mb-2.5">
+              <i class="bi bi-folder-fill mr-2 text-[#47B5AC] text-lg"></i>
               Nombre de la categoría
             </label>
 
@@ -142,25 +142,25 @@
               v-model="nombre"
               type="text"
               placeholder="Ingrese el nombre de la categoría"
-              class="w-full px-4 py-3 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-[#46674A] focus:border-[#46674A] outline-none transition"
+              class="box-border block w-full h-[42px] px-4 rounded-[10px] border border-gray-400 bg-[#F7F4F0] text-sm shadow-[inset_0_1px_4px_rgba(0,0,0,0.22)] focus:ring-2 focus:ring-[#47B5AC] focus:border-[#47B5AC] outline-none transition"
             />
           </div>
 
-          <div class="border border-gray-200 rounded-2xl overflow-hidden">
+          <div class="border border-gray-200 rounded-xl overflow-hidden shadow-md">
             <button
               @click="alternarSubcategorias"
-              class="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-gray-50 transition"
+              class="w-full h-[62px] px-5 flex items-center justify-between text-left bg-white hover:bg-gray-50 transition"
             >
               <div>
-                <p class="font-semibold text-gray-700">
-                  <i class="bi bi-tags-fill mr-2 text-[#46674A]"></i>
+                <p class="font-bold text-gray-800 flex items-center">
+                  <i class="bi bi-tags-fill mr-3 text-[#47B5AC] text-lg"></i>
                   Agregar subcategorías
                 </p>
               </div>
 
               <i
                 :class="mostrarSubcategorias ? 'bi bi-chevron-up' : 'bi bi-chevron-down'"
-                class="text-[#46674A] text-xl"
+                class="text-[#47B5AC] text-xl"
               ></i>
             </button>
           </div>
@@ -168,7 +168,7 @@
           <div v-if="mostrarSubcategorias">
 
             <label class="block text-sm font-semibold text-gray-700 mb-3">
-              <i class="bi bi-tags-fill mr-2 text-[#46674A]"></i>
+              <i class="bi bi-tags-fill mr-2 text-[#47B5AC]"></i>
               Subcategorías
             </label>
 
@@ -176,7 +176,7 @@
               <span
                 v-for="(sub, i) in subExistentes"
                 :key="sub.id"
-                class="bg-green-100 text-[#46674A] px-3 py-2 rounded-xl flex items-center gap-2"
+                class="bg-green-100 text-[#47B5AC] px-3 py-2 rounded-xl flex items-center gap-2"
               >
                 {{ sub.nombre }}
 
@@ -194,12 +194,12 @@
                 v-model="nuevaSub"
                 @keyup.enter="agregarSub"
                 placeholder="Nueva subcategoría"
-                class="flex-1 px-4 py-3 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-[#46674A] focus:border-[#46674A] outline-none"
+                class="flex-1 px-4 py-3 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-[#47B5AC] focus:border-[#47B5AC] outline-none"
               />
 
               <button
                 @click="agregarSub"
-                class="bg-[#46674A] hover:bg-[#3b5740] text-white px-5 rounded-2xl shadow-md"
+                class="bg-[#47B5AC] hover:bg-[#47B5AC] text-white px-5 rounded-2xl shadow-md"
               >
                 <i class="bi bi-plus-lg"></i>
               </button>
@@ -226,11 +226,11 @@
 
         </div>
 
-        <div class="bg-gray-50 px-8 py-5 flex justify-end gap-3 border-t">
+        <div class="bg-gray-50 px-8 h-[72px] flex items-center justify-end gap-3">
 
           <button
             @click="cerrar"
-            class="px-6 py-3 rounded-xl border border-gray-300 hover:bg-gray-100 font-medium transition"
+            class="h-11 px-7 rounded-[10px] border border-gray-300 bg-gray-100 text-gray-800 hover:bg-gray-200 font-medium transition"
           >
             Cancelar
           </button>
@@ -238,7 +238,7 @@
           <button
             @click="guardar"
             :disabled="guardando"
-            class="px-6 py-3 rounded-xl bg-[#46674A] text-white font-semibold hover:bg-[#3b5740] shadow-lg transition disabled:opacity-50"
+            class="h-11 px-7 rounded-[10px] bg-[#47B5AC] text-white font-semibold hover:bg-[#47B5AC] shadow-lg transition disabled:opacity-50 flex items-center"
           >
             <i class="bi bi-check-circle me-2"></i>
             {{ guardando ? 'Guardando...' : 'Guardar' }}
@@ -419,7 +419,7 @@ async function eliminarCategoria(catId) {
     text: 'Esta acción no se puede deshacer',
     icon: 'warning',
     showCancelButton: true,
-    confirmButtonColor: '#46674A',
+    confirmButtonColor: '#47B5AC',
     cancelButtonColor: '#d33',
     confirmButtonText: 'Sí, eliminar'
   })

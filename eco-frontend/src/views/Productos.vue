@@ -1,5 +1,5 @@
 <template>
-  <div class="main-interface-container p-6">
+  <div class="main-interface-container p-4 lg:p-6">
     <div class="top-strict-navbar flex items-center justify-between mb-6 bg-white rounded-2xl shadow-md p-4">
       <div class="search-wrapper relative flex items-center max-w-md w-full">
         <i class="bi bi-search search-icon absolute left-4 text-gray-400"></i>
@@ -7,38 +7,38 @@
           v-model="buscar"
           type="text"
           placeholder="Buscar producto por nombre o SKU..."
-          class="search-input-field w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
+          class="search-input-field w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#47B5AC]"
         />
       </div>
       
       <div class="top-right-actions flex items-center gap-4">
-        <button class="bg-[#46674A] hover:bg-[#3b5740] text-white px-5 py-3 rounded-xl shadow-md transition font-medium" @click="abrirModalForm">
+        <button class="bg-[#47B5AC] hover:bg-[#47B5AC] text-white px-5 py-3 rounded-xl shadow-md transition font-medium" @click="abrirModalForm">
           <i class="bi bi-plus-lg mr-2"></i> Nuevo Producto
         </button>
       </div>
     </div>
 
-    <div class="content-layout-flex flex gap-6 items-start w-full">
-      <div class="left-content-panel w-3/4 bg-white rounded-2xl shadow-md p-6">
-        <div class="section-header-row flex justify-between items-center mb-6">
+    <div class="content-layout-flex flex flex-col xl:flex-row gap-5 items-start w-full">
+      <div class="left-content-panel w-full xl:flex-1 xl:min-w-0 bg-white rounded-2xl shadow-md p-6">
+        <div class="section-header-row flex flex-col 2xl:flex-row 2xl:justify-between 2xl:items-center gap-4 mb-6">
           <div class="title-block">
             <h1 class="text-2xl font-bold text-gray-800">Gestión de Productos</h1>
             <p class="text-sm text-gray-500">Vista General y Listado ({{ total }} productos encontrados)</p>
           </div>
 
-          <div class="filter-controls-left flex flex-wrap gap-3">
-            <select v-model="filtroCategoria" class="px-4 py-2 border border-gray-300 rounded-xl text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-[#46674A]/20">
+          <div class="filter-controls-left flex flex-wrap gap-3 2xl:justify-end">
+            <select v-model="filtroCategoria" class="px-4 py-2 border border-gray-300 rounded-xl text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-[#47B5AC]/20">
               <option value="">Todas las categorías</option>
               <option v-for="cat in categorias" :key="cat.id" :value="cat.id">{{ cat.nombre }}</option>
             </select>
 
-            <select v-model="filtroEstado" class="px-4 py-2 border border-gray-300 rounded-xl text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-[#46674A]/20">
+            <select v-model="filtroEstado" class="px-4 py-2 border border-gray-300 rounded-xl text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-[#47B5AC]/20">
               <option value="">Todos los estados</option>
               <option value="disponible">Disponible</option>
               <option value="bajo_stock">Bajo Stock</option>
             </select>
 
-            <select v-model="filtroOrdenar" class="px-4 py-2 border border-gray-300 rounded-xl text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-[#46674A]/20">
+            <select v-model="filtroOrdenar" class="px-4 py-2 border border-gray-300 rounded-xl text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-[#47B5AC]/20">
               <option value="recientes">Recientes</option>
               <option value="nombre">Nombre</option>
               <option value="precio">Precio</option>
@@ -47,7 +47,8 @@
         </div>
 
         <div class="table-card-wrapper border border-gray-200 rounded-xl overflow-hidden">
-          <table class="w-full text-left border-collapse">
+          <div class="overflow-x-auto">
+          <table class="w-full min-w-[980px] text-left border-collapse">
             <thead class="bg-gray-100 border-b border-gray-200">
               <tr class="text-gray-700 text-sm font-semibold">
                 <th class="px-6 py-4" style="width: 14%;">SKU / Código</th>
@@ -117,25 +118,26 @@
               </tr>
             </tbody>
           </table>
+          </div>
         </div>
       </div>
 
-      <div class="right-widgets-panel w-1/4 flex flex-col gap-4">
-        <div class="inventory-card-widget bg-white rounded-2xl shadow-md p-4 border border-gray-100">
-          <h2 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-4">Resumen de Inventario</h2>
-          <div class="widget-metric-row flex justify-between items-center p-3 bg-gray-50 rounded-xl mb-2">
+      <div class="right-widgets-panel w-full xl:w-[240px] 2xl:w-[260px] xl:shrink-0 flex flex-col gap-4">
+        <div class="inventory-card-widget bg-white rounded-2xl shadow-md p-3 border border-gray-100 h-fit">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Resumen de Inventario</h2>
+          <div class="widget-metric-row flex justify-between items-center p-2.5 bg-gray-50 rounded-xl mb-2">
             <div>
               <span class="block text-xs text-gray-500">Total ítems</span>
               <span class="text-xl font-bold text-gray-800">{{ resumen.total }}</span>
             </div>
           </div>
-          <div class="widget-metric-row flex justify-between items-center p-3 bg-green-50 rounded-xl mb-2">
+          <div class="widget-metric-row flex justify-between items-center p-2.5 bg-green-50 rounded-xl mb-2">
             <div>
               <span class="block text-xs text-green-600">Disponibles</span>
               <span class="text-xl font-bold text-green-700">{{ resumen.disponibles }}</span>
             </div>
           </div>
-          <div class="widget-metric-row flex justify-between items-center p-3 bg-amber-50 rounded-xl">
+          <div class="widget-metric-row flex justify-between items-center p-2.5 bg-amber-50 rounded-xl">
             <div>
               <span class="block text-xs text-amber-600">Bajo Stock</span>
               <span class="text-xl font-bold text-amber-700">{{ resumen.bajo_stock }}</span>
@@ -147,19 +149,19 @@
 
     <!-- MODAL REGISTRO / EDICIÓN -->
     <div v-if="mostrarModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-40 p-4">
-      <div class="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
-        <div class="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
-          <h3 class="font-bold text-gray-800 text-lg">
+      <div class="bg-white rounded-[14px] shadow-xl max-w-md w-full overflow-hidden">
+        <div class="h-24 px-6 flex justify-between items-center bg-[#47B5AC]">
+          <h3 class="font-bold text-white text-lg">
             {{ esEditando ? 'Modificar Producto Existente' : 'Agregar Nuevo Producto' }}
           </h3>
-          <button class="text-gray-400 hover:text-gray-600" @click="cerrarModal"><i class="bi bi-x-lg"></i></button>
+          <button type="button" class="w-11 h-11 rounded-full bg-[#DDF3F1] text-gray-800 shadow-md hover:bg-white flex items-center justify-center transition" @click="cerrarModal"><i class="bi bi-x-lg text-xl"></i></button>
         </div>
         
-        <form @submit.prevent="guardarProducto" class="p-6 flex flex-col gap-4 max-h-[80vh] overflow-y-auto" enctype="multipart/form-data">
+        <form @submit.prevent="guardarProducto" class="p-6 flex flex-col gap-4 max-h-[calc(100vh-8rem)] overflow-y-auto overflow-x-hidden" enctype="multipart/form-data">
           <div>
             <label class="block text-xs font-semibold text-gray-600 mb-1">Imagen del Producto</label>
             <div class="flex items-center gap-4 mt-1">
-              <div class="relative w-20 h-20 border rounded-xl overflow-hidden bg-gray-50 flex items-center justify-center flex-shrink-0">
+              <div class="relative w-20 h-20 rounded-xl overflow-hidden bg-gray-50 flex items-center justify-center flex-shrink-0">
                 <img v-if="imagenPreview" :src="imagenPreview" alt="Preview" class="w-full h-full object-cover" />
                 <i v-else class="bi bi-image text-gray-300 text-2xl"></i>
                 <button 
@@ -174,8 +176,8 @@
               </div>
 
               <div class="w-full">
-                <label class="w-full flex flex-col items-center justify-center px-4 py-3 bg-white text-gray-500 rounded-xl border border-gray-300 border-dashed cursor-pointer hover:bg-gray-50 hover:text-gray-700 transition text-center">
-                  <i class="bi bi-cloud-upload text-lg mb-0.5 text-[#46674A]"></i>
+                <label class="box-border w-full h-[72px] flex flex-col items-center justify-center px-4 bg-white text-gray-500 rounded-xl border border-gray-300 border-dashed cursor-pointer hover:bg-gray-50 hover:text-gray-700 transition text-center">
+                  <i class="bi bi-cloud-upload text-lg mb-1 text-[#47B5AC]"></i>
                   <span class="text-xs font-medium">Seleccionar imagen archivo</span>
                   <input type="file" ref="fileInput" accept="image/*" class="hidden" @change="manejarCambioImagen" />
                 </label>
@@ -185,25 +187,25 @@
 
           <div>
             <label class="block text-xs font-semibold text-gray-600 mb-1">Nombre del Producto</label>
-            <input type="text" v-model="nuevoProducto.nombre" required placeholder="Ej. MacBook Pro M3" class="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-[#46674A] outline-none" />
+            <input type="text" v-model="nuevoProducto.nombre" required placeholder="Ej. MacBook Pro M3" class="box-border w-full h-8 px-4 border border-gray-900 rounded-[14px] focus:ring-2 focus:ring-[#47B5AC] outline-none" />
           </div>
 
           <div>
             <label class="block text-xs font-semibold text-gray-600 mb-1">Código de Barras / SKU</label>
-            <input type="text" v-model="nuevoProducto.codigo_barras" required placeholder="Ej. 7501055300075" class="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-[#46674A] outline-none" />
+            <input type="text" v-model="nuevoProducto.codigo_barras" required placeholder="Ej. 7501055300075" class="box-border w-full h-8 px-4 border border-gray-900 rounded-[14px] focus:ring-2 focus:ring-[#47B5AC] outline-none" />
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-semibold text-gray-600 mb-1">Subcategoría</label>
-              <button type="button" @click="abrirBuscador('subcategoria')" class="w-full flex justify-between items-center px-4 py-2 border rounded-xl text-left text-sm bg-gray-50 hover:bg-gray-100 transition truncate">
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Categoría</label>
+              <button type="button" @click="abrirBuscador('subcategoria')" class="box-border w-full h-9 flex justify-between items-center px-4 border border-gray-900 rounded-[14px] text-left text-sm bg-gray-50 hover:bg-gray-100 transition truncate">
                 <span class="truncate">{{ nombreSubcategoriaSeleccionada || 'Seleccionar...' }}</span>
                 <i class="bi bi-search text-gray-400 ml-1"></i>
               </button>
             </div>
             <div>
               <label class="block text-xs font-semibold text-gray-600 mb-1">Unidad de Medida</label>
-              <button type="button" @click="abrirBuscador('unidad_medida')" class="w-full flex justify-between items-center px-4 py-2 border rounded-xl text-left text-sm bg-gray-50 hover:bg-gray-100 transition truncate">
+              <button type="button" @click="abrirBuscador('unidad_medida')" class="box-border w-full h-9 flex justify-between items-center px-4 border border-gray-900 rounded-[14px] text-left text-sm bg-gray-50 hover:bg-gray-100 transition truncate">
                 <span class="truncate">{{ nombreUnidadMedidaSeleccionada || 'Seleccionar...' }}</span>
                 <i class="bi bi-search text-gray-400 ml-1"></i>
               </button>
@@ -212,25 +214,25 @@
 
           <div>
             <label class="block text-xs font-semibold text-gray-600 mb-1">Precio Venta ($)</label>
-            <input type="number" step="0.01" v-model="nuevoProducto.precio_venta" required placeholder="0.00" class="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-[#46674A] outline-none" />
+            <input type="number" step="0.01" v-model="nuevoProducto.precio_venta" required placeholder="0.00" class="box-border w-full h-8 px-4 border border-gray-900 rounded-[14px] focus:ring-2 focus:ring-[#47B5AC] outline-none" />
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
-            <div>
+          <div :class="esEditando ? 'grid grid-cols-2 gap-4' : ''">
+            <div v-if="esEditando">
               <label class="block text-xs font-semibold text-gray-600 mb-1">
-                {{ esEditando ? 'Stock' : 'Stock Inicial' }}
+                Stock
               </label>
-              <input type="number" v-model="nuevoProducto.stock" required class="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-[#46674A] outline-none" />
+              <input type="number" v-model="nuevoProducto.stock" required class="box-border w-full h-8 px-4 border border-gray-900 rounded-[14px] focus:ring-2 focus:ring-[#47B5AC] outline-none" />
             </div>
             <div>
               <label class="block text-xs font-semibold text-gray-600 mb-1">Stock Mínimo</label>
-              <input type="number" v-model="nuevoProducto.stock_minimo" required class="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-[#46674A] outline-none" />
+              <input type="number" v-model="nuevoProducto.stock_minimo" required class="box-border w-full h-8 px-4 border border-gray-900 rounded-[14px] focus:ring-2 focus:ring-[#47B5AC] outline-none" />
             </div>
           </div>
 
-          <div class="flex justify-end gap-3 mt-4 border-t pt-4">
-            <button type="button" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200" :disabled="guardando" @click="cerrarModal">Cancelar</button>
-            <button type="submit" class="px-4 py-2 bg-[#46674A] text-white rounded-xl hover:bg-[#3b5740] flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" :disabled="guardando">
+          <div class="flex justify-end gap-3 mt-8">
+            <button type="button" class="h-9 px-5 bg-gray-100 text-gray-700 rounded-xl border border-gray-400 hover:bg-gray-200" :disabled="guardando" @click="cerrarModal">Cancelar</button>
+            <button type="submit" class="h-9 px-5 bg-[#47B5AC] text-white rounded-xl border border-gray-500 hover:bg-[#47B5AC] flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" :disabled="guardando">
               <span v-if="guardando" class="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
               {{ guardando ? 'Procesando...' : (esEditando ? 'Actualizar Producto' : 'Guardar Producto') }}
             </button>
@@ -244,7 +246,7 @@
       <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden border">
         <div class="px-5 py-4 border-b flex justify-between items-center bg-gray-50">
           <h4 class="font-bold text-gray-800 text-base">
-            Buscar {{ tipoBuscador === 'subcategoria' ? 'Subcategoría' : 'Unidad de Medida' }}
+            Buscar {{ tipoBuscador === 'subcategoria' ? 'Categoría' : 'Unidad de Medida' }}
           </h4>
           <button type="button" class="text-gray-400 hover:text-gray-600" @click="cerrarBuscador"><i class="bi bi-x-lg"></i></button>
         </div>
@@ -256,17 +258,65 @@
               v-model="filtroBuscadorInterno"
               type="text"
               placeholder="Filtrar por nombre..."
-              class="w-full pl-9 pr-4 py-2 border text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-[#46674A]"
+              class="w-full pl-9 pr-4 py-2 border text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-[#47B5AC]"
             />
           </div>
 
-          <div class="max-h-[250px] overflow-y-auto border border-gray-100 rounded-xl bg-gray-50 flex flex-col divide-y">
+          <div v-if="tipoBuscador === 'subcategoria'" class="max-h-[300px] overflow-y-auto border border-gray-100 rounded-xl bg-gray-50 flex flex-col divide-y">
+            <div
+              v-for="cat in categoriasFiltradasBuscador"
+              :key="cat.id"
+              class="bg-white"
+            >
+              <button
+                type="button"
+                @click="cat.subcategoriasFiltradas.length === 0 ? seleccionarCategoriaBuscador(cat) : alternarCategoriaBuscador(cat.id)"
+                class="w-full text-left px-4 py-3 text-sm text-gray-800 hover:text-[#47B5AC] hover:bg-[#47B5AC]/5 font-bold transition flex justify-between items-center"
+              >
+                <span class="truncate">
+                  <i class="bi bi-folder-fill mr-2 text-[#47B5AC]"></i>
+                  {{ cat.nombre }}
+                </span>
+                <i
+                  v-if="cat.subcategoriasFiltradas.length > 0"
+                  :class="categoriaBuscadorAbierta === cat.id ? 'bi bi-chevron-up' : 'bi bi-chevron-down'"
+                  class="text-[#47B5AC]"
+                ></i>
+                <span v-else class="text-[10px] bg-[#47B5AC]/10 text-[#47B5AC] px-2 py-0.5 rounded-md font-bold">
+                  Usar categoría
+                </span>
+              </button>
+
+              <div v-if="categoriaBuscadorAbierta === cat.id" class="bg-gray-50 border-t border-gray-100">
+                <button
+                  type="button"
+                  v-for="sub in cat.subcategoriasFiltradas"
+                  :key="sub.id"
+                  @click="seleccionarItemBuscador(sub)"
+                  class="w-full text-left pl-10 pr-4 py-2.5 text-sm text-gray-700 hover:bg-white hover:text-[#47B5AC] font-medium transition flex justify-between items-center"
+                >
+                  <span class="truncate">{{ sub.nombre }}</span>
+                  <span class="text-[10px] bg-gray-200 text-gray-500 px-2 py-0.5 rounded-md font-mono">ID: {{ sub.id }}</span>
+                </button>
+
+                <div v-if="cat.subcategoriasFiltradas.length === 0" class="pl-10 pr-4 py-3 text-xs text-gray-400 italic">
+                  Sin subcategorías.
+                </div>
+              </div>
+            </div>
+
+            <div v-if="categoriasFiltradasBuscador.length === 0" class="text-center py-6 text-xs text-gray-400 italic">
+              No hay coincidencias.
+            </div>
+          </div>
+
+          <div v-else class="max-h-[250px] overflow-y-auto border border-gray-100 rounded-xl bg-gray-50 flex flex-col divide-y">
             <button
               type="button"
               v-for="item in listaFiltradaBuscador"
               :key="item.id"
               @click="seleccionarItemBuscador(item)"
-              class="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#46674A] font-medium transition flex justify-between items-center"
+              class="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#47B5AC] font-medium transition flex justify-between items-center"
             >
               <span class="truncate">{{ item.nombre }}</span>
               <span class="text-[10px] bg-gray-200 text-gray-500 px-2 py-0.5 rounded-md font-mono">ID: {{ item.id }}</span>
@@ -308,6 +358,7 @@ const imagenPreview = ref(null)
 const mostrarBuscador = ref(false)
 const tipoBuscador = ref('') 
 const filtroBuscadorInterno = ref('')
+const categoriaBuscadorAbierta = ref(null)
 const nombreSubcategoriaSeleccionada = ref('')
 const nombreUnidadMedidaSeleccionada = ref('')
 
@@ -319,6 +370,7 @@ const filtroOrdenar = ref('recientes')
 const modeloProductoLimpio = () => ({
   codigo_barras: '',
   nombre: '',
+  categoria_id: '',
   sub_categoria_id: '',
   unidad_medida_id: '',
   stock: 0,
@@ -400,27 +452,64 @@ const removerImagen = () => {
 
 const listaFiltradaBuscador = computed(() => {
   const query = filtroBuscadorInterno.value.toLowerCase().trim()
-  if (tipoBuscador.value === 'subcategoria') {
-    return subcategorias.value.filter(sc => (sc.nombre || '').toLowerCase().includes(query))
-  } else if (tipoBuscador.value === 'unidad_medida') {
+  if (tipoBuscador.value === 'unidad_medida') {
     return unidadesMedida.value.filter(um => (um.nombre || '').toLowerCase().includes(query))
   }
   return []
 })
 
+const categoriasFiltradasBuscador = computed(() => {
+  const query = filtroBuscadorInterno.value.toLowerCase().trim()
+
+  return categorias.value
+    .map(cat => {
+      const subcategoriasCategoria = Array.isArray(cat.subcategorias)
+        ? cat.subcategorias
+        : subcategorias.value.filter(sub => String(sub.categoria_id) === String(cat.id))
+
+      const categoriaCoincide = (cat.nombre || '').toLowerCase().includes(query)
+      const subcategoriasFiltradas = query && !categoriaCoincide
+        ? subcategoriasCategoria.filter(sub => (sub.nombre || '').toLowerCase().includes(query))
+        : subcategoriasCategoria
+
+      return {
+        ...cat,
+        subcategoriasFiltradas
+      }
+    })
+    .filter(cat => {
+      if (!query) return true
+      return (cat.nombre || '').toLowerCase().includes(query) || cat.subcategoriasFiltradas.length > 0
+    })
+})
+
 const abrirBuscador = (tipo) => {
   tipoBuscador.value = tipo
   filtroBuscadorInterno.value = ''
+  categoriaBuscadorAbierta.value = null
   mostrarBuscador.value = true
 }
 
 const cerrarBuscador = () => {
   mostrarBuscador.value = false
   tipoBuscador.value = ''
+  categoriaBuscadorAbierta.value = null
+}
+
+const alternarCategoriaBuscador = (categoriaId) => {
+  categoriaBuscadorAbierta.value = categoriaBuscadorAbierta.value === categoriaId ? null : categoriaId
+}
+
+const seleccionarCategoriaBuscador = (categoria) => {
+  nuevoProducto.value.categoria_id = categoria.id
+  nuevoProducto.value.sub_categoria_id = ''
+  nombreSubcategoriaSeleccionada.value = categoria.nombre
+  cerrarBuscador()
 }
 
 const seleccionarItemBuscador = (item) => {
   if (tipoBuscador.value === 'subcategoria') {
+    nuevoProducto.value.categoria_id = item.categoria_id || item.categoria?.id || ''
     nuevoProducto.value.sub_categoria_id = item.id
     nombreSubcategoriaSeleccionada.value = item.nombre
   } else if (tipoBuscador.value === 'unidad_medida') {
@@ -454,8 +543,8 @@ const cargarProductos = async () => {
 
 const guardarProducto = async () => {
   if (guardando.value) return 
-  if (!nuevoProducto.value.sub_categoria_id || !nuevoProducto.value.unidad_medida_id) {
-    alert('Por favor selecciona Subcategoría y Unidad de Medida válidos.')
+  if ((!nuevoProducto.value.sub_categoria_id && !nuevoProducto.value.categoria_id) || !nuevoProducto.value.unidad_medida_id) {
+    alert('Por favor selecciona Categoría y Unidad de Medida válidos.')
     return
   }
 
@@ -525,6 +614,7 @@ const editarProducto = (producto) => {
   nuevoProducto.value = {
     codigo_barras: producto.codigo_barras || '',
     nombre: producto.nombre || '',
+    categoria_id: producto.subcategoria?.categoria?.id || producto.categoria_id || '',
     sub_categoria_id: producto.sub_categoria_id || '',
     unidad_medida_id: producto.unidad_medida_id || '',
     stock: producto.stock || 0,

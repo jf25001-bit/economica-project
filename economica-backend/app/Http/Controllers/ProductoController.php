@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Producto;
+use App\Models\Categoria;
+use App\Models\SubCategoria;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -43,7 +45,8 @@ class ProductoController extends Controller
             'precio_venta'     => 'required|numeric|min:0',
             'stock'            => 'required|integer|min:0',
             'stock_minimo'     => 'required|integer|min:0',
-            'sub_categoria_id' => 'required|exists:sub_categorias,id',
+            'sub_categoria_id' => 'nullable|required_without:categoria_id|exists:sub_categorias,id',
+            'categoria_id'     => 'nullable|required_without:sub_categoria_id|exists:categorias,id',
             'unidad_medida_id' => 'nullable|exists:unidad_medidas,id',
             // Validamos que 'proveedores' sea un array y que cada ID exista en la tabla proveedores
             'proveedores'      => 'nullable|array',
@@ -51,8 +54,11 @@ class ProductoController extends Controller
         ]);
 
         return DB::transaction(function () use ($request) {
+            $data = $request->except('proveedores', 'categoria_id');
+            $data['sub_categoria_id'] = $this->resolverSubcategoriaId($request);
+
             // Guardamos el producto (excluyendo el array de proveedores para no romper el create)
-            $producto = Producto::create($request->except('proveedores'));
+            $producto = Producto::create($data);
 
             // Sincronizamos los proveedores en la tabla pivote
             if ($request->has('proveedores')) {
@@ -111,15 +117,19 @@ class ProductoController extends Controller
             'precio_venta'     => 'required|numeric|min:0',
             'stock'            => 'required|integer|min:0',
             'stock_minimo'     => 'required|integer|min:0',
-            'sub_categoria_id' => 'required|exists:sub_categorias,id',
+            'sub_categoria_id' => 'nullable|required_without:categoria_id|exists:sub_categorias,id',
+            'categoria_id'     => 'nullable|required_without:sub_categoria_id|exists:categorias,id',
             'unidad_medida_id' => 'nullable|exists:unidad_medidas,id',
             'proveedores'      => 'nullable|array',
             'proveedores.*'    => 'exists:proveedores,id',
         ]);
 
         return DB::transaction(function () use ($request, $producto) {
+            $data = $request->except('proveedores', 'categoria_id');
+            $data['sub_categoria_id'] = $this->resolverSubcategoriaId($request);
+
             // Actualizamos los datos del producto
-            $producto->update($request->except('proveedores'));
+            $producto->update($data);
 
             // Actualizamos la relación en la tabla pivote
             if ($request->has('proveedores')) {
@@ -149,5 +159,22 @@ class ProductoController extends Controller
         $producto->delete();
 
         return response()->json(['message' => 'Producto eliminado con éxito'], 200);
+    }
+
+    private function resolverSubcategoriaId(Request $request): int
+    {
+        if ($request->filled('sub_categoria_id')) {
+            return (int) $request->sub_categoria_id;
+        }
+
+        $categoria = Categoria::findOrFail($request->categoria_id);
+        $subcategoria = SubCategoria::firstOrCreate(
+            [
+                'categoria_id' => $categoria->id,
+                'nombre' => $categoria->nombre,
+            ]
+        );
+
+        return (int) $subcategoria->id;
     }
 }

@@ -8,7 +8,7 @@
 
       <button
         @click="generarPDFGeneral"
-        class="bg-[#46674A] hover:bg-[#3b5740] text-white px-5 py-3 rounded-xl shadow-md transition font-medium cursor-pointer"
+        class="bg-[#47B5AC] hover:bg-[#47B5AC] text-white px-5 py-3 rounded-xl shadow-md transition font-medium cursor-pointer"
       >
         <i class="bi bi-file-pdf mr-2"></i>
         Exportar PDF General
@@ -19,7 +19,7 @@
       <select 
         v-model="periodoSeleccionado" 
         @change="obtenerEstadisticas"
-        class="bg-white border border-gray-300 rounded-xl px-4 py-2 text-sm font-medium text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#46674A]"
+        class="bg-white border border-gray-300 rounded-xl px-4 py-2 text-sm font-medium text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#47B5AC]"
       >
         <option value="dia">Reporte de Hoy (Diario)</option>
         <option value="semana">Reporte de la Semana</option>
@@ -74,7 +74,7 @@
             <td class="px-6 py-4">
               <button
                 @click="generarPDFColumna(reporte.id)"
-                class="bg-[#46674A] hover:bg-[#3b5740] text-white px-4 py-2 rounded-lg transition text-sm cursor-pointer inline-flex items-center"
+                class="bg-[#47B5AC] hover:bg-[#47B5AC] text-white px-4 py-2 rounded-lg transition text-sm cursor-pointer inline-flex items-center"
               >
                 <i class="bi bi-download mr-2"></i>
                 Generar

@@ -7,7 +7,7 @@
 
       <button
         @click="abrirModalVenta"
-        class="bg-[#46674A] hover:bg-[#3b5740] text-white px-5 py-3 rounded-xl shadow-md transition font-medium"
+        class="bg-[#47B5AC] hover:bg-[#47B5AC] text-white px-5 py-3 rounded-xl shadow-md transition font-medium"
       >
         <i class="bi bi-plus-lg mr-2"></i>
         Nueva Venta
@@ -70,42 +70,47 @@
 
     <div
       v-if="mostrarNuevaVenta"
-      class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+      class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
     >
       <div
-        class="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-y-auto"
+        class="bg-white rounded-[18px] shadow-2xl w-full max-w-6xl max-h-[92vh] overflow-hidden flex flex-col border border-gray-200"
       >
-        <div class="flex items-center justify-between p-6 border-b">
-          <h2 class="text-2xl font-bold text-gray-800">
-            Venta en Proceso
-          </h2>
+        <div class="bg-[#47B5AC] text-white h-[112px] px-6 flex items-center justify-between">
+          <div>
+            <h2 class="text-2xl font-bold leading-none">
+              Venta en Proceso
+            </h2>
+            <p class="text-white/80 text-sm mt-3">
+              Agregue productos por código de barras o selección manual
+            </p>
+          </div>
 
           <button
             @click="cerrarModal"
-            class="text-gray-500 hover:text-gray-700 text-3xl"
+            class="w-11 h-11 rounded-full bg-[#DDF3F1] text-gray-800 shadow-md hover:bg-white flex items-center justify-center transition"
           >
-            &times;
+            <i class="bi bi-x-lg text-xl"></i>
           </button>
         </div>
 
-        <div class="p-6">
+        <div class="p-6 overflow-y-auto flex-1 bg-white">
           
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
             
             <div>
-              <label class="block text-gray-700 font-medium mb-2">
+              <label class="block text-sm text-gray-700 font-semibold mb-2">
                 Nombre del Cliente
               </label>
               <input
                 v-model="nombreCliente"
                 type="text"
                 placeholder="Consumidor Final"
-                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
+                class="box-border w-full h-11 px-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#47B5AC]"
               />
             </div>
 
             <div>
-              <label class="block text-gray-700 font-medium mb-2">
+              <label class="block text-sm text-gray-700 font-semibold mb-2">
                 Código de Barras (Escáner)
               </label>
               <input
@@ -113,19 +118,19 @@
                 @keyup.enter="agregarPorCodigo"
                 type="text"
                 placeholder="Escanee y presione Enter"
-                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A]"
+                class="box-border w-full h-11 px-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#47B5AC]"
                 ref="inputCodigoBarras"
               />
             </div>
 
             <div>
-              <label class="block text-gray-700 font-medium mb-2">
+              <label class="block text-sm text-gray-700 font-semibold mb-2">
                 Agregar Manualmente
               </label>
               <select
                 v-model="productoManualSeleccionado"
                 @change="agregarPorSeleccionManual"
-                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#46674A] bg-white"
+                class="box-border w-full h-11 px-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#47B5AC] bg-white"
               >
                 <option value="">-- Busque o seleccione un producto --</option>
                 <option 
@@ -141,14 +146,23 @@
 
           </div>
 
-          <div class="bg-white border rounded-2xl overflow-hidden mb-6">
+          <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden mb-6 shadow-sm">
             <div class="p-4 border-b bg-gray-50">
-              <h3 class="text-xl font-bold text-gray-800">
+              <h3 class="text-lg font-bold text-gray-800">
                 Productos Agregados
               </h3>
             </div>
 
-            <table class="w-full">
+            <div class="overflow-x-auto">
+            <table class="w-full min-w-[820px] table-fixed">
+              <colgroup>
+                <col class="w-[16%]" />
+                <col class="w-[26%]" />
+                <col class="w-[14%]" />
+                <col class="w-[14%]" />
+                <col class="w-[16%]" />
+                <col class="w-[14%]" />
+              </colgroup>
               <thead class="bg-gray-100">
                 <tr class="text-left text-gray-700">
                   <th class="px-4 py-3 font-semibold">Código</th>
@@ -169,7 +183,7 @@
                   <td class="px-4 py-3 font-mono text-sm text-gray-500">
                     {{ item.codigo_barras || 'N/A' }}
                   </td>
-                  <td class="px-4 py-3">{{ item.nombre }}</td>
+                  <td class="px-4 py-3 truncate">{{ item.nombre }}</td>
                   <td class="px-4 py-3">
                     ${{ Number(item.precio_venta).toFixed(2) }}
                   </td>
@@ -179,8 +193,8 @@
                       v-model.number="item.cantidad"
                       min="1"
                       :max="item.stock_maximo"
-                      @id="validarCantidadInput(index)"
-                      class="w-full px-2 py-1 border rounded-lg text-center focus:ring-2 focus:ring-[#46674A] outline-none"
+                      @input="validarCantidadInput(index)"
+                      class="box-border w-full h-9 px-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-[#47B5AC] outline-none"
                     />
                   </td>
                   <td class="px-4 py-3 font-semibold">
@@ -189,7 +203,7 @@
                   <td class="px-4 py-3">
                     <button
                       @click="eliminarDelCarrito(item.producto_id)"
-                      class="text-red-500 hover:text-red-700"
+                    class="w-9 h-9 rounded-lg bg-red-50 text-red-500 hover:text-red-700 hover:bg-red-100 transition"
                     >
                       <i class="bi bi-trash"></i>
                     </button>
@@ -199,28 +213,54 @@
                 <tr v-if="carrito.length === 0">
                   <td
                     colspan="6"
-                    class="text-center py-8 text-gray-500"
+                    class="text-center py-16 text-gray-500"
                   >
                     No hay productos agregados a esta venta.
                   </td>
                 </tr>
               </tbody>
             </table>
-          </div>
-
-          <div class="flex justify-end mb-6">
-            <div class="bg-gray-100 rounded-xl px-6 py-4 min-w-[220px]">
-              <p class="text-gray-600 text-sm">Total de la Venta</p>
-              <p class="text-3xl font-bold text-[#46674A]">
-                ${{ totalCalculado.toFixed(2) }}
-              </p>
             </div>
           </div>
+
+          <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full lg:max-w-2xl">
+              <div class="bg-gray-100 rounded-xl px-5 py-4">
+                <p class="text-gray-600 text-sm">Total de la Venta</p>
+                <p class="text-3xl font-bold text-[#47B5AC]">
+                  ${{ totalCalculado.toFixed(2) }}
+                </p>
+              </div>
+
+              <div class="bg-gray-100 rounded-xl px-5 py-4">
+                <label class="block text-gray-600 text-sm mb-2">
+                  Efectivo recibido
+                </label>
+                <input
+                  v-model.number="efectivoRecibido"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  class="box-border w-full h-10 px-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#47B5AC]"
+                />
+              </div>
+
+              <div class="bg-gray-100 rounded-xl px-5 py-4">
+                <p class="text-gray-600 text-sm">Cambio a dar</p>
+                <p
+                  class="text-3xl font-bold"
+                  :class="cambioCalculado >= 0 ? 'text-[#47B5AC]' : 'text-red-500'"
+                >
+                  ${{ cambioCalculado.toFixed(2) }}
+                </p>
+              </div>
+            </div>
 
           <div class="flex justify-end gap-3">
             <button
               @click="cerrarModal"
-              class="px-5 py-3 border border-gray-300 rounded-xl hover:bg-gray-50"
+              class="h-11 px-6 border border-gray-300 rounded-xl hover:bg-gray-50"
               :disabled="guardandoVenta"
             >
               Cancelar
@@ -228,12 +268,13 @@
 
             <button
               @click="finalizarVenta"
-              class="bg-[#46674A] hover:bg-[#3b5740] text-white px-5 py-3 rounded-xl font-semibold flex items-center gap-2 disabled:opacity-50"
+              class="h-11 bg-[#47B5AC] hover:bg-[#47B5AC] text-white px-6 rounded-xl font-semibold flex items-center gap-2 disabled:opacity-50"
               :disabled="guardandoVenta || carrito.length === 0"
             >
               <span v-if="guardandoVenta" class="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
               {{ guardandoVenta ? 'Guardando...' : 'Finalizar Venta' }}
             </button>
+          </div>
           </div>
         </div>
       </div>
@@ -244,6 +285,7 @@
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
 import axios from 'axios'
+import Swal from 'sweetalert2'
 
 
 const ventas = ref([])
@@ -258,6 +300,7 @@ const inputCodigoBarras = ref(null)
 const nombreCliente = ref('Consumidor Final')
 const codigoInput = ref('')
 const productoManualSeleccionado = ref('')
+const efectivoRecibido = ref(0)
 const carrito = ref([])
 
 
@@ -280,6 +323,7 @@ const abrirModalVenta = () => {
   nombreCliente.value = 'Consumidor Final'
   codigoInput.value = ''
   productoManualSeleccionado.value = ''
+  efectivoRecibido.value = 0
   carrito.value = []
   mostrarNuevaVenta.value = true
 
@@ -295,6 +339,10 @@ const totalCalculado = computed(() => {
     (suma, item) => suma + (item.precio_venta * item.cantidad), 
     0
   )
+})
+
+const cambioCalculado = computed(() => {
+  return (Number(efectivoRecibido.value) || 0) - totalCalculado.value
 })
 
 // Metodos para meter los productos al carrito
@@ -380,6 +428,7 @@ const cerrarModal = () => {
   mostrarNuevaVenta.value = false
   codigoInput.value = ''
   productoManualSeleccionado.value = ''
+  efectivoRecibido.value = 0
   carrito.value = []
 }
 
@@ -408,7 +457,13 @@ const finalizarVenta = async () => {
     
     await axios.post('http://127.0.0.1:8000/api/ventas', datosVenta)
     
-    alert('Venta realizada')
+    await Swal.fire({
+      icon: 'success',
+      title: 'Venta realizada',
+      showConfirmButton: false,
+      timer: 1400,
+      confirmButtonColor: '#47B5AC'
+    })
     cerrarModal()
     await consultarBaseDatos() 
   } catch (error) {
