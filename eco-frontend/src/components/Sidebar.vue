@@ -20,18 +20,17 @@
 
       <div v-if="isOpen" class="overflow-hidden whitespace-nowrap transition-all duration-300">
         <h1 class="font-bold text-base tracking-wide text-white leading-tight">La Económica</h1>
-        
       </div>
     </div>
 
     <!-- Menú de Navegación -->
-    <nav class="flex-1 py-0 space-y-1 overflow-y-auto custom-scrollbar">
+    <nav class="flex-1 py-2 space-y-1 overflow-y-auto custom-scrollbar">
       <router-link
         v-for="item in menu"
         :key="item.name"
         :to="item.route"
-        class="flex items-center gap-8 px-3 py-3 mx-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all duration-200 group"
-        active-class="bg-white/15 text-white font-semibold shadow-inner border-1-4 border-white !rounded-l-none"
+        class="flex items-center gap-4 px-3 py-3 mx-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all duration-200 group"
+        active-class="bg-white/15 text-white font-semibold shadow-inner border-l-4 border-white !rounded-l-none"
         :title="!isOpen ? item.name : ''"
       >
         <i :class="[item.icon, 'text-xl transition-transform group-hover:scale-110 shrink-0']"></i>
@@ -45,16 +44,16 @@
     </nav>
 
     <!-- Cerrar sesión -->
-    <div class="p-3 border-t border-white/10 bg-black/10">
+    <div class="p-3 border-t border-white/10">
       <button
         @click="cerrarSesion"
-        class="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-black/70 hover:text-red-200 hover:bg-red-500/20 transition-all duration-200 group"
+        class="flex items-center justify-center gap-3 w-full px-4 py-3 rounded-xl text-emerald-100 font-semibold bg-[#2E726E] hover:bg-[#a34343] hover:text-white shadow-md border border-white/10 transition-all duration-200 group"
         :title="!isOpen ? 'Cerrar sesión' : ''"
       >
         <i class="bi bi-box-arrow-left text-xl transition-transform group-hover:-translate-x-0.5 shrink-0"></i>
         <span 
           v-if="isOpen" 
-          class="text-sm font-medium tracking-wide"
+          class="text-sm tracking-wide"
         >
           Cerrar sesión
         </span>
@@ -78,48 +77,35 @@ const router = useRouter()
 
 const menu = [
   { name: 'Inicio', route: '/dashboard', icon: 'bi bi-house-door-fill' },
+  { name: 'Punto de Venta', route: '/pos', icon: 'bi bi-calculator-fill' },
+  { name: 'Ventas', route: '/ventas', icon: 'bi bi-cash-coin' },
   { name: 'Categorias', route: '/categorias', icon: 'bi bi-grid-3x3-gap-fill' },
   { name: 'Productos', route: '/productos', icon: 'bi bi-box-seam-fill' },
   { name: 'Inventario', route: '/inventario', icon: 'bi bi-archive-fill' },
   { name: 'Compras', route: '/compras', icon: 'bi bi-basket2-fill' },
   { name: 'Proveedores', route: '/proveedores', icon: 'bi bi-building' },
-  { name: 'Ventas', route: '/ventas', icon: 'bi bi-cash-coin' },
   { name: 'Usuarios', route: '/usuarios', icon: 'bi bi-person-badge-fill' },
   { name: 'Reportes', route: '/reportes', icon: 'bi bi-bar-chart-line-fill' }
 ]
-// Función para cerrar la sesión del usuario
+
 const cerrarSesion = async () => {
   try {
-
-    // Obtiene el token guardado
     const token = localStorage.getItem('token')
-
-    // Envía la petición al backend para cerrar sesión
     await axios.post(
       'http://127.0.0.1:8000/api/auth/logout',
       {},
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }
+      { headers: { Authorization: `Bearer ${token}` } }
     )
   } catch (error) {
-
-    // Muestra error si falla el cierre de sesión
     console.log('Logout error:', error)
   }
- // Elimina los datos guardados en el navegador
   localStorage.removeItem('token')
   localStorage.removeItem('user')
-
-  // regresar al login
   router.push('/')
 }
 </script>
 
 <style scoped>
-/* Opcional: Estilo sutil para la barra de scroll interna del menú si hay muchas opciones */
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
 }

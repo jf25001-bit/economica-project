@@ -11,6 +11,7 @@ import Login from '@/views/Login.vue'
 import Categorias from '@/views/Categorias.vue'
 import Proveedores from '@/views/Proveedores.vue'
 import Imagenes from '../views/Imagenes.vue'
+import Pos from '@/views/Pos.vue'
 
 const routes = [
   {
@@ -89,8 +90,15 @@ const routes = [
     path: '/imagenes',
     component: Imagenes,
     meta: { requiresAuth: true }
+  },
+
+  {
+    path: '/pos',
+    component: Pos,
+    meta: { requiresAuth: true }
   }
 ]
+
 
 const router = createRouter({
   history: createWebHistory(),
