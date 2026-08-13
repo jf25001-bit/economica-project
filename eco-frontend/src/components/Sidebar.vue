@@ -6,7 +6,7 @@
     ]"
   >
     <!-- Encabezado / Logo -->
-    <div 
+    <div
       :class="[
         'p-4 border-b border-white/10 flex items-center gap-3 transition-all duration-300',
         isOpen ? 'justify-start' : 'justify-center'
@@ -20,7 +20,6 @@
 
       <div v-if="isOpen" class="overflow-hidden whitespace-nowrap transition-all duration-300">
         <h1 class="font-bold text-base tracking-wide text-white leading-tight">La Económica</h1>
-        
       </div>
     </div>
 
@@ -35,8 +34,8 @@
         :title="!isOpen ? item.name : ''"
       >
         <i :class="[item.icon, 'text-xl transition-transform group-hover:scale-110 shrink-0']"></i>
-        <span 
-          v-if="isOpen" 
+        <span
+          v-if="isOpen"
           class="text-sm tracking-wide transition-all duration-300"
         >
           {{ item.name }}
@@ -52,8 +51,8 @@
         :title="!isOpen ? 'Cerrar sesión' : ''"
       >
         <i class="bi bi-box-arrow-left text-xl transition-transform group-hover:-translate-x-0.5 shrink-0"></i>
-        <span 
-          v-if="isOpen" 
+        <span
+          v-if="isOpen"
           class="text-sm font-medium tracking-wide"
         >
           Cerrar sesión
@@ -87,14 +86,12 @@ const menu = [
   { name: 'Usuarios', route: '/usuarios', icon: 'bi bi-person-badge-fill' },
   { name: 'Reportes', route: '/reportes', icon: 'bi bi-bar-chart-line-fill' }
 ]
+
 // Función para cerrar la sesión del usuario
 const cerrarSesion = async () => {
   try {
-
-    // Obtiene el token guardado
     const token = localStorage.getItem('token')
 
-    // Envía la petición al backend para cerrar sesión
     await axios.post(
       'http://127.0.0.1:8000/api/auth/logout',
       {},
@@ -105,28 +102,25 @@ const cerrarSesion = async () => {
       }
     )
   } catch (error) {
-
-    // Muestra error si falla el cierre de sesión
     console.log('Logout error:', error)
   }
- // Elimina los datos guardados en el navegador
+
   localStorage.removeItem('token')
   localStorage.removeItem('user')
-
-  // regresar al login
   router.push('/')
 }
 </script>
 
 <style scoped>
-/* Opcional: Estilo sutil para la barra de scroll interna del menú si hay muchas opciones */
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 2px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
 }
