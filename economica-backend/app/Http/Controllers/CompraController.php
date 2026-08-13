@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Compra;
@@ -18,7 +17,6 @@ class CompraController extends Controller
                 'detalles.producto',
                 'detalles.lotes'
             ])->latest()->get();
-
             return response()->json($compras);
         } catch (\Exception $e) {
             return response()->json([
@@ -29,57 +27,120 @@ class CompraController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $request->validate([
-            'fecha_compra' => 'nullable|date',
-            'estado' => 'nullable|in:pendiente,completada,cancelada',
-            'detalles' => 'required|array|min:1',
-            'detalles.*.producto_id' => 'required|exists:productos,id',
-            'detalles.*.cantidad' => 'required|integer|min:1',
-            'detalles.*.precio_compra' => 'required|numeric|min:0'
+{
+    $request->validate([
+        'fecha_compra' => 'nullable|date',
+        'detalles' => 'required|array|min:1',
+        'detalles.*.producto_id' => 'required|exists:productos,id',
+        'detalles.*.cantidad' => 'required|integer|min:1', 
+        'detalles.*.unidades_por_paquete' => 'nullable|integer|min:1', 
+        'detalles.*.precio_compra' => 'required|numeric|min:0', 
+        'detalles.*.codigo_lote' => 'nullable|string|max:100',
+        'detalles.*.fecha_expiracion' => 'nullable|date'
+    ]);
+
+    DB::beginTransaction();
+    try {
+        // Se crea la compra general
+        $compra = Compra::create([
+            'fecha_compra' => $request->fecha_compra ?? now(),
+            'total' => 0
         ]);
 
-        DB::beginTransaction();
+        $totalGeneral = 0;
 
-        try {
-            $compra = Compra::create([
-                'fecha_compra' => $request->fecha_compra ?? now(),
-                'estado' => $request->estado ?? 'pendiente',
-                'total' => 0
+        foreach ($request->detalles as $item) {
+            $producto = Producto::findOrFail($item['producto_id']);
+            $paquetesComprados = (int) $item['cantidad'];
+            $unidadesPorPaquete = isset($item['unidades_por_paquete']) && $item['unidades_por_paquete'] > 0 
+                ? (int) $item['unidades_por_paquete'] 
+                : 1;
+
+            $unidadesTotales = $paquetesComprados * $unidadesPorPaquete;
+            $precioPaquete = (float) $item['precio_compra'];
+            $subtotal = $paquetesComprados * $precioPaquete;
+            $totalGeneral += $subtotal;
+
+            $precioUnitarioCalculado = $precioPaquete / $unidadesPorPaquete;
+
+            // Creación del detalle de la compra
+            $detalle = DetalleCompra::create([
+                'compra_id' => $compra->id,
+                'producto_id' => $producto->id,
+                'cantidad' => $unidadesTotales,
+                'precio_compra' => $precioUnitarioCalculado,
+                'subtotal' => $subtotal
             ]);
 
-            $total = 0;
+            // Asignación de lote (si viene vacío, se genera un código dinámico)
+            $codigoLote = !empty($item['codigo_lote']) 
+                ? $item['codigo_lote'] 
+                : 'LOTE-C' . $compra->id . '-P' . $producto->id;
 
-            foreach ($request->detalles as $item) {
-                $producto = Producto::findOrFail($item['producto_id']);
+            Lote::create([
+                'detalle_compra_id' => $detalle->id,
+                'producto_id'       => $producto->id,
+                'codigo_lote'       => $codigoLote,
+                'fecha_expiracion'  => $item['fecha_expiracion'] ?? null,
+                'cantidad_inicial'  => $unidadesTotales,
+                'cantidad_actual'   => $unidadesTotales
+            ]);
 
-                $cantidad = (int) $item['cantidad'];
-                $precio = (float) $item['precio_compra'];
-                $subtotal = $cantidad * $precio;
-                $total += $subtotal;
+            // Actualización inmediata de stock
+            $producto->increment('stock', $unidadesTotales);
+        }
 
-                DetalleCompra::create([
-                    'compra_id' => $compra->id,
-                    'producto_id' => $producto->id,
-                    'cantidad' => $cantidad,
-                    'precio_compra' => $precio,
-                    'subtotal' => $subtotal
-                ]);
+        // Actualización del monto total acumulado
+        $compra->update(['total' => $totalGeneral]);
+
+        DB::commit();
+
+        return response()->json([
+            'message' => 'Compra procesada e inventario actualizado correctamente',
+            'compra' => $compra->fresh('detalles.producto', 'detalles.lotes')
+        ], 201);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'message' => 'Error al registrar la compra',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+    public function update(Request $request, $id)
+    {
+        $compra = Compra::findOrFail($id);
+
+        DB::beginTransaction();
+        try {
+            if ($request->has('fecha_compra')) {
+                $compra->update(['fecha_compra' => $request->fecha_compra]);
             }
 
-            $compra->update(['total' => $total]);
+            if ($request->has('detalles')) {
+                foreach ($request->detalles as $det) {
+                    if (isset($det['detalle_id'])) {
+                        $lote = Lote::where('detalle_compra_id', $det['detalle_id'])->first();
+                        if ($lote) {
+                            $lote->update([
+                                'codigo_lote' => $det['codigo_lote'] ?? $lote->codigo_lote,
+                                'fecha_expiracion' => $det['fecha_expiracion'] ?? $lote->fecha_expiracion
+                            ]);
+                        }
+                    }
+                }
+            }
 
             DB::commit();
-
             return response()->json([
-                'message' => 'Compra creada correctamente',
-                'compra' => $compra->fresh('detalles.producto')
-            ], 201);
-
+                'message' => 'Compra actualizada correctamente',
+                'compra' => $compra->fresh('detalles.producto', 'detalles.lotes')
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
-                'message' => 'Error al crear compra',
+                'message' => 'Error al actualizar la compra',
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -92,92 +153,11 @@ class CompraController extends Controller
                 'detalles.producto',
                 'detalles.lotes'
             ])->findOrFail($id);
-
             return response()->json($compra);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Compra no encontrada'
             ], 404);
-        }
-    }
-
-    public function update(Request $request, $id)
-    {
-        DB::beginTransaction();
-
-        try {
-            $compra = Compra::with('detalles.producto', 'detalles.lotes')->findOrFail($id);
-            $estadoAnterior = $compra->estado;
-
-            $request->validate([
-                'fecha_compra' => 'nullable|date',
-                'fecha_llegada' => 'nullable|date',
-                'estado' => 'nullable|in:pendiente,completada,cancelada',
-                'detalles' => 'nullable|array',
-                'detalles.*.detalle_id' => 'required|integer',
-                'detalles.*.codigo_lote' => 'nullable|string|max:100',
-                'detalles.*.fecha_expiracion' => 'nullable|date'
-            ]);
-
-            $compra->update([
-                'fecha_compra' => $request->fecha_compra ?? $compra->fecha_compra,
-                'fecha_llegada' => $request->fecha_llegada ?? $compra->fecha_llegada,
-                'estado' => $request->estado ?? $compra->estado
-            ]);
-
-            if ($request->has('detalles')) {
-                foreach ($request->detalles as $input) {
-                    $detalle = DetalleCompra::find($input['detalle_id']);
-                    if (!$detalle) continue;
-
-                    // Lote por defecto si el usuario lo dejó en blanco
-                    $codigoLote = !empty($input['codigo_lote']) 
-                        ? $input['codigo_lote'] 
-                        : 'LOTE-C' . $compra->id . '-P' . $detalle->producto_id;
-
-                    // Si pasa a COMPLETADA, creamos Lote y cargamos Stock
-                    if ($estadoAnterior !== 'completada' && $compra->estado === 'completada') {
-                        if (!$detalle->lotes()->exists()) {
-                            Lote::create([
-                                'detalle_compra_id' => $detalle->id,
-                                'producto_id'       => $detalle->producto_id,
-                                'codigo_lote'       => $codigoLote,
-                                'fecha_expiracion'  => $input['fecha_expiracion'] ?? null,
-                                'cantidad_inicial'  => $detalle->cantidad,
-                                'cantidad_actual'   => $detalle->cantidad
-                            ]);
-
-                            if ($detalle->producto) {
-                                $detalle->producto->increment('stock', $detalle->cantidad);
-                            }
-                        }
-                    } 
-                    // Si ya estaba COMPLETADA y solo editan datos del lote
-                    else if ($compra->estado === 'completada') {
-                        $lote = $detalle->lotes()->first();
-                        if ($lote) {
-                            $lote->update([
-                                'codigo_lote'      => $codigoLote,
-                                'fecha_expiracion' => $input['fecha_expiracion'] ?? null
-                            ]);
-                        }
-                    }
-                }
-            }
-
-            DB::commit();
-
-            return response()->json([
-                'message' => 'Compra actualizada correctamente',
-                'data' => $compra->fresh('detalles.producto', 'detalles.lotes')
-            ]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'message' => 'Error al actualizar compra',
-                'error' => $e->getMessage()
-            ], 500);
         }
     }
 }
