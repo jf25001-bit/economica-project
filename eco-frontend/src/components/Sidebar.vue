@@ -1,62 +1,53 @@
 <template>
   <aside
     :class="[
-      'bg-[#47B5AC] text-white h-screen fixed left-0 top-0 transition-all duration-300 shadow-xl flex flex-col z-40 border-r border-white/5',
-      isOpen ? 'w-60' : 'w-20'
+      'bg-[#0F172A] text-slate-400 h-screen fixed left-0 top-0 transition-all duration-300 shadow-2xl flex flex-col z-40 border-r border-slate-800/80',
+      isOpen ? 'w-64' : 'w-20'
     ]"
   >
-    <!-- Encabezado / Logo -->
+    <!-- Logo y Título -->
     <div 
       :class="[
-        'p-4 border-b border-white/10 flex items-center gap-3 transition-all duration-300',
+        'h-[73px] px-5 flex items-center gap-3.5 transition-all duration-300 border-b border-slate-800/60',
         isOpen ? 'justify-start' : 'justify-center'
       ]"
     >
-      <img
-        src="/logo.jpeg"
-        alt="Logo"
-        class="w-12 h-12 rounded-xl object-cover shadow-md shrink-0 border border-white/10"
-      />
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-emerald-400 p-0.5 shrink-0 shadow-lg shadow-sky-500/20">
+        <div class="w-full h-full bg-slate-900 rounded-[10px] flex items-center justify-center p-1.5">
+          <img src="/nuevo logo.svg" alt="Logo" class="w-full h-full object-contain" />
+        </div>
+      </div>
 
-      <div v-if="isOpen" class="overflow-hidden whitespace-nowrap transition-all duration-300">
-        <h1 class="font-bold text-base tracking-wide text-white leading-tight">La Económica</h1>
+      <div v-if="isOpen" class="overflow-hidden whitespace-nowrap">
+        <h1 class="font-extrabold text-sm text-white tracking-tight leading-none">La Económica</h1>
+        <span class="text-[10px] text-sky-400 font-bold uppercase tracking-widest block mt-1">POS System</span>
       </div>
     </div>
 
     <!-- Menú de Navegación -->
-    <nav class="flex-1 py-2 space-y-1 overflow-y-auto custom-scrollbar">
+    <nav class="flex-1 py-6 px-3 space-y-1.5 overflow-y-auto custom-scrollbar">
       <router-link
         v-for="item in menu"
         :key="item.name"
         :to="item.route"
-        class="flex items-center gap-4 px-3 py-3 mx-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all duration-200 group"
-        active-class="bg-white/15 text-white font-semibold shadow-inner border-l-4 border-white !rounded-l-none"
+        class="no-underline flex items-center gap-3.5 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/60 transition-all duration-200 group font-medium text-sm"
+        active-class="!bg-gradient-to-r !from-sky-500 !to-blue-600 !text-white !font-bold shadow-md shadow-sky-500/20"
         :title="!isOpen ? item.name : ''"
       >
-        <i :class="[item.icon, 'text-xl transition-transform group-hover:scale-110 shrink-0']"></i>
-        <span 
-          v-if="isOpen" 
-          class="text-sm tracking-wide transition-all duration-300"
-        >
-          {{ item.name }}
-        </span>
+        <i :class="[item.icon, 'text-lg group-hover:scale-110 transition-transform shrink-0']"></i>
+        <span v-if="isOpen" class="truncate no-underline">{{ item.name }}</span>
       </router-link>
     </nav>
 
-    <!-- Cerrar sesión -->
-    <div class="p-3 border-t border-white/10">
+    <!-- Cerrar Sesión -->
+    <div class="p-3 border-t border-slate-800/60">
       <button
         @click="cerrarSesion"
-        class="flex items-center justify-center gap-3 w-full px-4 py-3 rounded-xl text-emerald-100 font-semibold bg-[#2E726E] hover:bg-[#a34343] hover:text-white shadow-md border border-white/10 transition-all duration-200 group"
+        class="flex items-center justify-center gap-3 w-full py-3 px-4 rounded-xl text-red-400 bg-red-500/10 hover:bg-red-500 hover:text-white transition-all duration-200 text-sm font-bold cursor-pointer border border-red-500/10 hover:border-transparent shadow-sm"
         :title="!isOpen ? 'Cerrar sesión' : ''"
       >
-        <i class="bi bi-box-arrow-left text-xl transition-transform group-hover:-translate-x-0.5 shrink-0"></i>
-        <span 
-          v-if="isOpen" 
-          class="text-sm tracking-wide"
-        >
-          Cerrar sesión
-        </span>
+        <i class="bi bi-box-arrow-left text-lg shrink-0"></i>
+        <span v-if="isOpen">Cerrar sesión</span>
       </button>
     </div>
   </aside>
@@ -66,13 +57,7 @@
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 
-defineProps({
-  isOpen: {
-    type: Boolean,
-    default: true
-  }
-})
-
+defineProps({ isOpen: Boolean })
 const router = useRouter()
 
 const menu = [
@@ -91,29 +76,24 @@ const menu = [
 const cerrarSesion = async () => {
   try {
     const token = localStorage.getItem('token')
-    await axios.post(
-      'http://127.0.0.1:8000/api/auth/logout',
-      {},
-      { headers: { Authorization: `Bearer ${token}` } }
-    )
-  } catch (error) {
-    console.log('Logout error:', error)
-  }
-  localStorage.removeItem('token')
-  localStorage.removeItem('user')
+    await axios.post('http://127.0.0.1:8000/api/auth/logout', {}, { headers: { Authorization: `Bearer ${token}` } })
+  } catch (e) {}
+  localStorage.clear()
   router.push('/')
 }
 </script>
 
 <style scoped>
+/* Elimina cualquier subrayado de enlaces por defecto */
+a {
+  text-decoration: none !important;
+}
+
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 2px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
 }
 </style>

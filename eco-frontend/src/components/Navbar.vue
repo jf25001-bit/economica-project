@@ -1,69 +1,70 @@
 <template>
-  <header class="bg-[#2B3A4A] border-b border-slate-700/60 sticky top-0 z-50 text-white shadow-md">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-      
-      <!-- Marca y Logo Agrandado -->
-      <div class="flex items-center gap-3.5">
-        <!-- Contenedor blanco para resaltar el logo -->
-        <div class="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center p-2 shadow-inner">
-          <img 
-            src="/nuevo logo.svg" 
-            alt="Logo La Económica" 
-            class="w-full h-full object-contain filter drop-shadow" 
-          />
-        </div>
-        <div>
-          <span class="text-xl font-black tracking-tight text-white block leading-none">
-            La Económica
-          </span>
-          <span class="text-[10px] font-bold text-sky-300 uppercase tracking-widest mt-1 block">
-            Chalatenango
-          </span>
-        </div>
+  <header class="bg-[#2B3A4A] text-white h-[73px] sticky top-0 z-30 shadow-md border-b border-slate-700/60 px-6 flex items-center justify-between">
+    
+    <!-- Lado Izquierdo: Botón Sidebar + Sucursal -->
+    <div class="flex items-center gap-4">
+      <button 
+        @click="$emit('toggle-sidebar')" 
+        class="w-10 h-10 rounded-xl bg-slate-800/60 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/80 flex items-center justify-center transition-all cursor-pointer"
+        title="Menú"
+      >
+        <i class="bi bi-list text-2xl"></i>
+      </button>
+
+      <div class="hidden sm:flex flex-col">
+        <span class="text-xs font-extrabold uppercase tracking-widest text-sky-400">Sucursal</span>
+        <span class="text-sm font-black text-slate-200 leading-tight">Chalatenango</span>
       </div>
-
-      <!-- Usuario y Salir -->
-      <div class="flex items-center gap-4">
-        <span class="text-sm font-bold text-sky-100 hidden sm:inline">
-          {{ userName }}
-        </span>
-
-        <button 
-          @click="handleLogout" 
-          title="Cerrar sesión"
-          class="flex items-center gap-2 bg-white/10 hover:bg-red-500/20 hover:text-red-300 text-slate-100 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border border-white/10"
-        >
-          <i class="bi bi-box-arrow-right text-base"></i>
-          <span>Salir</span>
-        </button>
-      </div>
-
     </div>
+
+    <!-- Lado Derecho: Usuario -->
+    <div class="flex items-center gap-3 sm:gap-4">
+      <div class="flex items-center gap-3 bg-slate-800/80 border border-slate-700/80 px-4 py-2 rounded-2xl shadow-inner">
+        <div class="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-sm border border-sky-500/30">
+          <i class="bi bi-person-fill"></i>
+        </div>
+        <div class="flex flex-col text-left">
+          <span class="text-xs font-bold text-slate-100 capitalize leading-tight">
+            {{ usuarioNombre }}
+          </span>
+          <span class="text-[10px] font-semibold text-sky-400 uppercase tracking-wider">
+            {{ usuarioRol }}
+          </span>
+        </div>
+      </div>
+    </div>
+
   </header>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 
-const router = useRouter()
-const userName = ref('Usuario')
+defineEmits(['toggle-sidebar'])
+
+const usuarioNombre = ref('Usuario')
+const usuarioRol = ref('Administrador')
 
 onMounted(() => {
-  const storedUser = localStorage.getItem('user')
-  if (storedUser) {
-    try {
-      const user = JSON.parse(storedUser)
-      userName.value = user.name || user.username || 'Usuario'
-    } catch {
-      userName.value = 'Usuario'
+  try {
+    const rawUser = localStorage.getItem('user')
+    if (rawUser) {
+      const user = JSON.parse(rawUser)
+
+      // Obtener Nombre
+      usuarioNombre.value = user.nombre || user.name || user.username || 'Usuario'
+
+      // Extraer el texto del Rol correctamente sin renderizar el JSON
+      if (typeof user.rol === 'object' && user.rol !== null) {
+        usuarioRol.value = user.rol.NOMBRE || user.rol.nombre || 'Admin'
+      } else if (typeof user.role === 'object' && user.role !== null) {
+        usuarioRol.value = user.role.NOMBRE || user.role.nombre || 'Admin'
+      } else if (user.rol || user.role) {
+        usuarioRol.value = user.rol || user.role
+      }
     }
+  } catch (error) {
+    console.error('Error parseando usuario:', error)
   }
 })
-
-const handleLogout = () => {
-  localStorage.removeItem('token')
-  localStorage.removeItem('user')
-  router.push('/login')
-}
 </script>

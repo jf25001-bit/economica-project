@@ -1,236 +1,231 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
+  <div class="min-h-screen bg-slate-50/50 p-6 sm:p-8">
 
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+    <!-- Encabezado de Sección -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
       <div>
-        <h1 class="text-4xl font-bold text-gray-800">
-          Categorias
+        <h1 class="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight">
+          Categorías
         </h1>
-        <p> Sección de categorias y subcategorias</p>
+        <p class="text-slate-500 text-sm font-medium mt-1">
+          Gestión de categorías y organización de subcategorías
+        </p>
       </div>
 
       <button
         @click="abrirNuevaCategoria"
-        class="bg-[#47B5AC] hover:bg-[#47B5AC] text-white px-6 py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex items-center gap-2"
+        class="inline-flex items-center justify-center gap-2 bg-[#2B3A4A] hover:bg-[#1F2B37] text-white font-bold px-6 py-3 rounded-2xl shadow-lg shadow-[#2B3A4A]/20 transition-all active:scale-95 cursor-pointer"
       >
-        <i class="bi bi-plus-lg"></i>
-        Nueva Categoría
+        <i class="bi bi-folder-plus text-lg"></i>
+        <span>Nueva Categoría</span>
       </button>
     </div>
 
-    <div class="mb-6">
-      <input
-        v-model="filtro"
-        type="text"
-        placeholder="Buscar categoría..."
-        class="w-full px-4 py-3 border border-gray-300 rounded-2xl shadow-sm focus:ring-2 focus:ring-[#47B5AC] focus:border-transparent outline-none"
-      />
+    <!-- Barra de Búsqueda -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-4 mb-6 flex flex-wrap gap-4">
+      <div class="relative flex-1 min-w-[240px]">
+        <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
+          <i class="bi bi-search text-base"></i>
+        </span>
+        <input
+          v-model="filtro"
+          type="text"
+          placeholder="Buscar categoría por nombre..."
+          class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium"
+        />
+      </div>
     </div>
 
-    <div class="bg-white rounded-3xl shadow-xl border border-gray-200 overflow-hidden">
+    <!-- Tabla de Categorías -->
+    <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
       <div class="overflow-x-auto">
-
-        <table class="w-full">
-          <thead class="bg-gradient-to-r from-gray-100 to-gray-50">
-            <tr class="text-gray-600 text-sm uppercase">
-              <th class="px-6 py-5 text-left">
-                Nombre
-              </th>
-
-              <th class="px-6 py-5 text-left">
-                Subcategorías
-              </th>
-
-              <th class="px-6 py-5 text-center">
-                Acciones
-              </th>
+        <table class="w-full min-w-[700px] table-fixed">
+          <thead>
+            <tr class="bg-slate-100/70 border-b border-slate-200 text-slate-700 text-xs font-black uppercase tracking-wider">
+              <th class="px-6 py-4 text-left w-1/3">Nombre</th>
+              <th class="px-6 py-4 text-left">Subcategorías</th>
+              <th class="px-6 py-4 text-right w-32">Acciones</th>
             </tr>
           </thead>
 
-          <tbody>
+          <tbody class="divide-y divide-slate-100">
             <tr
               v-for="cat in categoriasFiltradas"
               :key="cat.id"
-              class="border-b border-gray-100 hover:bg-green-50 transition-all duration-200"
+              class="hover:bg-slate-50/80 transition-colors"
             >
-              <td class="px-6 py-5 font-semibold text-gray-800">
-                {{ cat.nombre }}
+              <!-- Nombre -->
+              <td class="px-6 py-4 font-bold text-slate-800 truncate">
+                <div class="flex items-center gap-2">
+                  <i class="bi bi-folder-fill text-slate-400 text-base"></i>
+                  <span>{{ cat.nombre }}</span>
+                </div>
               </td>
 
-              <td class="px-6 py-5">
-                <span
-                  v-for="sub in cat.subcategorias"
-                  :key="sub.id"
-                  class="inline-block bg-[#47B5AC]/10 text-[#47B5AC] px-3 py-1 rounded-full text-sm mr-2 mb-1"
-                >
-                  {{ sub.nombre }}
-                </span>
+              <!-- Subcategorías -->
+              <td class="px-6 py-4">
+                <div class="flex flex-wrap gap-1.5">
+                  <span
+                    v-for="sub in cat.subcategorias"
+                    :key="sub.id"
+                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-sky-50 text-sky-700 border border-sky-200/60"
+                  >
+                    <i class="bi bi-tag-fill mr-1 text-[10px]"></i>
+                    {{ sub.nombre }}
+                  </span>
+                  <span v-if="!cat.subcategorias || cat.subcategorias.length === 0" class="text-xs text-slate-400 italic">
+                    Sin subcategorías
+                  </span>
+                </div>
               </td>
 
-              <td class="px-6 py-5">
-                <div class="flex justify-center gap-3">
-
+              <!-- Acciones -->
+              <td class="px-6 py-4">
+                <div class="flex items-center justify-end gap-2">
                   <button
                     @click="editarCategoria(cat)"
-                    class="w-10 h-10 rounded-full border border-blue-300 bg-blue-50 text-blue-600 hover:bg-blue-100 transition-all flex items-center justify-center"
+                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-[#2B3A4A] hover:text-white transition cursor-pointer"
+                    title="Editar Categoría"
                   >
-                    <i class="bi bi-pencil"></i>
+                    <i class="bi bi-pencil-fill text-sm"></i>
                   </button>
 
                   <button
                     @click="eliminarCategoria(cat.id)"
-                    class="w-10 h-10 rounded-full border border-red-300 bg-red-50 text-red-500 hover:bg-red-100 transition-all flex items-center justify-center"
+                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-red-50 text-red-600 hover:bg-red-500 hover:text-white transition cursor-pointer"
+                    title="Eliminar Categoría"
                   >
-                    <i class="bi bi-trash"></i>
+                    <i class="bi bi-trash-fill text-sm"></i>
                   </button>
-
                 </div>
               </td>
             </tr>
 
+            <!-- Estado Vacío -->
             <tr v-if="categoriasFiltradas.length === 0">
-              <td colspan="3" class="py-16 text-center">
-                <div class="flex flex-col items-center">
-                  <i class="bi bi-folder-x text-5xl text-gray-300"></i>
-                  <p class="mt-3 text-gray-400">
-                    No hay categorías registradas
-                  </p>
-                </div>
+              <td colspan="3" class="py-16 text-center text-slate-400">
+                <i class="bi bi-folder-x text-4xl block mb-2 opacity-50"></i>
+                <p class="font-medium text-sm">No se encontraron categorías registradas.</p>
               </td>
             </tr>
-
           </tbody>
         </table>
-
       </div>
     </div>
 
-    <div
-      v-if="modal"
-      class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-    >
-      <div class="bg-white rounded-[22px] shadow-2xl w-full max-w-[660px] overflow-hidden border border-gray-200">
-
-        <div class="bg-[#47B5AC] text-white h-[112px] px-8 flex justify-between items-start pt-8">
-          <div class="space-y-3">
-            <h2 class="text-2xl font-bold leading-none">
-              {{ editando ? 'Editar Categoría' : 'Nueva Categoría' }}
-            </h2>
-
-            <p class="text-white/85 text-sm">
-              Administración de categorías y subcategorías
-            </p>
+    <!-- Modal Formulario -->
+    <div v-if="modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-3xl w-full max-w-xl flex flex-col overflow-hidden shadow-2xl border border-slate-100">
+        
+        <!-- Modal Header -->
+        <div class="bg-[#2B3A4A] text-white px-6 py-5 flex justify-between items-center">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-sky-300">
+              <i class="bi bi-folder-fill text-xl"></i>
+            </div>
+            <div>
+              <h2 class="text-lg font-extrabold leading-none">
+                {{ editando ? 'Editar Categoría' : 'Nueva Categoría' }}
+              </h2>
+              <p class="text-sky-200/80 text-xs mt-1">Administración de categorías y subcategorías</p>
+            </div>
           </div>
 
           <button
             @click="cerrar"
-            class="w-11 h-11 rounded-full bg-[#DDF3F1] text-gray-800 shadow-md hover:bg-white transition flex items-center justify-center"
+            class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 transition text-slate-200 cursor-pointer"
           >
-            <i class="bi bi-x-lg text-xl"></i>
+            <i class="bi bi-x-lg text-sm"></i>
           </button>
         </div>
 
-        <div class="px-8 pt-6 pb-6 space-y-5">
-
+        <!-- Modal Body -->
+        <div class="p-6 space-y-4">
           <div>
-            <label class="flex items-center text-sm font-bold text-gray-800 mb-2.5">
-              <i class="bi bi-folder-fill mr-2 text-[#47B5AC] text-lg"></i>
+            <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5">
               Nombre de la categoría
             </label>
-
             <input
               v-model="nombre"
               type="text"
-              placeholder="Ingrese el nombre de la categoría"
-              class="box-border block w-full h-[42px] px-4 rounded-[10px] border border-gray-400 bg-[#F7F4F0] text-sm shadow-[inset_0_1px_4px_rgba(0,0,0,0.22)] focus:ring-2 focus:ring-[#47B5AC] focus:border-[#47B5AC] outline-none transition"
+              placeholder="Ej. Bebidas, Alimentos, etc."
+              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium"
             />
           </div>
 
-          <div class="border border-gray-200 rounded-xl overflow-hidden shadow-md">
+          <!-- Acordeón Desplegable Subcategorías -->
+          <div class="border border-slate-200 rounded-xl overflow-hidden">
             <button
               @click="alternarSubcategorias"
-              class="w-full h-[62px] px-5 flex items-center justify-between text-left bg-white hover:bg-gray-50 transition"
+              class="w-full px-4 py-3 flex items-center justify-between text-left bg-slate-50 hover:bg-slate-100/80 transition cursor-pointer"
             >
-              <div>
-                <p class="font-bold text-gray-800 flex items-center">
-                  <i class="bi bi-tags-fill mr-3 text-[#47B5AC] text-lg"></i>
-                  Agregar subcategorías
-                </p>
+              <div class="flex items-center gap-2 text-slate-700 font-bold text-sm">
+                <i class="bi bi-tags-fill text-[#2B3A4A]"></i>
+                <span>Gestionar subcategorías</span>
+              </div>
+              <i :class="mostrarSubcategorias ? 'bi bi-chevron-up' : 'bi bi-chevron-down'" class="text-slate-400 text-xs"></i>
+            </button>
+
+            <div v-if="mostrarSubcategorias" class="p-4 bg-white space-y-3 border-t border-slate-200">
+              <!-- Subcategorías ya almacenadas -->
+              <div v-if="editando && subExistentes.length > 0" class="flex flex-wrap gap-2">
+                <span
+                  v-for="(sub, i) in subExistentes"
+                  :key="sub.id"
+                  class="bg-slate-100 text-slate-700 border border-slate-200 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2"
+                >
+                  {{ sub.nombre }}
+                  <button
+                    @click="eliminarSubBD(sub.id, i)"
+                    class="text-red-500 hover:text-red-700 cursor-pointer"
+                  >
+                    <i class="bi bi-x-circle-fill"></i>
+                  </button>
+                </span>
               </div>
 
-              <i
-                :class="mostrarSubcategorias ? 'bi bi-chevron-up' : 'bi bi-chevron-down'"
-                class="text-[#47B5AC] text-xl"
-              ></i>
-            </button>
-          </div>
-
-          <div v-if="mostrarSubcategorias">
-
-            <label class="block text-sm font-semibold text-gray-700 mb-3">
-              <i class="bi bi-tags-fill mr-2 text-[#47B5AC]"></i>
-              Subcategorías
-            </label>
-
-            <div v-if="editando" class="flex flex-wrap gap-2 mb-4">
-              <span
-                v-for="(sub, i) in subExistentes"
-                :key="sub.id"
-                class="bg-green-100 text-[#47B5AC] px-3 py-2 rounded-xl flex items-center gap-2"
-              >
-                {{ sub.nombre }}
-
+              <!-- Input para agregar nuevas subcategorías -->
+              <div class="flex gap-2">
+                <input
+                  v-model="nuevaSub"
+                  @keyup.enter="agregarSub"
+                  placeholder="Nombre de subcategoría..."
+                  class="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium"
+                />
                 <button
-                  @click="eliminarSubBD(sub.id, i)"
-                  class="text-red-500 hover:text-red-700"
+                  @click="agregarSub"
+                  class="bg-[#2B3A4A] hover:bg-[#1F2B37] text-white px-4 py-2.5 rounded-xl shadow transition cursor-pointer flex items-center gap-1 font-bold text-sm"
                 >
-                  <i class="bi bi-x-circle-fill"></i>
+                  <i class="bi bi-plus-lg"></i>
+                  <span>Añadir</span>
                 </button>
-              </span>
-            </div>
+              </div>
 
-            <div class="flex gap-3 mb-4">
-              <input
-                v-model="nuevaSub"
-                @keyup.enter="agregarSub"
-                placeholder="Nueva subcategoría"
-                class="flex-1 px-4 py-3 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-[#47B5AC] focus:border-[#47B5AC] outline-none"
-              />
-
-              <button
-                @click="agregarSub"
-                class="bg-[#47B5AC] hover:bg-[#47B5AC] text-white px-5 rounded-2xl shadow-md"
-              >
-                <i class="bi bi-plus-lg"></i>
-              </button>
-            </div>
-
-            <div class="flex flex-wrap gap-2">
-              <span
-                v-for="(sub, i) in subNuevas"
-                :key="i"
-                class="bg-blue-100 text-blue-700 px-3 py-2 rounded-xl flex items-center gap-2"
-              >
-                {{ sub.nombre }}
-
-                <button
-                  @click="subNuevas.splice(i,1)"
-                  class="text-red-500 hover:text-red-700"
+              <!-- Badges de Subcategorías creadas temporalmente -->
+              <div v-if="subNuevas.length > 0" class="flex flex-wrap gap-2 pt-1">
+                <span
+                  v-for="(sub, i) in subNuevas"
+                  :key="i"
+                  class="bg-sky-50 text-sky-700 border border-sky-200 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2"
                 >
-                  <i class="bi bi-x-circle-fill"></i>
-                </button>
-              </span>
+                  {{ sub.nombre }}
+                  <button
+                    @click="subNuevas.splice(i, 1)"
+                    class="text-red-500 hover:text-red-700 cursor-pointer"
+                  >
+                    <i class="bi bi-x-circle-fill"></i>
+                  </button>
+                </span>
+              </div>
             </div>
-
           </div>
-
         </div>
 
-        <div class="bg-gray-50 px-8 h-[72px] flex items-center justify-end gap-3">
-
+        <!-- Modal Footer -->
+        <div class="flex justify-end gap-3 p-5 bg-slate-50 border-t border-slate-100">
           <button
             @click="cerrar"
-            class="h-11 px-7 rounded-[10px] border border-gray-300 bg-gray-100 text-gray-800 hover:bg-gray-200 font-medium transition"
+            class="px-5 py-2.5 border border-slate-200 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-100 transition cursor-pointer"
           >
             Cancelar
           </button>
@@ -238,12 +233,11 @@
           <button
             @click="guardar"
             :disabled="guardando"
-            class="h-11 px-7 rounded-[10px] bg-[#47B5AC] text-white font-semibold hover:bg-[#47B5AC] shadow-lg transition disabled:opacity-50 flex items-center"
+            class="px-6 py-2.5 bg-[#2B3A4A] hover:bg-[#1F2B37] text-white font-bold text-sm rounded-xl shadow-lg shadow-[#2B3A4A]/20 disabled:opacity-50 transition cursor-pointer flex items-center gap-2"
           >
-            <i class="bi bi-check-circle me-2"></i>
-            {{ guardando ? 'Guardando...' : 'Guardar' }}
+            <i v-if="guardando" class="bi bi-arrow-clockwise animate-spin text-base"></i>
+            <span>{{ guardando ? 'Guardando...' : 'Guardar' }}</span>
           </button>
-
         </div>
 
       </div>
@@ -279,10 +273,9 @@ const mostrarSubcategorias = ref(false)
 const guardando = ref(false)
 const filtro = ref('')
 
-//buscador de categorias
 const categoriasFiltradas = computed(() => {
   return categorias.value.filter(cat =>
-    cat.nombre.toLowerCase().includes(filtro.value.toLowerCase())
+    cat.nombre.toLowerCase().includes(filtro.value.toLowerCase().trim())
   )
 })
 
@@ -292,7 +285,6 @@ async function cargar() {
   categorias.value = await getCategorias()
 }
 
-// nueva categoria
 function abrirNuevaCategoria() {
   modal.value = true
   editando.value = false
@@ -304,7 +296,6 @@ function abrirNuevaCategoria() {
   mostrarSubcategorias.value = false
 }
 
-// editar
 function editarCategoria(cat) {
   modal.value = true
   editando.value = true
@@ -316,7 +307,6 @@ function editarCategoria(cat) {
   mostrarSubcategorias.value = true
 }
 
-// abre o cierra la sección de subcategorías y borra el texto escrito si decide ocultarla
 function alternarSubcategorias() {
   mostrarSubcategorias.value = !mostrarSubcategorias.value
   if (!mostrarSubcategorias.value && !editando.value) {
@@ -325,27 +315,32 @@ function alternarSubcategorias() {
   }
 }
 
-// agregar nueva subcategoria temporal
 function agregarSub() {
   if (!nuevaSub.value.trim()) return
   subNuevas.value.push({ nombre: nuevaSub.value.trim() })
   nuevaSub.value = ''
 }
 
-// borrar subcategoria de la base de datos
 async function eliminarSubBD(subId, index) {
   try {
     await deleteSubcategoria(subId)
-    subExistentes.value.splice(index, 1) // Quita la subcategoria de la pantalla tambien
+    subExistentes.value.splice(index, 1)
   } catch (error) {
     console.error(error)
   }
 }
 
-// guardar
 async function guardar() {
   if (guardando.value) return
-  if (!nombre.value.trim()) return
+  if (!nombre.value.trim()) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Campo requerido',
+      text: 'El nombre de la categoría es obligatorio',
+      confirmButtonColor: '#2B3A4A'
+    })
+    return
+  }
 
   guardando.value = true
 
@@ -353,13 +348,11 @@ async function guardar() {
     let res
     const subcategoriasPorCrear = [...subNuevas.value]
     
-    //por si se olvida de darle al boton de mas al agregar una subcategoria
     if (mostrarSubcategorias.value && nuevaSub.value.trim()) {
       subcategoriasPorCrear.push({ nombre: nuevaSub.value.trim() })
       nuevaSub.value = ''
     }
 
-    //se crea la categoria
     if (editando.value) {
       res = await updateCategoria(id.value, {
         nombre: nombre.value.trim()
@@ -370,15 +363,13 @@ async function guardar() {
       })
     }
 
-    //busca el id
     const catId = res?.data?.data?.id || res?.data?.id || res?.id || id.value
-
 
     const creadas = []
     for (const s of subcategoriasPorCrear) {
       const subRes = await createSubcategoria({
         nombre: s.nombre,
-        categoria_id: catId //la id buscada se usa aqui
+        categoria_id: catId
       })
       creadas.push(subRes?.data || subRes || { nombre: s.nombre, id: Date.now() })
     }
@@ -398,52 +389,59 @@ async function guardar() {
       }
     }
 
+    await Swal.fire({
+      icon: 'success',
+      title: editando.value ? 'Categoría actualizada' : 'Categoría creada correctamente',
+      timer: 1500,
+      showConfirmButton: false
+    })
+
     cerrar()
   } catch (error) {
     console.error(error)
-    Swal.fire(
-      'Error',
-      error?.response?.data?.message || 'No se pudo guardar la categoría o sus subcategorías',
-      'error'
-    )
+    Swal.fire({
+      title: 'Error',
+      text: error?.response?.data?.message || 'No se pudo guardar la categoría o sus subcategorías',
+      icon: 'error',
+      confirmButtonColor: '#2B3A4A'
+    })
   } finally {
     guardando.value = false
   }
 }
 
-// eliminar cateogoria
 async function eliminarCategoria(catId) {
-  //muestra lo de sweetalert
   const result = await Swal.fire({
     title: '¿Eliminar categoría?',
     text: 'Esta acción no se puede deshacer',
     icon: 'warning',
     showCancelButton: true,
-    confirmButtonColor: '#47B5AC',
-    cancelButtonColor: '#d33',
-    confirmButtonText: 'Sí, eliminar'
+    confirmButtonColor: '#2B3A4A',
+    cancelButtonColor: '#ef4444',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
   })
 
-  if (!result.isConfirmed) return //no hace nada si se dice que no
+  if (!result.isConfirmed) return
 
   try {
     await deleteCategoria(catId)
     await cargar()
-    Swal.fire({
+    await Swal.fire({
       icon: 'success',
       title: 'Categoría eliminada',
       timer: 1500,
       showConfirmButton: false
     })
   } catch (error) {
-    Swal.fire(
-      'Error',
-      'No se pudo eliminar la categoría',
-      'error'
-    )
+    Swal.fire({
+      title: 'Error',
+      text: 'No se pudo eliminar la categoría',
+      icon: 'error',
+      confirmButtonColor: '#2B3A4A'
+    })
   }
 }
-
 
 function cerrar() {
   modal.value = false
