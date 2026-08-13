@@ -15,7 +15,7 @@
       <div class="flex items-center gap-4">
         <button 
           @click="resetearVenta" 
-          class="px-4 py-2.5 text-sm text-red-600 hover:bg-red-100 bg-red-50 rounded-xl transition font-bold border border-red-200 flex items-center gap-2"
+          class="px-4 py-2.5 text-sm text-black-900 hover:bg-red-500 bg-red-400 rounded-xl transition font-bold border border-red-200 flex items-center gap-2"
         >
           <i class="bi bi-trash"></i> Limpiar Carrito
         </button>
