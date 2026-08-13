@@ -5,20 +5,19 @@
       <!-- NAVBAR SUPERIOR -->
       <div class="top-strict-navbar flex items-center justify-between bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
         <div class="flex items-center gap-3">
-          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-white shadow-sm">
             <i class="bi bi-cart-check-fill text-xl"></i>
           </div>
           <div>
-            <h1 class="text-xl font-bold text-slate-800">Módulo de Compras</h1>
+            <h1 class="text-xl font-bold text-slate-900">Módulo de Compras</h1>
             <p class="text-xs text-slate-500">Control de entradas, recepción de órdenes e inventario</p>
           </div>
         </div>
         
         <div class="top-right-actions flex items-center gap-4">
-          <!-- BOTÓN CAMBIADO A AZUL/INDIGO -->
           <button 
             @click="abrirModalCrear"
-            class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl shadow transition font-semibold text-sm flex items-center gap-2 cursor-pointer"
+            class="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl shadow-md transition font-semibold text-sm flex items-center gap-2 cursor-pointer active:bg-slate-950"
           >
             <i class="bi bi-plus-lg"></i>
             Nueva Compra
@@ -31,7 +30,7 @@
         <div class="left-content-panel w-full xl:flex-1 xl:min-w-0 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 min-h-[calc(100vh-13rem)] flex flex-col">
           <div class="section-header-row flex justify-between items-center mb-6">
             <div class="title-block">
-              <h2 class="text-xl font-bold text-slate-800">Órdenes de Compra</h2>
+              <h2 class="text-xl font-bold text-slate-900">Órdenes de Compra</h2>
               <p class="text-sm text-slate-500">Listado general ({{ compras.length }} registros)</p>
             </div>
           </div>
@@ -50,11 +49,11 @@
                   <tr v-for="c in compras" :key="c.id" class="hover:bg-slate-50/80 text-sm transition">
                     <td class="px-6 py-4 font-mono font-bold text-slate-900">#{{ c.id }}</td>
                     <td class="px-6 py-4 text-slate-500 text-xs">{{ c.fecha_compra ?? '—' }}</td>
-                    <td class="px-6 py-4 font-bold text-emerald-600">${{ Number(c.total ?? 0).toFixed(2) }}</td>
+                    <td class="px-6 py-4 font-bold text-slate-900">${{ Number(c.total ?? 0).toFixed(2) }}</td>
                     <td class="px-6 py-4 text-right">
                       <button 
                         @click="abrirEditar(c)"
-                        class="bg-slate-100 text-slate-700 p-2 rounded-lg hover:bg-slate-200 transition cursor-pointer inline-flex items-center justify-center border border-slate-300" 
+                        class="bg-slate-100 text-slate-700 p-2 rounded-lg hover:bg-slate-900 hover:text-white transition cursor-pointer inline-flex items-center justify-center border border-slate-300" 
                         title="Editar Compra"
                       >
                         <i class="bi bi-pencil"></i>
@@ -86,23 +85,23 @@
     </div>
 
     <!-- MODAL REGISTRAR / EDITAR COMPRA -->
-    <div v-if="modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
+    <div v-if="modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
       <div class="modal-card-box bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-lg w-full max-h-[92vh] flex flex-col overflow-hidden">
         
         <!-- ENCABEZADO MODAL -->
-        <div class="px-5 py-4 flex justify-between items-center border-b border-slate-200 bg-slate-50 shrink-0">
+        <div class="px-5 py-4 flex justify-between items-center border-b border-slate-200 bg-slate-900 text-white shrink-0">
           <div class="flex items-center gap-3">
-            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 shrink-0">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-white border border-slate-700 shrink-0">
               <i :class="modoEdicion ? 'bi bi-pencil-square' : 'bi bi-bag-plus-fill'" class="text-lg"></i>
             </div>
             <div>
-              <h3 class="font-bold text-slate-800 text-base">
+              <h3 class="font-bold text-white text-base">
                 {{ modoEdicion ? `Editar Orden de Compra #${compraIdEdicion}` : 'Registrar Nueva Orden de Compra' }}
               </h3>
-              <p class="text-xs text-slate-500">Detalla los ítems, precios y datos de lote correspondientes</p>
+              <p class="text-xs text-slate-300">Detalla los ítems, precios y datos de lote correspondientes</p>
             </div>
           </div>
-          <button class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-slate-800 hover:bg-slate-200 flex items-center justify-center transition cursor-pointer shrink-0" @click="cerrar">
+          <button class="w-8 h-8 rounded-lg bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 flex items-center justify-center transition cursor-pointer shrink-0" @click="cerrar">
             <i class="bi bi-x-lg text-xs"></i>
           </button>
         </div>
@@ -113,16 +112,16 @@
           <!-- FECHA Y MONTO TOTAL ESTIMADO -->
           <div class="form-row-single space-y-3">
             <div class="p-3.5 border border-slate-200 rounded-xl bg-white shadow-sm">
-              <label class="text-xs font-bold text-slate-600 uppercase tracking-wide block mb-1.5">Fecha de Compra</label>
+              <label class="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-1.5">Fecha de Compra</label>
               <input
                 v-model="fechaCompraNueva"
                 type="date"
-                class="form-force-input px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white text-slate-800 outline-none focus:border-emerald-500 font-medium"
+                class="form-force-input px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white text-slate-800 outline-none focus:border-slate-900 font-medium"
               />
             </div>
             <div class="p-3.5 border border-slate-200 rounded-xl bg-white shadow-sm flex items-center justify-between">
-              <span class="text-xs font-bold text-slate-600 uppercase tracking-wide">Monto Total Estimado</span>
-              <span class="text-2xl font-black text-emerald-600">${{ totalCompraNueva }}</span>
+              <span class="text-xs font-bold text-slate-700 uppercase tracking-wide">Monto Total Estimado</span>
+              <span class="text-2xl font-black text-slate-900">${{ totalCompraNueva }}</span>
             </div>
           </div>
 
@@ -146,7 +145,7 @@
                 <button
                   type="button"
                   @click="abrirSelector(i)"
-                  class="form-force-button h-10 flex items-center justify-between px-3 rounded-lg border border-slate-300 bg-white hover:border-emerald-500 text-slate-800 text-left cursor-pointer shadow-sm"
+                  class="form-force-button h-10 flex items-center justify-between px-3 rounded-lg border border-slate-300 bg-white hover:border-slate-900 text-slate-800 text-left cursor-pointer shadow-sm transition"
                 >
                   <span class="truncate text-sm font-medium">
                     {{ getProductoNombre(d.producto_id) || 'Seleccionar producto...' }}
@@ -164,7 +163,7 @@
                     type="number"
                     min="1"
                     placeholder="1"
-                    class="form-force-input h-10 px-3 border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 outline-none focus:border-emerald-500"
+                    class="form-force-input h-10 px-3 border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 outline-none focus:border-slate-900"
                   />
                 </div>
                 <div>
@@ -174,7 +173,7 @@
                     type="number"
                     min="1"
                     placeholder="1"
-                    class="form-force-input h-10 px-3 border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 outline-none focus:border-emerald-500"
+                    class="form-force-input h-10 px-3 border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 outline-none focus:border-slate-900"
                   />
                 </div>
               </div>
@@ -190,7 +189,7 @@
                     step="0.01"
                     min="0"
                     placeholder="0.00"
-                    class="form-force-input h-10 pl-7 pr-3 border border-slate-300 rounded-lg text-sm font-bold text-emerald-600 outline-none focus:border-emerald-500"
+                    class="form-force-input h-10 pl-7 pr-3 border border-slate-300 rounded-lg text-sm font-bold text-slate-900 outline-none focus:border-slate-900"
                   />
                 </div>
               </div>
@@ -203,7 +202,7 @@
                     v-model="d.codigo_lote"
                     type="text"
                     placeholder="Ej: LOTE-123"
-                    class="form-force-input h-10 px-3 border border-slate-300 rounded-lg text-sm bg-white text-slate-800 outline-none focus:border-emerald-500"
+                    class="form-force-input h-10 px-3 border border-slate-300 rounded-lg text-sm bg-white text-slate-800 outline-none focus:border-slate-900"
                   />
                 </div>
                 <div>
@@ -211,7 +210,7 @@
                   <input
                     v-model="d.fecha_expiracion"
                     type="date"
-                    class="form-force-input h-10 px-3 border border-slate-300 rounded-lg text-sm bg-white text-slate-700 outline-none focus:border-emerald-500"
+                    class="form-force-input h-10 px-3 border border-slate-300 rounded-lg text-sm bg-white text-slate-700 outline-none focus:border-slate-900"
                   />
                 </div>
               </div>
@@ -220,7 +219,7 @@
               <div class="pt-3 border-t border-slate-200 flex items-center justify-between bg-slate-50 -mx-4 -mb-4 p-3.5 rounded-b-xl">
                 <div>
                   <span class="text-[10px] text-slate-400 font-bold uppercase block tracking-wider">Subtotal Ítem</span>
-                  <span class="text-lg font-black text-slate-800">
+                  <span class="text-lg font-black text-slate-900">
                     ${{ ((d.cantidad || 0) * (d.precio_compra || 0)).toFixed(2) }}
                   </span>
                 </div>
@@ -228,7 +227,7 @@
                 <button 
                   type="button"
                   @click="remove(i)" 
-                  class="h-9 px-3.5 inline-flex items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition cursor-pointer text-xs font-bold"
+                  class="h-9 px-3.5 inline-flex items-center justify-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 transition cursor-pointer text-xs font-bold"
                 >
                   <i class="bi bi-trash text-sm"></i>
                   <span>Eliminar</span>
@@ -242,9 +241,9 @@
           <button
             @click="add"
             type="button"
-            class="w-full py-3.5 rounded-xl border-2 border-dashed border-slate-300 bg-white hover:bg-emerald-50/50 hover:border-emerald-400 text-xs font-bold text-slate-700 transition flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+            class="w-full py-3.5 rounded-xl border-2 border-dashed border-slate-300 bg-white hover:bg-slate-100 hover:border-slate-800 text-xs font-bold text-slate-800 transition flex items-center justify-center gap-2 cursor-pointer shadow-sm"
           >
-            <i class="bi bi-plus-circle-fill text-base text-emerald-600"></i> Agregar otro producto
+            <i class="bi bi-plus-circle-fill text-base text-slate-900"></i> Agregar otro producto
           </button>
         </div>
 
@@ -265,7 +264,7 @@
             <button
               @click="guardar"
               :disabled="cargando"
-              class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white shadow transition flex items-center gap-1.5 cursor-pointer"
+              class="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-xs font-bold text-white shadow-md transition flex items-center gap-1.5 cursor-pointer active:bg-slate-950"
             >
               <i v-if="!cargando" class="bi bi-check-lg text-sm"></i>
               {{ cargando ? 'Guardando...' : (modoEdicion ? 'Actualizar Compra' : 'Guardar Compra') }}
@@ -276,11 +275,11 @@
     </div>
 
     <!-- MODAL SELECTOR DE PRODUCTO -->
-    <div v-if="modalProductos" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div v-if="modalProductos" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden">
-        <div class="px-5 py-3 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-          <h3 class="font-bold text-slate-800 text-xs uppercase tracking-wider">Catálogo de Productos</h3>
-          <button class="text-slate-400 hover:text-slate-700 cursor-pointer" @click="modalProductos = false">
+        <div class="px-5 py-3.5 border-b border-slate-200 flex justify-between items-center bg-slate-900 text-white">
+          <h3 class="font-bold text-xs uppercase tracking-wider">Catálogo de Productos</h3>
+          <button class="text-slate-300 hover:text-white cursor-pointer" @click="modalProductos = false">
             <i class="bi bi-x-lg text-xs"></i>
           </button>
         </div>
@@ -289,7 +288,7 @@
             <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
             <input
               v-model="busqueda"
-              class="w-full pl-8 pr-3 py-2 border border-slate-300 rounded-xl text-xs text-slate-800 outline-none focus:border-emerald-500"
+              class="w-full pl-8 pr-3 py-2 border border-slate-300 rounded-xl text-xs text-slate-800 outline-none focus:border-slate-900"
               placeholder="Buscar por nombre..."
             />
           </div>
@@ -298,10 +297,10 @@
               v-for="p in productosFiltrados"
               :key="p.id"
               @click="seleccionarProducto(p)"
-              class="p-2.5 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer hover:border-emerald-500 hover:bg-emerald-50/50 transition flex justify-between items-center"
+              class="p-2.5 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer hover:border-slate-900 hover:bg-slate-100 transition flex justify-between items-center"
             >
               <div>
-                <p class="font-bold text-slate-800 text-xs">{{ p.nombre }}</p>
+                <p class="font-bold text-slate-900 text-xs">{{ p.nombre }}</p>
                 <p class="text-[10px] text-slate-500">Unidad: {{ p.unidad_medida?.nombre || 'pieza' }}</p>
               </div>
               <span class="text-[10px] bg-white text-slate-700 font-semibold px-2 py-0.5 rounded-md border border-slate-200">

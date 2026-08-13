@@ -30,7 +30,7 @@
         <input
           v-model="search"
           type="text"
-          placeholder="Buscar por ID..."
+          placeholder="Buscar por ID, nombre, email o teléfono..."
           class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium box-border"
         />
       </div>
@@ -54,10 +54,13 @@
     <!-- Tabla de Usuarios -->
     <div class="bg-white rounded-2xl sm:rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden w-full max-w-full">
       <div class="overflow-x-auto w-full">
-        <table class="w-full min-w-[500px] table-fixed">
+        <table class="w-full min-w-[700px] table-fixed">
           <thead>
             <tr class="bg-slate-100/70 border-b border-slate-200 text-slate-700 text-xs font-black uppercase tracking-wider">
-              <th class="px-4 py-3 sm:px-6 sm:py-4 text-left w-20 sm:w-24">ID</th>
+              <th class="px-4 py-3 sm:px-6 sm:py-4 text-left w-16 sm:w-20">ID</th>
+              <th class="px-4 py-3 sm:px-6 sm:py-4 text-left">Usuario / Nombre</th>
+              <th class="px-4 py-3 sm:px-6 sm:py-4 text-left">Email</th>
+              <th class="px-4 py-3 sm:px-6 sm:py-4 text-left">Teléfono</th>
               <th class="px-4 py-3 sm:px-6 sm:py-4 text-left">Rol</th>
               <th class="px-4 py-3 sm:px-6 sm:py-4 text-center w-28 sm:w-32">Estado</th>
               <th class="px-4 py-3 sm:px-6 sm:py-4 text-right w-36 sm:w-40">Acciones</th>
@@ -73,6 +76,21 @@
               <!-- ID -->
               <td class="px-4 py-3 sm:px-6 sm:py-4 font-bold text-slate-800 truncate">
                 #{{ u.id }}
+              </td>
+
+              <!-- Nombre y Apellido -->
+              <td class="px-4 py-3 sm:px-6 sm:py-4 font-bold text-slate-800 truncate">
+                {{ u.name }} {{ u.apellido }}
+              </td>
+
+              <!-- Email -->
+              <td class="px-4 py-3 sm:px-6 sm:py-4 text-slate-600 text-sm truncate">
+                {{ u.email || '—' }}
+              </td>
+
+              <!-- Teléfono -->
+              <td class="px-4 py-3 sm:px-6 sm:py-4 text-slate-600 text-sm truncate">
+                {{ u.telefono || '—' }}
               </td>
 
               <!-- Rol -->
@@ -125,7 +143,7 @@
 
             <!-- Estado Vacío -->
             <tr v-if="usuariosFiltrados.length === 0">
-              <td colspan="4" class="py-12 sm:py-16 text-center text-slate-400">
+              <td colspan="7" class="py-12 sm:py-16 text-center text-slate-400">
                 <i class="bi bi-people text-3xl sm:text-4xl block mb-2 opacity-50"></i>
                 <p class="font-medium text-xs sm:text-sm">No se encontraron usuarios registrados.</p>
               </td>
@@ -149,7 +167,7 @@
               <h2 class="text-base sm:text-lg font-extrabold leading-none truncate">
                 {{ editando ? 'Editar Usuario' : 'Nuevo Usuario' }}
               </h2>
-              <p class="text-sky-200/80 text-[11px] sm:text-xs mt-1 truncate">Asigna las credenciales y el rol</p>
+              <p class="text-sky-200/80 text-[11px] sm:text-xs mt-1 truncate">Asigna los datos, credenciales y el rol</p>
             </div>
           </div>
 
@@ -163,6 +181,54 @@
 
         <!-- Modal Body -->
         <div class="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1 w-full box-border">
+          <!-- Campo Nombre -->
+          <div class="min-w-0 w-full">
+            <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5">Nombre</label>
+            <input
+              v-model="form.name"
+              type="text"
+              placeholder="Ej. Juan"
+              class="w-full max-w-full px-3.5 py-2.5 sm:px-4 sm:py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium box-border"
+            />
+            <p v-if="errores.name" class="text-red-500 text-xs font-semibold mt-1 break-words">{{ errores.name }}</p>
+          </div>
+
+          <!-- Campo Apellido -->
+          <div class="min-w-0 w-full">
+            <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5">Apellido</label>
+            <input
+              v-model="form.apellido"
+              type="text"
+              placeholder="Ej. Pérez"
+              class="w-full max-w-full px-3.5 py-2.5 sm:px-4 sm:py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium box-border"
+            />
+            <p v-if="errores.apellido" class="text-red-500 text-xs font-semibold mt-1 break-words">{{ errores.apellido }}</p>
+          </div>
+
+          <!-- Campo Email -->
+          <div class="min-w-0 w-full">
+            <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5">Correo Electrónico</label>
+            <input
+              v-model="form.email"
+              type="email"
+              placeholder="correo@ejemplo.com"
+              class="w-full max-w-full px-3.5 py-2.5 sm:px-4 sm:py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium box-border"
+            />
+            <p v-if="errores.email" class="text-red-500 text-xs font-semibold mt-1 break-words">{{ errores.email }}</p>
+          </div>
+
+          <!-- Campo Teléfono -->
+          <div class="min-w-0 w-full">
+            <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5">Teléfono</label>
+            <input
+              v-model="form.telefono"
+              type="text"
+              placeholder="Ej. 7000-0000"
+              class="w-full max-w-full px-3.5 py-2.5 sm:px-4 sm:py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium box-border"
+            />
+            <p v-if="errores.telefono" class="text-red-500 text-xs font-semibold mt-1 break-words">{{ errores.telefono }}</p>
+          </div>
+
           <!-- Campo Contraseña -->
           <div class="min-w-0 w-full">
             <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5">Contraseña</label>
@@ -219,6 +285,7 @@
     </div>
   </div>
 </template>
+
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import Swal from 'sweetalert2'
@@ -235,6 +302,10 @@ const loading = ref(false)
 
 const formVacio = () => ({
   id: null,
+  name: '',
+  apellido: '',
+  email: '',
+  telefono: '',
   password: '',
   rol_id: '',
   activo: true
@@ -254,8 +325,15 @@ const usuariosFiltrados = computed(() => {
   const query = search.value.toLowerCase().trim()
 
   return usuarios.value.filter(u => {
-    const matchQuery = !query || u.id.toString().includes(query)
+    const matchId = u.id.toString().includes(query)
+    const matchName = u.name ? u.name.toLowerCase().includes(query) : false
+    const matchApellido = u.apellido ? u.apellido.toLowerCase().includes(query) : false
+    const matchEmail = u.email ? u.email.toLowerCase().includes(query) : false
+    const matchTelefono = u.telefono ? u.telefono.toLowerCase().includes(query) : false
+
+    const matchQuery = !query || matchId || matchName || matchApellido || matchEmail || matchTelefono
     const matchRol = filtroRol.value === '' || u.rol_id == filtroRol.value
+
     return matchQuery && matchRol
   })
 })
@@ -274,6 +352,21 @@ const cerrar = () => {
 const validar = () => {
   errores.value = {}
   let ok = true
+
+  if (!form.value.name) {
+    errores.value.name = 'El nombre es obligatorio'
+    ok = false
+  }
+
+  if (!form.value.apellido) {
+    errores.value.apellido = 'El apellido es obligatorio'
+    ok = false
+  }
+
+  if (!form.value.email) {
+    errores.value.email = 'El correo electrónico es obligatorio'
+    ok = false
+  }
 
   if (!editando.value && (!form.value.password || form.value.password.length < 8)) {
     errores.value.password = 'La contraseña debe tener mínimo 8 caracteres'
@@ -319,6 +412,10 @@ const guardar = async () => {
 const editar = (u) => {
   form.value = {
     id: u.id,
+    name: u.name || '',
+    apellido: u.apellido || '',
+    email: u.email || '',
+    telefono: u.telefono || '',
     password: '',
     rol_id: u.rol_id || '',
     activo: Boolean(u.activo)

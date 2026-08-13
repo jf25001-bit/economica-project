@@ -50,3 +50,4 @@ Route::apiResource('detalleventas', DetalleVentaController::class);
 Route::apiResource('lotes', LoteController::class);
 Route::apiResource('imagenes', ImagenController::class);
 Route::apiResource('unidades-medida', UnidadMedidaController::class);
+Route::apiResource('compras', CompraController::class);

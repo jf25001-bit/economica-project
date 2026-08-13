@@ -26,6 +26,7 @@ class UserController extends Controller
         'name' => 'required|string|max:255',
         'apellido' => 'required|string|max:255',
         'email' => 'required|email|max:255|unique:users,email',
+        'telefono' => 'nullable|string|max:20|unique:users,telefono',
         'password' => 'required|string|min:8',
         'rol_id' => 'required|exists:rols,id',
     ]);
@@ -34,6 +35,7 @@ class UserController extends Controller
         'name' => $request->name,
         'apellido' => $request->apellido,
         'email' => $request->email,
+        'telefono' => $request->telefono,
         'password' => bcrypt($request->password),
         'rol_id' => $request->rol_id,
         'activo' => true
@@ -72,6 +74,7 @@ class UserController extends Controller
         'name' => 'required|string|max:255',
         'apellido' => 'required|string|max:255',
         'email' => 'required|email|max:255|unique:users,email,' . $id,
+        'telefono' => 'nullable|string|max:20|unique:users,telefono,' . $id,
         'password' => 'nullable|string|min:8',
         'rol_id' => 'required|exists:rols,id',
         'activo' => 'required|boolean'
@@ -81,6 +84,7 @@ class UserController extends Controller
         'name' => $request->name,
         'apellido' => $request->apellido,
         'email' => $request->email,
+        'telefono' => $request->telefono,
         'rol_id' => $request->rol_id,
         'activo' => $request->activo
     ];
