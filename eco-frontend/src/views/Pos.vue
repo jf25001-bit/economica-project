@@ -89,7 +89,7 @@
       <!-- Tabla del Carrito y Cierre de Venta (7 cols) -->
       <div class="lg:col-span-7 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col overflow-hidden min-w-0">
         
-        <!-- Listado con altura FIJA (h-[340px]) -->
+        <!-- Listado con altura FIJA -->
         <div class="h-[340px] overflow-y-auto p-4 custom-scrollbar bg-white flex flex-col">
           <table class="w-full border-collapse">
             <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 text-[11px] font-black uppercase tracking-wider text-slate-500 z-10">
@@ -128,7 +128,7 @@
                 </td>
               </tr>
 
-              <!-- Estado vacío centrado en el área fija -->
+              <!-- Estado vacío centrado -->
               <tr v-if="carrito.length === 0" class="h-[250px]">
                 <td colspan="5" class="text-center text-slate-400 align-middle">
                   <div class="flex flex-col items-center justify-center h-full">
@@ -141,75 +141,132 @@
           </table>
         </div>
 
-        <!-- Panel de Totales, Efectivo y Cambio -->
+        <!-- Panel de Total y Botón para Abrir Modal -->
         <div class="p-4 bg-slate-50/80 border-t border-slate-200 flex flex-col gap-4">
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            
-            <!-- Total -->
-            <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
-              <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1">Total a Cobrar</span>
-              <span class="text-2xl font-black text-slate-900">
-                ${{ totalCalculado.toFixed(2) }}
-              </span>
-            </div>
-
-            <!-- Efectivo Recibido -->
-            <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
-              <label class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1">Efectivo Recibido</label>
-              <input
-                v-model.number="efectivoRecibido"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                class="w-full font-black text-lg text-slate-800 focus:outline-none focus:border-slate-800 focus:ring-2 focus:ring-slate-800/10 border border-slate-200 rounded-lg px-2.5 py-1 bg-slate-50/50"
-              />
-            </div>
-
-            <!-- Cambio -->
-            <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
-              <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1">Cambio a Dar</span>
-              <span 
-                class="text-2xl font-black"
-                :class="cambioCalculado >= 0 ? 'text-emerald-600' : 'text-rose-600'"
-              >
-                ${{ cambioCalculado.toFixed(2) }}
-              </span>
-            </div>
-
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-slate-500">Total a Cobrar</span>
+            <span class="text-3xl font-black text-slate-900">
+              ${{ totalCalculado.toFixed(2) }}
+            </span>
           </div>
 
           <button
-            @click="finalizarVenta"
-            :disabled="guardandoVenta || carrito.length === 0"
-            class="bg-slate-900 hover:bg-slate-800 active:bg-slate-950 disabled:opacity-50 text-white w-full py-3.5 rounded-xl font-bold text-base shadow-sm flex items-center justify-center gap-3 transition-all cursor-pointer"
+            @click="abrirModalCobro"
+            :disabled="carrito.length === 0"
+            class="bg-slate-900 hover:bg-slate-800 active:bg-slate-950 disabled:opacity-50 text-white w-full py-4 rounded-xl font-bold text-base shadow-sm flex items-center justify-center gap-3 transition-all cursor-pointer"
           >
-            <span v-if="guardandoVenta" class="animate-spin inline-block w-5 h-5 border-2 border-white border-t-transparent rounded-full"></span>
-            <i v-else class="bi bi-credit-card-fill text-lg"></i>
-            <span>{{ guardandoVenta ? 'Procesando...' : 'Completar Venta' }}</span>
+            <i class="bi bi-cash-stack text-xl"></i>
+            <span>Ir a Cobrar</span>
           </button>
         </div>
 
       </div>
 
     </div>
+
+    <!-- MODAL DE COBRO CORREGIDO -->
+    <div 
+      v-if="mostrarModalCobro" 
+      class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    >
+      <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col transition-all">
+        
+        <!-- Modal Header -->
+        <div class="p-5 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+          <div class="flex items-center gap-3">
+            <i class="bi bi-wallet2 text-xl text-slate-200"></i>
+            <h3 class="font-bold text-lg text-white tracking-tight">Procesar Cobro</h3>
+          </div>
+          <button 
+            @click="cerrarModalCobro" 
+            class="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition cursor-pointer flex items-center justify-center"
+          >
+            <i class="bi bi-x-lg text-lg"></i>
+          </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-6 flex flex-col gap-5">
+          
+          <!-- Resumen de Total -->
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center shadow-inner">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-slate-500 block mb-1">Monto Total</span>
+            <span class="text-4xl font-black text-slate-900">${{ totalCalculado.toFixed(2) }}</span>
+          </div>
+
+          <!-- Input Efectivo Recibido -->
+          <div class="flex flex-col gap-2">
+            <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-500">
+              Efectivo Recibido
+            </label>
+            <div class="relative w-full">
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 font-black text-slate-400 text-xl pointer-events-none">$</span>
+              <input
+                ref="inputEfectivoModal"
+                v-model.number="efectivoRecibido"
+                @keyup.enter="confirmarYRegistrarVenta"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                class="w-full box-border pl-9 pr-4 py-3 font-black text-2xl text-slate-900 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:bg-white focus:border-slate-800 focus:ring-2 focus:ring-slate-800/10 transition-all"
+              />
+            </div>
+          </div>
+
+          <!-- Desglose de Cambio -->
+          <div 
+            class="p-4 rounded-xl border flex items-center justify-between transition-colors" 
+            :class="cambioCalculado >= 0 ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-rose-50 border-rose-200 text-rose-900'"
+          >
+            <span class="text-xs font-extrabold uppercase tracking-wider">Cambio a Entregar</span>
+            <span class="text-2xl font-black">${{ cambioCalculado.toFixed(2) }}</span>
+          </div>
+
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="p-5 bg-slate-50 border-t border-slate-200 flex items-center gap-3">
+          <button
+            @click="cerrarModalCobro"
+            class="w-1/3 py-3 px-4 rounded-xl font-bold text-sm text-slate-700 bg-white border border-slate-300 hover:bg-slate-100 transition cursor-pointer shadow-sm"
+          >
+            Cancelar
+          </button>
+          
+          <button
+            @click="confirmarYRegistrarVenta"
+            :disabled="guardandoVenta || efectivoRecibido < totalCalculado"
+            class="w-2/3 py-3 px-4 bg-slate-900 hover:bg-slate-800 active:bg-slate-950 disabled:opacity-40 text-white rounded-xl font-bold text-sm shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
+          >
+            <span v-if="guardandoVenta" class="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
+            <i v-else class="bi bi-check-circle-fill"></i>
+            <span>{{ guardandoVenta ? 'Procesando...' : 'Confirmar Venta' }}</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import axios from 'axios'
 import Swal from 'sweetalert2'
 
 const productosCatalogo = ref([])
 const guardandoVenta = ref(false)
 const inputCodigoBarras = ref(null)
+const inputEfectivoModal = ref(null)
 
 const nombreCliente = ref('Consumidor Final')
 const codigoInput = ref('')
 const productoManualSeleccionado = ref('')
 const efectivoRecibido = ref(0)
 const carrito = ref([])
+const mostrarModalCobro = ref(false)
 
 const cargarCatalogo = async () => {
   try {
@@ -233,6 +290,33 @@ const totalCalculado = computed(() => {
 const cambioCalculado = computed(() => {
   return (Number(efectivoRecibido.value) || 0) - totalCalculado.value
 })
+
+const abrirModalCobro = () => {
+  if (carrito.value.length === 0) return
+  efectivoRecibido.value = null
+  mostrarModalCobro.value = true
+  
+  nextTick(() => {
+    if (inputEfectivoModal.value) {
+      inputEfectivoModal.value.focus()
+      inputEfectivoModal.value.select()
+    }
+  })
+}
+
+const cerrarModalCobro = () => {
+  mostrarModalCobro.value = false
+  enfocarEscaner()
+}
+
+const manejarTeclasGlobales = (e) => {
+  if (e.key === '`') {
+    e.preventDefault()
+    if (!mostrarModalCobro.value) {
+      abrirModalCobro()
+    }
+  }
+}
 
 const agregarPorCodigo = () => {
   const cod = codigoInput.value.trim()
@@ -326,10 +410,11 @@ const resetearVenta = () => {
   productoManualSeleccionado.value = ''
   efectivoRecibido.value = 0
   carrito.value = []
+  mostrarModalCobro.value = false
   enfocarEscaner()
 }
 
-const finalizarVenta = async () => {
+const confirmarYRegistrarVenta = async () => {
   if (carrito.value.length === 0) return
 
   if (efectivoRecibido.value < totalCalculado.value) {
@@ -358,6 +443,8 @@ const finalizarVenta = async () => {
   try {
     await axios.post('http://127.0.0.1:8000/api/ventas', datosVenta)
     
+    mostrarModalCobro.value = false
+
     await Swal.fire({
       icon: 'success',
       title: '¡Venta realizada!',
@@ -386,5 +473,20 @@ const finalizarVenta = async () => {
 onMounted(() => {
   cargarCatalogo()
   enfocarEscaner()
+  window.addEventListener('keydown', manejarTeclasGlobales)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', manejarTeclasGlobales)
 })
 </script>
+
+<style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+</style>
