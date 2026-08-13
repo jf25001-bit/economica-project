@@ -1,72 +1,74 @@
 <template>
-  <div class="p-6">
-    <div class="flex items-center justify-between mb-6">
+  <div class="p-4 sm:p-6 w-full max-w-full overflow-x-hidden box-border">
+    
+    <!-- Encabezado -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
       <div>
-        <h1 class="text-3xl font-bold text-gray-800">Inventario</h1>
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">Inventario</h1>
       </div>
 
       <button
         @click="cargarInventario"
         :disabled="cargando"
-        class="bg-[#2D3748] hover:bg-[#1A202C] text-white px-6 py-3 rounded-2xl shadow-md transition font-medium disabled:opacity-60 flex items-center"
+        class="bg-[#2D3748] hover:bg-[#1A202C] text-white px-5 py-2.5 sm:px-6 sm:py-3 rounded-2xl shadow-md transition font-medium disabled:opacity-60 flex items-center justify-center cursor-pointer shrink-0"
       >
         <i class="bi bi-arrow-repeat mr-2 text-lg" :class="{ 'animate-spin': cargando }"></i>
-        {{ cargando ? 'Actualizando...' : 'Actualizar Stock' }}
+        <span>{{ cargando ? 'Actualizando...' : 'Actualizar Stock' }}</span>
       </button>
     </div>
 
-    <div class="bg-white rounded-2xl shadow-md p-4 mb-6">
-      <div class="relative">
+    <!-- Buscador -->
+    <div class="bg-white rounded-2xl shadow-md p-4 mb-6 w-full box-border">
+      <div class="relative w-full">
         <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
 
         <input
           v-model="busqueda"
           type="text"
           placeholder="Buscar en inventario..."
-          class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5B80B0]"
+          class="w-full max-w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5B80B0] box-border"
         />
       </div>
     </div>
 
-    <div class="bg-white rounded-2xl shadow-md overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full">
+    <!-- Tabla principal -->
+    <div class="bg-white rounded-2xl shadow-md overflow-hidden w-full max-w-full border border-gray-100">
+      <div class="overflow-x-auto w-full">
+        <table class="w-full min-w-[700px] table-fixed">
           <thead class="bg-gray-100">
-            <tr class="text-left text-gray-700">
-              <th class="px-6 py-4 font-semibold whitespace-nowrap">Codigo</th>
-              <th class="px-6 py-4 font-semibold whitespace-nowrap">Producto</th>
-              <th class="px-6 py-4 font-semibold whitespace-nowrap">Categoria</th>
-              <th class="px-6 py-4 font-semibold whitespace-nowrap">Stock Total</th>
-              <th class="px-6 py-4 font-semibold whitespace-nowrap">Lotes</th>
-              <th class="px-6 py-4 font-semibold whitespace-nowrap">Stock Minimo</th>
-              <th class="px-6 py-4 font-semibold whitespace-nowrap">Estado</th>
-              <th class="px-6 py-4 font-semibold text-right whitespace-nowrap">Detalle</th>
+            <tr class="text-left text-gray-700 text-xs sm:text-sm">
+              <th class="px-4 py-3 sm:px-6 sm:py-4 font-semibold w-28 whitespace-nowrap">Código</th>
+              <th class="px-4 py-3 sm:px-6 sm:py-4 font-semibold min-w-[150px]">Producto</th>
+              <th class="px-4 py-3 sm:px-6 sm:py-4 font-semibold w-32">Categoría</th>
+              <th class="px-4 py-3 sm:px-6 sm:py-4 font-semibold w-28 text-center whitespace-nowrap">Stock Total</th>
+              <th class="px-4 py-3 sm:px-6 sm:py-4 font-semibold w-24 text-center whitespace-nowrap">Lotes</th>
+              <th class="px-4 py-3 sm:px-6 sm:py-4 font-semibold w-28 text-center whitespace-nowrap">Stock Mínimo</th>
+              <th class="px-4 py-3 sm:px-6 sm:py-4 font-semibold w-32 text-center whitespace-nowrap">Estado</th>
+              <th class="px-4 py-3 sm:px-6 sm:py-4 font-semibold w-28 text-right whitespace-nowrap">Detalle</th>
             </tr>
           </thead>
 
-          <tbody>
+          <tbody class="divide-y divide-gray-100">
             <template
               v-for="item in inventarioFiltrado"
               :key="item.id"
             >
-              <tr class="border-t hover:bg-gray-50">
-                <td class="px-6 py-4 whitespace-nowrap">{{ item.codigo }}</td>
-                <td class="px-6 py-4 font-medium text-gray-800 whitespace-nowrap">
-                  {{ item.nombre }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">{{ item.categoria }}</td>
-                <td class="px-6 py-4 font-semibold whitespace-nowrap">{{ item.stock }}</td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span class="rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-600">
+              <tr class="hover:bg-gray-50/80 transition-colors">
+                <td class="px-4 py-3 sm:px-6 sm:py-4 font-mono text-xs sm:text-sm text-gray-600 truncate">{{ item.codigo }}</td>
+                <td class="px-4 py-3 sm:px-6 sm:py-4 font-medium text-gray-800 break-words text-sm">{{ item.nombre }}</td>
+                <td class="px-4 py-3 sm:px-6 sm:py-4 text-gray-600 break-words text-sm">{{ item.categoria }}</td>
+                <td class="px-4 py-3 sm:px-6 sm:py-4 font-semibold text-center whitespace-nowrap">{{ item.stock }}</td>
+                <td class="px-4 py-3 sm:px-6 sm:py-4 text-center whitespace-nowrap">
+                  <span class="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
                     {{ item.lotes.length }}
                   </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">{{ item.minimo }}</td>
+                <td class="px-4 py-3 sm:px-6 sm:py-4 text-center whitespace-nowrap text-sm">{{ item.minimo }}</td>
 
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="px-4 py-3 sm:px-6 sm:py-4 text-center whitespace-nowrap">
                   <span
                     :class="[
-                      'px-3 py-1 rounded-full text-sm font-medium',
+                      'px-2.5 py-1 rounded-full text-xs font-medium inline-block',
                       item.stock > item.minimo
                         ? 'bg-[#5B80B0]/10 text-[#5B80B0]'
                         : 'bg-amber-100 text-amber-700'
@@ -76,10 +78,10 @@
                   </span>
                 </td>
 
-                <td class="px-6 py-4 text-right whitespace-nowrap">
+                <td class="px-4 py-3 sm:px-6 sm:py-4 text-right whitespace-nowrap">
                   <button
                     type="button"
-                    class="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-600 transition hover:bg-gray-100 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                     :disabled="item.lotes.length === 0"
                     @click="alternarDetalle(item.id)"
                   >
@@ -89,48 +91,49 @@
                 </td>
               </tr>
 
+              <!-- Subtabla Lotes -->
               <tr
                 v-if="detalleAbierto === item.id"
-                class="bg-gray-50"
+                class="bg-gray-50/60"
               >
-                <td colspan="8" class="px-6 py-4">
-                  <div class="rounded-xl border border-gray-200 bg-white overflow-hidden">
-                    <div class="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+                <td colspan="8" class="p-3 sm:p-4">
+                  <div class="rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm w-full">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 px-4 py-3 bg-gray-50/50">
                       <div>
-                        <p class="text-sm font-semibold text-gray-700">Detalle de lotes en existencia</p>
-                        <p class="text-xs text-gray-500">Salida FIFO: primero se descuenta el lote con vencimiento mas cercano.</p>
+                        <p class="text-xs sm:text-sm font-semibold text-gray-700">Detalle de lotes en existencia</p>
+                        <p class="text-[11px] sm:text-xs text-gray-500">Salida FIFO: primero se descuenta el lote con vencimiento más cercano.</p>
                       </div>
-                      <span class="text-sm font-semibold text-[#5B80B0]">
+                      <span class="text-xs sm:text-sm font-semibold text-[#5B80B0] shrink-0">
                         Total: {{ item.stock }}
                       </span>
                     </div>
 
-                    <div class="overflow-x-auto">
-                      <table class="w-full">
+                    <div class="overflow-x-auto w-full">
+                      <table class="w-full min-w-[500px]">
                         <thead class="bg-gray-50">
-                          <tr class="text-left text-xs uppercase text-gray-500">
-                            <th class="px-4 py-3 font-semibold whitespace-nowrap">Orden FIFO</th>
-                            <th class="px-4 py-3 font-semibold whitespace-nowrap">Lote</th>
-                            <th class="px-4 py-3 font-semibold whitespace-nowrap">Cantidad Inicial</th>
-                            <th class="px-4 py-3 font-semibold whitespace-nowrap">Cantidad Actual</th>
-                            <th class="px-4 py-3 font-semibold whitespace-nowrap">Vencimiento</th>
+                          <tr class="text-left text-[11px] sm:text-xs uppercase text-gray-500">
+                            <th class="px-4 py-2.5 font-semibold whitespace-nowrap w-24">Orden FIFO</th>
+                            <th class="px-4 py-2.5 font-semibold whitespace-nowrap">Lote</th>
+                            <th class="px-4 py-2.5 font-semibold whitespace-nowrap text-center">Cantidad Inicial</th>
+                            <th class="px-4 py-2.5 font-semibold whitespace-nowrap text-center">Cantidad Actual</th>
+                            <th class="px-4 py-2.5 font-semibold whitespace-nowrap text-right">Vencimiento</th>
                           </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-gray-100">
                           <tr
                             v-for="(lote, index) in item.lotes"
                             :key="lote.id"
-                            class="border-t border-gray-100 text-sm text-gray-700"
+                            class="text-xs sm:text-sm text-gray-700 hover:bg-gray-50"
                           >
-                            <td class="px-4 py-3 whitespace-nowrap">
-                              <span class="rounded-full bg-[#5B80B0]/10 px-2.5 py-1 text-xs font-semibold text-[#5B80B0]">
-                                {{ index + 1 }}
+                            <td class="px-4 py-2.5 whitespace-nowrap">
+                              <span class="rounded-full bg-[#5B80B0]/10 px-2 py-0.5 text-xs font-semibold text-[#5B80B0]">
+                                #{{ index + 1 }}
                               </span>
                             </td>
-                            <td class="px-4 py-3 font-medium whitespace-nowrap">{{ lote.codigo_lote || 'Sin lote' }}</td>
-                            <td class="px-4 py-3 whitespace-nowrap">{{ lote.cantidad_inicial }}</td>
-                            <td class="px-4 py-3 font-semibold whitespace-nowrap">{{ lote.cantidad_actual }}</td>
-                            <td class="px-4 py-3 whitespace-nowrap">{{ formatearFecha(lote.fecha_expiracion) }}</td>
+                            <td class="px-4 py-2.5 font-mono text-xs font-medium whitespace-nowrap">{{ lote.codigo_lote || 'Sin lote' }}</td>
+                            <td class="px-4 py-2.5 whitespace-nowrap text-center">{{ lote.cantidad_inicial }}</td>
+                            <td class="px-4 py-2.5 font-semibold whitespace-nowrap text-center">{{ lote.cantidad_actual }}</td>
+                            <td class="px-4 py-2.5 whitespace-nowrap text-right text-gray-500">{{ formatearFecha(lote.fecha_expiracion) }}</td>
                           </tr>
                         </tbody>
                       </table>
@@ -140,14 +143,15 @@
               </tr>
             </template>
 
+            <!-- Estados -->
             <tr v-if="cargando">
-              <td colspan="8" class="text-center py-10 text-gray-400">
+              <td colspan="8" class="text-center py-10 text-gray-400 text-sm">
                 Cargando inventario...
               </td>
             </tr>
 
             <tr v-else-if="inventarioFiltrado.length === 0">
-              <td colspan="8" class="text-center py-10 text-gray-400 italic">
+              <td colspan="8" class="text-center py-10 text-gray-400 italic text-sm">
                 No hay productos en inventario.
               </td>
             </tr>
@@ -156,6 +160,7 @@
       </div>
     </div>
 
+    <!-- Error -->
     <div v-if="error" class="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
       {{ error }}
     </div>

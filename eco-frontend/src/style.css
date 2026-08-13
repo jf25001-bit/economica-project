@@ -1,6 +1,28 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 body {
   font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* RESETS Y PARCHES DE BORDES REDONDEADOS */
+*, ::before, ::after {
+  box-sizing: border-box;
+}
+
+/* Forzar que las tablas respeten los bordes redondeados del contenedor */
+.table-fix {
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+
+.table-fix th:first-child { border-top-left-radius: 0.75rem; }
+.table-fix th:last-child { border-top-right-radius: 0.75rem; }
+.table-fix tr:last-child td:first-child { border-bottom-left-radius: 0.75rem; }
+.table-fix tr:last-child td:last-child { border-bottom-right-radius: 0.75rem; }
+
+/* Evitar desbordamiento en modales */
+.modal-clip {
+  clip-path: inset(0 rounded 1rem);
 }
