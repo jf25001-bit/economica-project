@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Venta;
 use App\Models\DetalleVenta;
 use App\Models\Producto;
+use App\Models\Lote;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
@@ -51,27 +52,55 @@ class VentaController extends Controller
                     ], 404);
                 }
 
-                if ($producto->stock < $item['cantidad']) {
+                $cantidadSolicitada = (int) $item['cantidad'];
+                $stockPorLotes = Lote::where('producto_id', $producto->id)
+                    ->where('cantidad_actual', '>', 0)
+                    ->sum('cantidad_actual');
+                $stockDisponible = $stockPorLotes > 0
+                    ? $stockPorLotes
+                    : $producto->stock;
+
+                if ($stockDisponible < $cantidadSolicitada) {
 
                     DB::rollBack();
 
                     return response()->json([
-                        'message' => "Stock insuficiente para el producto: {$producto->nombre}. Disponible: {$producto->stock}"
+                        'message' => "Stock insuficiente para el producto: {$producto->nombre}. Disponible: {$stockDisponible}"
                     ], 400);
                 }
 
-                $subtotal = $producto->precio_venta * $item['cantidad'];
+                $subtotal = $producto->precio_venta * $cantidadSolicitada;
                 $totalVenta += $subtotal;
 
                 DetalleVenta::create([
                     'venta_id' => $venta->id,
                     'producto_id' => $producto->id,
-                    'cantidad' => $item['cantidad'],
+                    'cantidad' => $cantidadSolicitada,
                     'precio_unitario' => $producto->precio_venta,
                     'subtotal' => $subtotal
                 ]);
 
-                $producto->decrement('stock', $item['cantidad']);
+                if ($stockPorLotes > 0) {
+                    $cantidadPendiente = $cantidadSolicitada;
+                    $lotes = Lote::where('producto_id', $producto->id)
+                        ->where('cantidad_actual', '>', 0)
+                        ->orderByRaw('fecha_expiracion IS NULL, fecha_expiracion ASC')
+                        ->orderBy('created_at')
+                        ->lockForUpdate()
+                        ->get();
+
+                    foreach ($lotes as $lote) {
+                        if ($cantidadPendiente <= 0) {
+                            break;
+                        }
+
+                        $cantidadLote = min($lote->cantidad_actual, $cantidadPendiente);
+                        $lote->decrement('cantidad_actual', $cantidadLote);
+                        $cantidadPendiente -= $cantidadLote;
+                    }
+                }
+
+                $producto->decrement('stock', $cantidadSolicitada);
             }
 
             $venta->update([

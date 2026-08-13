@@ -42,4 +42,9 @@ class Producto extends Model
     {
         return $this->belongsTo(UnidadMedida::class, 'unidad_medida_id');
     }
+
+    public function lotes()
+    {
+        return $this->hasMany(Lote::class, 'producto_id');
+    }
 }
