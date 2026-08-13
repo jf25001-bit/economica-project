@@ -1,44 +1,52 @@
 <template>
-  <div class="main-interface-container p-4 lg:p-6">
-    <div class="top-strict-navbar flex items-center justify-between mb-6 bg-white rounded-2xl shadow-md p-4">
-      <div class="search-wrapper relative flex items-center max-w-md w-full">
-        <i class="bi bi-search search-icon absolute left-4 text-gray-400"></i>
-        <input
-          v-model="buscar"
-          type="text"
-          placeholder="Buscar producto por nombre o SKU..."
-          class="search-input-field w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#47B5AC]"
-        />
-      </div>
-      
-      <div class="top-right-actions flex items-center gap-4">
-        <button class="bg-[#47B5AC] hover:bg-[#47B5AC] text-white px-5 py-3 rounded-xl shadow-md transition font-medium" @click="abrirModalForm">
-          <i class="bi bi-plus-lg mr-2"></i> Nuevo Producto
-        </button>
+  <div class="main-interface-container box-border w-full max-w-full overflow-x-hidden p-4 lg:p-6 bg-[#f8fafc]">
+    <!-- BARRA SUPERIOR (Alineada estrictamente al ancho visible) -->
+    <div class="top-strict-navbar w-full box-border bg-white rounded-2xl shadow-sm p-4 border border-gray-100 mb-6">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 w-full">
+        <!-- Búsqueda -->
+        <div class="search-wrapper relative flex items-center w-full sm:max-w-md">
+          <i class="bi bi-search search-icon absolute left-4 text-gray-400"></i>
+          <input
+            v-model="buscar"
+            type="text"
+            placeholder="Buscar producto por nombre o SKU..."
+            class="search-input-field w-full pl-12 pr-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm bg-gray-50/50"
+          />
+        </div>
+        
+        <!-- Botón Acción -->
+        <div class="top-right-actions flex items-center shrink-0">
+          <button class="bg-[#1a233a] hover:bg-[#111827] text-white px-5 py-2.5 rounded-xl shadow-sm transition-all font-medium text-sm flex items-center justify-center gap-2 whitespace-nowrap" @click="abrirModalForm">
+            <i class="bi bi-plus-lg"></i>
+            <span>Nuevo Producto</span>
+          </button>
+        </div>
       </div>
     </div>
 
-    <div class="content-layout-flex flex flex-col xl:flex-row gap-5 items-start w-full">
-      <div class="left-content-panel w-full xl:flex-1 xl:min-w-0 bg-white rounded-2xl shadow-md p-6">
+    <!-- CONTENEDOR PRINCIPAL FLEX / GRID (Con min-w-0 para evitar desbordes) -->
+    <div class="flex flex-col xl:flex-row gap-5 w-full max-w-full min-w-0">
+      <!-- PANEL IZQUIERDO (TABLA) -->
+      <div class="left-content-panel flex-1 min-w-0 w-full bg-white rounded-2xl shadow-sm p-4 sm:p-6 border border-gray-100">
         <div class="section-header-row flex flex-col 2xl:flex-row 2xl:justify-between 2xl:items-center gap-4 mb-6">
           <div class="title-block">
-            <h1 class="text-2xl font-bold text-gray-800">Gestión de Productos</h1>
-            <p class="text-sm text-gray-500">Vista General y Listado ({{ total }} productos encontrados)</p>
+            <h1 class="text-2xl font-bold text-[#1e293b]">Gestión de Productos</h1>
+            <p class="text-xs font-medium text-gray-400 mt-1">Vista General y Listado ({{ total }} productos encontrados)</p>
           </div>
 
           <div class="filter-controls-left flex flex-wrap gap-3 2xl:justify-end">
-            <select v-model="filtroCategoria" class="px-4 py-2 border border-gray-300 rounded-xl text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-[#47B5AC]/20">
+            <select v-model="filtroCategoria" class="px-4 py-2 border border-gray-200 rounded-xl text-xs bg-gray-50 text-gray-600 outline-none focus:ring-2 focus:ring-blue-600">
               <option value="">Todas las categorías</option>
               <option v-for="cat in categorias" :key="cat.id" :value="cat.id">{{ cat.nombre }}</option>
             </select>
 
-            <select v-model="filtroEstado" class="px-4 py-2 border border-gray-300 rounded-xl text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-[#47B5AC]/20">
+            <select v-model="filtroEstado" class="px-4 py-2 border border-gray-200 rounded-xl text-xs bg-gray-50 text-gray-600 outline-none focus:ring-2 focus:ring-blue-600">
               <option value="">Todos los estados</option>
               <option value="disponible">Disponible</option>
               <option value="bajo_stock">Bajo Stock</option>
             </select>
 
-            <select v-model="filtroOrdenar" class="px-4 py-2 border border-gray-300 rounded-xl text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-[#47B5AC]/20">
+            <select v-model="filtroOrdenar" class="px-4 py-2 border border-gray-200 rounded-xl text-xs bg-gray-50 text-gray-600 outline-none focus:ring-2 focus:ring-blue-600">
               <option value="recientes">Recientes</option>
               <option value="nombre">Nombre</option>
               <option value="precio">Precio</option>
@@ -46,100 +54,104 @@
           </div>
         </div>
 
-        <div class="table-card-wrapper border border-gray-200 rounded-xl overflow-hidden">
-          <div class="overflow-x-auto">
-          <table class="w-full min-w-[980px] text-left border-collapse">
-            <thead class="bg-gray-100 border-b border-gray-200">
-              <tr class="text-gray-700 text-sm font-semibold">
-                <th class="px-6 py-4" style="width: 14%;">SKU / Código</th>
-                <th class="px-6 py-4" style="width: 10%;">Imagen</th>
-                <th class="px-6 py-4" style="width: 20%;">Producto</th>
-                <th class="px-6 py-4" style="width: 18%;">Categoría / Subcategoría</th>
-                <th class="px-6 py-4" style="width: 12%;">Estado</th>
-                <th class="px-6 py-4" style="width: 12%;">Stock / Unidad</th>
-                <th class="px-6 py-4" style="width: 10%;">Precio Venta</th>
-                <th class="px-6 py-4 text-right" style="width: 10%;">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="producto in productosFiltrados" :key="producto.id" class="border-t border-gray-200 hover:bg-gray-50 text-sm">
-                <td class="px-6 py-4 font-mono text-gray-600">{{ producto.codigo_barras || 'Sin SKU' }}</td>
-                <td class="px-6 py-4">
-                  <img
-                    v-if="producto.imagenes && producto.imagenes.length"
-                    :src="obtenerUrlImagen(producto.imagenes[0].ruta)"
-                    alt="Producto"
-                    class="w-12 h-12 object-cover rounded-xl border shadow-sm"
-                  />
-                  <div v-else class="w-12 h-12 border border-dashed rounded-xl flex items-center justify-center text-[10px] text-gray-400 bg-gray-50">
-                    Sin foto
-                  </div>
-                </td>
-                <td class="px-6 py-4 font-medium text-gray-800">{{ producto.nombre }}</td>
-                
-                <td class="px-6 py-4 flex flex-col justify-center">
-                  <span class="font-medium text-gray-800">{{ producto.subcategoria?.categoria?.nombre || 'General' }}</span>
-                  <span class="text-xs text-gray-400 mt-0.5">{{ producto.subcategoria?.nombre || 'Sin subcategoría' }}</span>
-                </td>
+        <div class="table-card-wrapper border border-gray-100 rounded-2xl overflow-hidden w-full">
+          <div class="overflow-x-auto w-full">
+            <table class="w-full min-w-[700px] text-left border-collapse">
+              <thead class="bg-[#f8fafc] border-b border-gray-100">
+                <tr class="text-[#64748b] text-[11px] font-bold uppercase tracking-wider">
+                  <th class="px-4 py-4 whitespace-nowrap">SKU / CÓDIGO</th>
+                  <th class="px-4 py-4 whitespace-nowrap">IMAGEN</th>
+                  <th class="px-4 py-4 whitespace-nowrap">PRODUCTO</th>
+                  <th class="px-4 py-4 whitespace-nowrap">CATEGORÍA / SUBCATEGORÍA</th>
+                  <th class="px-4 py-4 whitespace-nowrap">ESTADO</th>
+                  <th class="px-4 py-4 whitespace-nowrap">STOCK / UNIDAD</th>
+                  <th class="px-4 py-4 whitespace-nowrap">PRECIO VENTA</th>
+                  <th class="px-4 py-4 text-center whitespace-nowrap">ACCIONES</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                <tr v-for="producto in productosFiltrados" :key="producto.id" class="hover:bg-slate-50/60 text-sm transition-colors">
+                  <td class="px-4 py-4 font-mono text-xs text-gray-500 whitespace-nowrap">{{ producto.codigo_barras || 'Sin SKU' }}</td>
+                  <td class="px-4 py-4">
+                    <img
+                      v-if="producto.imagenes && producto.imagenes.length"
+                      :src="obtenerUrlImagen(producto.imagenes[0].ruta)"
+                      alt="Producto"
+                      class="w-10 h-10 object-cover rounded-lg border border-gray-200 shadow-sm"
+                    />
+                    <div v-else class="w-10 h-10 border border-dashed border-gray-300 rounded-lg flex items-center justify-center text-[9px] text-gray-400 bg-gray-50">
+                      Sin foto
+                    </div>
+                  </td>
+                  <td class="px-4 py-4 font-semibold text-[#1e293b] whitespace-nowrap">{{ producto.nombre }}</td>
+                  
+                  <td class="px-4 py-4 whitespace-nowrap">
+                    <div class="flex flex-col justify-center">
+                      <span class="font-medium text-gray-700 text-xs">{{ producto.subcategoria?.categoria?.nombre || 'General' }}</span>
+                      <span class="text-[11px] text-gray-400 mt-0.5">{{ producto.subcategoria?.nombre || 'Sin subcategoría' }}</span>
+                    </div>
+                  </td>
 
-                <td class="px-6 py-4">
-                  <span 
-                    class="rounded-full px-2.5 py-1 text-xs font-semibold inline-block"
-                    :class="Number(producto.stock) <= (Number(producto.stock_minimo) || 5) ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'"
-                  >
-                    {{ Number(producto.stock) <= (Number(producto.stock_minimo) || 5) ? 'Bajo Stock' : 'Disponible' }}
-                  </span>
-                </td>
+                  <td class="px-4 py-4 whitespace-nowrap">
+                    <span 
+                      class="rounded-full px-3 py-1 text-[11px] font-semibold inline-flex items-center gap-1.5"
+                      :class="Number(producto.stock) <= (Number(producto.stock_minimo) || 5) ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'"
+                    >
+                      <span class="w-1.5 h-1.5 rounded-full" :class="Number(producto.stock) <= (Number(producto.stock_minimo) || 5) ? 'bg-amber-500' : 'bg-emerald-500'"></span>
+                      {{ Number(producto.stock) <= (Number(producto.stock_minimo) || 5) ? 'Bajo Stock' : 'Disponible' }}
+                    </span>
+                  </td>
 
-                <td class="px-6 py-4">
-                  <span :class="Number(producto.stock) <= (Number(producto.stock_minimo) || 5) ? 'text-amber-600 font-bold' : 'text-gray-700'">
-                    {{ producto.stock }}
-                  </span>
-                  <span class="text-xs text-gray-400 ml-1">
-                    ({{ producto.unidad_medida?.nombre || producto.unidad_medida_id || 'pza' }})
-                  </span>
-                </td>
+                  <td class="px-4 py-4 whitespace-nowrap">
+                    <span :class="Number(producto.stock) <= (Number(producto.stock_minimo) || 5) ? 'text-amber-600 font-bold' : 'text-gray-700 font-medium'">
+                      {{ producto.stock }}
+                    </span>
+                    <span class="text-xs text-gray-400 ml-1">
+                      ({{ producto.unidad_medida?.nombre || producto.unidad_medida_id || 'pza' }})
+                    </span>
+                  </td>
 
-                <td class="px-6 py-4 font-medium text-gray-900">${{ producto.precio_venta }}</td>
-                
-                <td class="px-6 py-4 text-right">
-                  <div class="flex gap-2 justify-end">
-                    <button class="bg-blue-50 text-blue-600 p-2 rounded-lg hover:bg-blue-100 transition" @click="editarProducto(producto)" title="Editar producto">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="bg-red-50 text-red-600 p-2 rounded-lg hover:bg-red-100 transition" @click="eliminarProducto(producto.id)" title="Eliminar producto">
-                      <i class="bi bi-trash"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr v-if="productosFiltrados.length === 0">
-                <td colspan="8" class="text-center py-8 text-gray-400 italic">No se encontraron productos con los filtros seleccionados.</td>
-              </tr>
-            </tbody>
-          </table>
+                  <td class="px-4 py-4 font-bold text-[#0f172a] whitespace-nowrap">${{ producto.precio_venta }}</td>
+                  
+                  <td class="px-4 py-4 text-center whitespace-nowrap">
+                    <div class="flex gap-1.5 justify-center items-center">
+                      <button class="p-1.5 text-gray-600 hover:text-blue-600 rounded-lg border border-gray-200 hover:bg-white shadow-sm transition" @click="editarProducto(producto)" title="Editar producto">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                      <button class="p-1.5 text-red-500 hover:text-red-700 rounded-lg border border-gray-200 hover:bg-white shadow-sm transition" @click="eliminarProducto(producto.id)" title="Eliminar producto">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr v-if="productosFiltrados.length === 0">
+                  <td colspan="8" class="text-center py-8 text-gray-400 italic text-xs">No se encontraron productos con los filtros seleccionados.</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
 
-      <div class="right-widgets-panel w-full xl:w-[240px] 2xl:w-[260px] xl:shrink-0 flex flex-col gap-4">
-        <div class="inventory-card-widget bg-white rounded-2xl shadow-md p-3 border border-gray-100 h-fit">
-          <h2 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Resumen de Inventario</h2>
-          <div class="widget-metric-row flex justify-between items-center p-2.5 bg-gray-50 rounded-xl mb-2">
+      <!-- PANEL DERECHO (RESUMEN DE INVENTARIO) -->
+      <div class="right-widgets-panel w-full xl:w-[260px] shrink-0 flex flex-col gap-4">
+        <div class="inventory-card-widget bg-white rounded-2xl shadow-sm p-4 border border-gray-100 h-fit">
+          <h2 class="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-3">Resumen de Inventario</h2>
+          <div class="widget-metric-row flex justify-between items-center p-3 bg-slate-50 rounded-xl mb-2">
             <div>
-              <span class="block text-xs text-gray-500">Total ítems</span>
-              <span class="text-xl font-bold text-gray-800">{{ resumen.total }}</span>
+              <span class="block text-xs text-gray-500 font-medium">Total ítems</span>
+              <span class="text-xl font-bold text-slate-800">{{ resumen.total }}</span>
             </div>
           </div>
-          <div class="widget-metric-row flex justify-between items-center p-2.5 bg-green-50 rounded-xl mb-2">
+          <div class="widget-metric-row flex justify-between items-center p-3 bg-emerald-50/60 rounded-xl mb-2">
             <div>
-              <span class="block text-xs text-green-600">Disponibles</span>
-              <span class="text-xl font-bold text-green-700">{{ resumen.disponibles }}</span>
+              <span class="block text-xs text-emerald-600 font-medium">Disponibles</span>
+              <span class="text-xl font-bold text-emerald-700">{{ resumen.disponibles }}</span>
             </div>
           </div>
-          <div class="widget-metric-row flex justify-between items-center p-2.5 bg-amber-50 rounded-xl">
+          <div class="widget-metric-row flex justify-between items-center p-3 bg-amber-50/60 rounded-xl">
             <div>
-              <span class="block text-xs text-amber-600">Bajo Stock</span>
+              <span class="block text-xs text-amber-600 font-medium">Bajo Stock</span>
               <span class="text-xl font-bold text-amber-700">{{ resumen.bajo_stock }}</span>
             </div>
           </div>
@@ -148,27 +160,29 @@
     </div>
 
     <!-- MODAL REGISTRO / EDICIÓN -->
-    <div v-if="mostrarModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-40 p-4">
-      <div class="bg-white rounded-[14px] shadow-xl max-w-md w-full overflow-hidden">
-        <div class="h-24 px-6 flex justify-between items-center bg-[#47B5AC]">
-          <h3 class="font-bold text-white text-lg">
+    <div v-if="mostrarModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-40 p-4">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-100">
+        <div class="h-16 px-6 flex justify-between items-center bg-[#1a233a]">
+          <h3 class="font-bold text-white text-base">
             {{ esEditando ? 'Modificar Producto Existente' : 'Agregar Nuevo Producto' }}
           </h3>
-          <button type="button" class="w-11 h-11 rounded-full bg-[#DDF3F1] text-gray-800 shadow-md hover:bg-white flex items-center justify-center transition" @click="cerrarModal"><i class="bi bi-x-lg text-xl"></i></button>
+          <button type="button" class="w-8 h-8 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center transition" @click="cerrarModal">
+            <i class="bi bi-x-lg text-sm"></i>
+          </button>
         </div>
         
-        <form @submit.prevent="guardarProducto" class="p-6 flex flex-col gap-4 max-h-[calc(100vh-8rem)] overflow-y-auto overflow-x-hidden" enctype="multipart/form-data">
+        <form @submit.prevent="guardarProducto" class="p-6 flex flex-col gap-4 max-h-[calc(100vh-8rem)] overflow-y-auto text-xs" enctype="multipart/form-data">
           <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Imagen del Producto</label>
+            <label class="block font-semibold text-gray-700 mb-1">Imagen del Producto</label>
             <div class="flex items-center gap-4 mt-1">
-              <div class="relative w-20 h-20 rounded-xl overflow-hidden bg-gray-50 flex items-center justify-center flex-shrink-0">
+              <div class="relative w-16 h-16 rounded-xl overflow-hidden bg-gray-50 flex items-center justify-center flex-shrink-0 border border-gray-200">
                 <img v-if="imagenPreview" :src="imagenPreview" alt="Preview" class="w-full h-full object-cover" />
-                <i v-else class="bi bi-image text-gray-300 text-2xl"></i>
+                <i v-else class="bi bi-image text-gray-300 text-xl"></i>
                 <button 
                   v-if="imagenPreview" 
                   type="button" 
                   @click="removerImagen" 
-                  class="absolute top-0 right-0 bg-red-500 text-white rounded-bl p-1 leading-none shadow-md hover:bg-red-600 transition"
+                  class="absolute top-0 right-0 bg-red-500 text-white rounded-bl p-0.5 leading-none shadow-md hover:bg-red-600 transition"
                   title="Quitar imagen"
                 >
                   <i class="bi bi-x text-xs"></i>
@@ -176,9 +190,9 @@
               </div>
 
               <div class="w-full">
-                <label class="box-border w-full h-[72px] flex flex-col items-center justify-center px-4 bg-white text-gray-500 rounded-xl border border-gray-300 border-dashed cursor-pointer hover:bg-gray-50 hover:text-gray-700 transition text-center">
-                  <i class="bi bi-cloud-upload text-lg mb-1 text-[#47B5AC]"></i>
-                  <span class="text-xs font-medium">Seleccionar imagen archivo</span>
+                <label class="box-border w-full h-[60px] flex flex-col items-center justify-center px-4 bg-gray-50 text-gray-500 rounded-xl border border-gray-200 border-dashed cursor-pointer hover:bg-gray-100 transition text-center">
+                  <i class="bi bi-cloud-upload text-base text-blue-600 mb-0.5"></i>
+                  <span class="text-[11px] font-medium">Seleccionar imagen archivo</span>
                   <input type="file" ref="fileInput" accept="image/*" class="hidden" @change="manejarCambioImagen" />
                 </label>
               </div>
@@ -186,26 +200,26 @@
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Nombre del Producto</label>
-            <input type="text" v-model="nuevoProducto.nombre" required placeholder="Ej. MacBook Pro M3" class="box-border w-full h-8 px-4 border border-gray-900 rounded-[14px] focus:ring-2 focus:ring-[#47B5AC] outline-none" />
+            <label class="block font-semibold text-gray-700 mb-1">Nombre del Producto</label>
+            <input type="text" v-model="nuevoProducto.nombre" required placeholder="Ej. MacBook Pro M3" class="w-full h-9 px-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none" />
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Código de Barras / SKU</label>
-            <input type="text" v-model="nuevoProducto.codigo_barras" required placeholder="Ej. 7501055300075" class="box-border w-full h-8 px-4 border border-gray-900 rounded-[14px] focus:ring-2 focus:ring-[#47B5AC] outline-none" />
+            <label class="block font-semibold text-gray-700 mb-1">Código de Barras / SKU</label>
+            <input type="text" v-model="nuevoProducto.codigo_barras" required placeholder="Ej. 7501055300075" class="w-full h-9 px-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none" />
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-xs font-semibold text-gray-600 mb-1">Categoría</label>
-              <button type="button" @click="abrirBuscador('subcategoria')" class="box-border w-full h-9 flex justify-between items-center px-4 border border-gray-900 rounded-[14px] text-left text-sm bg-gray-50 hover:bg-gray-100 transition truncate">
+              <label class="block font-semibold text-gray-700 mb-1">Categoría</label>
+              <button type="button" @click="abrirBuscador('subcategoria')" class="w-full h-9 flex justify-between items-center px-3 border border-gray-200 rounded-xl text-left bg-gray-50 hover:bg-gray-100 transition truncate text-gray-700">
                 <span class="truncate">{{ nombreSubcategoriaSeleccionada || 'Seleccionar...' }}</span>
                 <i class="bi bi-search text-gray-400 ml-1"></i>
               </button>
             </div>
             <div>
-              <label class="block text-xs font-semibold text-gray-600 mb-1">Unidad de Medida</label>
-              <button type="button" @click="abrirBuscador('unidad_medida')" class="box-border w-full h-9 flex justify-between items-center px-4 border border-gray-900 rounded-[14px] text-left text-sm bg-gray-50 hover:bg-gray-100 transition truncate">
+              <label class="block font-semibold text-gray-700 mb-1">Unidad de Medida</label>
+              <button type="button" @click="abrirBuscador('unidad_medida')" class="w-full h-9 flex justify-between items-center px-3 border border-gray-200 rounded-xl text-left bg-gray-50 hover:bg-gray-100 transition truncate text-gray-700">
                 <span class="truncate">{{ nombreUnidadMedidaSeleccionada || 'Seleccionar...' }}</span>
                 <i class="bi bi-search text-gray-400 ml-1"></i>
               </button>
@@ -213,27 +227,25 @@
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Precio Venta ($)</label>
-            <input type="number" step="0.01" v-model="nuevoProducto.precio_venta" required placeholder="0.00" class="box-border w-full h-8 px-4 border border-gray-900 rounded-[14px] focus:ring-2 focus:ring-[#47B5AC] outline-none" />
+            <label class="block font-semibold text-gray-700 mb-1">Precio Venta ($)</label>
+            <input type="number" step="0.01" v-model="nuevoProducto.precio_venta" required placeholder="0.00" class="w-full h-9 px-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none" />
           </div>
 
-          <div :class="esEditando ? 'grid grid-cols-2 gap-4' : ''">
+          <div :class="esEditando ? 'grid grid-cols-2 gap-3' : ''">
             <div v-if="esEditando">
-              <label class="block text-xs font-semibold text-gray-600 mb-1">
-                Stock
-              </label>
-              <input type="number" v-model="nuevoProducto.stock" required class="box-border w-full h-8 px-4 border border-gray-900 rounded-[14px] focus:ring-2 focus:ring-[#47B5AC] outline-none" />
+              <label class="block font-semibold text-gray-700 mb-1">Stock</label>
+              <input type="number" v-model="nuevoProducto.stock" required class="w-full h-9 px-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none" />
             </div>
             <div>
-              <label class="block text-xs font-semibold text-gray-600 mb-1">Stock Mínimo</label>
-              <input type="number" v-model="nuevoProducto.stock_minimo" required class="box-border w-full h-8 px-4 border border-gray-900 rounded-[14px] focus:ring-2 focus:ring-[#47B5AC] outline-none" />
+              <label class="block font-semibold text-gray-700 mb-1">Stock Mínimo</label>
+              <input type="number" v-model="nuevoProducto.stock_minimo" required class="w-full h-9 px-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none" />
             </div>
           </div>
 
-          <div class="flex justify-end gap-3 mt-8">
-            <button type="button" class="h-9 px-5 bg-gray-100 text-gray-700 rounded-xl border border-gray-400 hover:bg-gray-200" :disabled="guardando" @click="cerrarModal">Cancelar</button>
-            <button type="submit" class="h-9 px-5 bg-[#47B5AC] text-white rounded-xl border border-gray-500 hover:bg-[#47B5AC] flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" :disabled="guardando">
-              <span v-if="guardando" class="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
+          <div class="flex justify-end gap-2 mt-4 pt-3 border-t border-gray-100">
+            <button type="button" class="h-9 px-4 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 font-medium transition" :disabled="guardando" @click="cerrarModal">Cancelar</button>
+            <button type="submit" class="h-9 px-4 bg-[#1a233a] text-white rounded-xl hover:bg-[#111827] font-medium flex items-center gap-2 transition disabled:opacity-50" :disabled="guardando">
+              <span v-if="guardando" class="animate-spin inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full"></span>
               {{ guardando ? 'Procesando...' : (esEditando ? 'Actualizar Producto' : 'Guardar Producto') }}
             </button>
           </div>
@@ -241,11 +253,11 @@
       </div>
     </div>
 
-    <!-- MODAL BUSCADOR SECUNDARIO (Subcategoría / Unidad de Medida) -->
-    <div v-if="mostrarBuscador" class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-      <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden border">
-        <div class="px-5 py-4 border-b flex justify-between items-center bg-gray-50">
-          <h4 class="font-bold text-gray-800 text-base">
+    <!-- MODAL BUSCADOR SECUNDARIO -->
+    <div v-if="mostrarBuscador" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden border border-gray-100">
+        <div class="px-5 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+          <h4 class="font-bold text-gray-800 text-sm">
             Buscar {{ tipoBuscador === 'subcategoria' ? 'Categoría' : 'Unidad de Medida' }}
           </h4>
           <button type="button" class="text-gray-400 hover:text-gray-600" @click="cerrarBuscador"><i class="bi bi-x-lg"></i></button>
@@ -253,16 +265,16 @@
         
         <div class="p-4 flex flex-col gap-3">
           <div class="relative flex items-center">
-            <i class="bi bi-search absolute left-3 text-gray-400 text-sm"></i>
+            <i class="bi bi-search absolute left-3 text-gray-400 text-xs"></i>
             <input
               v-model="filtroBuscadorInterno"
               type="text"
               placeholder="Filtrar por nombre..."
-              class="w-full pl-9 pr-4 py-2 border text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-[#47B5AC]"
+              class="w-full pl-8 pr-3 py-1.5 border border-gray-200 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 bg-gray-50"
             />
           </div>
 
-          <div v-if="tipoBuscador === 'subcategoria'" class="max-h-[300px] overflow-y-auto border border-gray-100 rounded-xl bg-gray-50 flex flex-col divide-y">
+          <div v-if="tipoBuscador === 'subcategoria'" class="max-h-[250px] overflow-y-auto border border-gray-100 rounded-xl bg-gray-50 flex flex-col divide-y divide-gray-100">
             <div
               v-for="cat in categoriasFiltradasBuscador"
               :key="cat.id"
@@ -271,18 +283,18 @@
               <button
                 type="button"
                 @click="cat.subcategoriasFiltradas.length === 0 ? seleccionarCategoriaBuscador(cat) : alternarCategoriaBuscador(cat.id)"
-                class="w-full text-left px-4 py-3 text-sm text-gray-800 hover:text-[#47B5AC] hover:bg-[#47B5AC]/5 font-bold transition flex justify-between items-center"
+                class="w-full text-left px-3 py-2 text-xs text-gray-800 hover:text-blue-600 hover:bg-blue-50/50 font-bold transition flex justify-between items-center"
               >
                 <span class="truncate">
-                  <i class="bi bi-folder-fill mr-2 text-[#47B5AC]"></i>
+                  <i class="bi bi-folder-fill mr-1.5 text-blue-600"></i>
                   {{ cat.nombre }}
                 </span>
                 <i
                   v-if="cat.subcategoriasFiltradas.length > 0"
                   :class="categoriaBuscadorAbierta === cat.id ? 'bi bi-chevron-up' : 'bi bi-chevron-down'"
-                  class="text-[#47B5AC]"
+                  class="text-blue-600"
                 ></i>
-                <span v-else class="text-[10px] bg-[#47B5AC]/10 text-[#47B5AC] px-2 py-0.5 rounded-md font-bold">
+                <span v-else class="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-bold">
                   Usar categoría
                 </span>
               </button>
@@ -293,13 +305,13 @@
                   v-for="sub in cat.subcategoriasFiltradas"
                   :key="sub.id"
                   @click="seleccionarItemBuscador(sub)"
-                  class="w-full text-left pl-10 pr-4 py-2.5 text-sm text-gray-700 hover:bg-white hover:text-[#47B5AC] font-medium transition flex justify-between items-center"
+                  class="w-full text-left pl-8 pr-3 py-2 text-xs text-gray-600 hover:bg-white hover:text-blue-600 font-medium transition flex justify-between items-center"
                 >
                   <span class="truncate">{{ sub.nombre }}</span>
-                  <span class="text-[10px] bg-gray-200 text-gray-500 px-2 py-0.5 rounded-md font-mono">ID: {{ sub.id }}</span>
+                  <span class="text-[9px] bg-gray-200/60 text-gray-500 px-1.5 py-0.5 rounded font-mono">ID: {{ sub.id }}</span>
                 </button>
 
-                <div v-if="cat.subcategoriasFiltradas.length === 0" class="pl-10 pr-4 py-3 text-xs text-gray-400 italic">
+                <div v-if="cat.subcategoriasFiltradas.length === 0" class="pl-8 pr-3 py-2 text-xs text-gray-400 italic">
                   Sin subcategorías.
                 </div>
               </div>
@@ -310,16 +322,16 @@
             </div>
           </div>
 
-          <div v-else class="max-h-[250px] overflow-y-auto border border-gray-100 rounded-xl bg-gray-50 flex flex-col divide-y">
+          <div v-else class="max-h-[200px] overflow-y-auto border border-gray-100 rounded-xl bg-gray-50 flex flex-col divide-y divide-gray-100">
             <button
               type="button"
               v-for="item in listaFiltradaBuscador"
               :key="item.id"
               @click="seleccionarItemBuscador(item)"
-              class="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#47B5AC] font-medium transition flex justify-between items-center"
+              class="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-white hover:text-blue-600 font-medium transition flex justify-between items-center"
             >
               <span class="truncate">{{ item.nombre }}</span>
-              <span class="text-[10px] bg-gray-200 text-gray-500 px-2 py-0.5 rounded-md font-mono">ID: {{ item.id }}</span>
+              <span class="text-[9px] bg-gray-200/60 text-gray-500 px-1.5 py-0.5 rounded font-mono">ID: {{ item.id }}</span>
             </button>
             <div v-if="listaFiltradaBuscador.length === 0" class="text-center py-6 text-xs text-gray-400 italic">
               No hay coincidencias.

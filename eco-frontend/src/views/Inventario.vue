@@ -8,9 +8,9 @@
       <button
         @click="cargarInventario"
         :disabled="cargando"
-        class="bg-[#47B5AC] hover:bg-[#47B5AC] text-white px-5 py-3 rounded-xl shadow-md transition font-medium disabled:opacity-60"
+        class="bg-[#2D3748] hover:bg-[#1A202C] text-white px-6 py-3 rounded-2xl shadow-md transition font-medium disabled:opacity-60 flex items-center"
       >
-        <i class="bi bi-arrow-repeat mr-2" :class="{ 'animate-spin': cargando }"></i>
+        <i class="bi bi-arrow-repeat mr-2 text-lg" :class="{ 'animate-spin': cargando }"></i>
         {{ cargando ? 'Actualizando...' : 'Actualizar Stock' }}
       </button>
     </div>
@@ -30,17 +30,17 @@
 
     <div class="bg-white rounded-2xl shadow-md overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="w-full min-w-[940px]">
+        <table class="w-full">
           <thead class="bg-gray-100">
             <tr class="text-left text-gray-700">
-              <th class="px-6 py-4 font-semibold">Codigo</th>
-              <th class="px-6 py-4 font-semibold">Producto</th>
-              <th class="px-6 py-4 font-semibold">Categoria</th>
-              <th class="px-6 py-4 font-semibold">Stock Total</th>
-              <th class="px-6 py-4 font-semibold">Lotes</th>
-              <th class="px-6 py-4 font-semibold">Stock Minimo</th>
-              <th class="px-6 py-4 font-semibold">Estado</th>
-              <th class="px-6 py-4 font-semibold text-right">Detalle</th>
+              <th class="px-6 py-4 font-semibold whitespace-nowrap">Codigo</th>
+              <th class="px-6 py-4 font-semibold whitespace-nowrap">Producto</th>
+              <th class="px-6 py-4 font-semibold whitespace-nowrap">Categoria</th>
+              <th class="px-6 py-4 font-semibold whitespace-nowrap">Stock Total</th>
+              <th class="px-6 py-4 font-semibold whitespace-nowrap">Lotes</th>
+              <th class="px-6 py-4 font-semibold whitespace-nowrap">Stock Minimo</th>
+              <th class="px-6 py-4 font-semibold whitespace-nowrap">Estado</th>
+              <th class="px-6 py-4 font-semibold text-right whitespace-nowrap">Detalle</th>
             </tr>
           </thead>
 
@@ -50,20 +50,20 @@
               :key="item.id"
             >
               <tr class="border-t hover:bg-gray-50">
-                <td class="px-6 py-4">{{ item.codigo }}</td>
-                <td class="px-6 py-4 font-medium text-gray-800">
+                <td class="px-6 py-4 whitespace-nowrap">{{ item.codigo }}</td>
+                <td class="px-6 py-4 font-medium text-gray-800 whitespace-nowrap">
                   {{ item.nombre }}
                 </td>
-                <td class="px-6 py-4">{{ item.categoria }}</td>
-                <td class="px-6 py-4 font-semibold">{{ item.stock }}</td>
-                <td class="px-6 py-4">
+                <td class="px-6 py-4 whitespace-nowrap">{{ item.categoria }}</td>
+                <td class="px-6 py-4 font-semibold whitespace-nowrap">{{ item.stock }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
                   <span class="rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-600">
                     {{ item.lotes.length }}
                   </span>
                 </td>
-                <td class="px-6 py-4">{{ item.minimo }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">{{ item.minimo }}</td>
 
-                <td class="px-6 py-4">
+                <td class="px-6 py-4 whitespace-nowrap">
                   <span
                     :class="[
                       'px-3 py-1 rounded-full text-sm font-medium',
@@ -76,7 +76,7 @@
                   </span>
                 </td>
 
-                <td class="px-6 py-4 text-right">
+                <td class="px-6 py-4 text-right whitespace-nowrap">
                   <button
                     type="button"
                     class="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
@@ -105,34 +105,36 @@
                       </span>
                     </div>
 
-                    <table class="w-full">
-                      <thead class="bg-gray-50">
-                        <tr class="text-left text-xs uppercase text-gray-500">
-                          <th class="px-4 py-3 font-semibold">Orden FIFO</th>
-                          <th class="px-4 py-3 font-semibold">Lote</th>
-                          <th class="px-4 py-3 font-semibold">Cantidad Inicial</th>
-                          <th class="px-4 py-3 font-semibold">Cantidad Actual</th>
-                          <th class="px-4 py-3 font-semibold">Vencimiento</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr
-                          v-for="(lote, index) in item.lotes"
-                          :key="lote.id"
-                          class="border-t border-gray-100 text-sm text-gray-700"
-                        >
-                          <td class="px-4 py-3">
-                            <span class="rounded-full bg-[#5B80B0]/10 px-2.5 py-1 text-xs font-semibold text-[#5B80B0]">
-                              {{ index + 1 }}
-                            </span>
-                          </td>
-                          <td class="px-4 py-3 font-medium">{{ lote.codigo_lote || 'Sin lote' }}</td>
-                          <td class="px-4 py-3">{{ lote.cantidad_inicial }}</td>
-                          <td class="px-4 py-3 font-semibold">{{ lote.cantidad_actual }}</td>
-                          <td class="px-4 py-3">{{ formatearFecha(lote.fecha_expiracion) }}</td>
-                        </tr>
-                      </tbody>
-                    </table>
+                    <div class="overflow-x-auto">
+                      <table class="w-full">
+                        <thead class="bg-gray-50">
+                          <tr class="text-left text-xs uppercase text-gray-500">
+                            <th class="px-4 py-3 font-semibold whitespace-nowrap">Orden FIFO</th>
+                            <th class="px-4 py-3 font-semibold whitespace-nowrap">Lote</th>
+                            <th class="px-4 py-3 font-semibold whitespace-nowrap">Cantidad Inicial</th>
+                            <th class="px-4 py-3 font-semibold whitespace-nowrap">Cantidad Actual</th>
+                            <th class="px-4 py-3 font-semibold whitespace-nowrap">Vencimiento</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr
+                            v-for="(lote, index) in item.lotes"
+                            :key="lote.id"
+                            class="border-t border-gray-100 text-sm text-gray-700"
+                          >
+                            <td class="px-4 py-3 whitespace-nowrap">
+                              <span class="rounded-full bg-[#5B80B0]/10 px-2.5 py-1 text-xs font-semibold text-[#5B80B0]">
+                                {{ index + 1 }}
+                              </span>
+                            </td>
+                            <td class="px-4 py-3 font-medium whitespace-nowrap">{{ lote.codigo_lote || 'Sin lote' }}</td>
+                            <td class="px-4 py-3 whitespace-nowrap">{{ lote.cantidad_inicial }}</td>
+                            <td class="px-4 py-3 font-semibold whitespace-nowrap">{{ lote.cantidad_actual }}</td>
+                            <td class="px-4 py-3 whitespace-nowrap">{{ formatearFecha(lote.fecha_expiracion) }}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </td>
               </tr>
