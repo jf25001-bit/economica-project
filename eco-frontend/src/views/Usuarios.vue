@@ -1,101 +1,139 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
-    <div class="flex items-center justify-between mb-8">
+  <div class="min-h-screen bg-slate-50/50 p-6 sm:p-8">
+    
+    <!-- Encabezado de Sección -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
       <div>
-        <h1 class="text-4xl font-bold text-gray-800">Usuarios</h1>
-        <p class="text-gray-500">Gestión de usuarios y roles</p>
+        <h1 class="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight">
+          Usuarios
+        </h1>
+        <p class="text-slate-500 text-sm font-medium mt-1">
+          Gestión de accesos, cuentas de usuario y asignación de roles
+        </p>
       </div>
 
       <button
         @click="abrirModal"
-        class="bg-[#47B5AC] hover:bg-[#47B5AC] text-white px-6 py-3 rounded-2xl shadow-lg transition"
+        class="inline-flex items-center justify-center gap-2 bg-[#2B3A4A] hover:bg-[#1F2B37] text-white font-bold px-6 py-3 rounded-2xl shadow-lg shadow-[#2B3A4A]/20 transition-all active:scale-95 cursor-pointer"
       >
-        <i class="bi bi-plus-lg mr-2"></i>
-        Nuevo Usuario
+        <i class="bi bi-person-plus-fill text-lg"></i>
+        <span>Nuevo Usuario</span>
       </button>
     </div>
 
-    <div class="bg-white rounded-2xl shadow-md p-5 mb-6 flex flex-wrap gap-4">
-      <input
-        v-model="search"
-        type="text"
-        placeholder="Buscar usuario..."
-        class="flex-1 px-4 py-3 border rounded-2xl focus:ring-2 focus:ring-[#47B5AC]"
-      />
+    <!-- Barra de Búsqueda y Filtro de Rol -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-4 mb-6 flex flex-wrap gap-4">
+      <div class="relative flex-1 min-w-[240px]">
+        <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
+          <i class="bi bi-search text-base"></i>
+        </span>
+        <input
+          v-model="search"
+          type="text"
+          placeholder="Buscar usuario por nombre, apellido o correo..."
+          class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium"
+        />
+      </div>
 
-      <select
-        v-model="filtroRol"
-        class="px-4 py-3 border rounded-2xl focus:ring-2 focus:ring-[#47B5AC]"
-      >
-        <option value="">Todos los roles</option>
-        <option v-for="r in roles" :key="r.id" :value="r.id">
-          {{ r.nombre }}
-        </option>
-      </select>
+      <div class="relative w-full sm:w-64">
+        <select
+          v-model="filtroRol"
+          class="w-full pl-4 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium appearance-none cursor-pointer"
+        >
+          <option value="">Todos los roles</option>
+          <option v-for="r in roles" :key="r.id" :value="r.id">
+            {{ r.nombre }}
+          </option>
+        </select>
+        <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+          <i class="bi bi-chevron-down text-xs"></i>
+        </span>
+      </div>
     </div>
 
-    <div class="bg-white rounded-3xl shadow-xl overflow-hidden">
+    <!-- Tabla de Usuarios -->
+    <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="w-full min-w-[920px] table-fixed">
-          <thead class="bg-gray-100">
-            <tr>
-              <th class="px-6 py-4 text-left">Nombre</th>
-              <th class="px-6 py-4 text-left">Apellidos</th>
-              <th class="px-6 py-4 text-left">Correo</th>
+        <table class="w-full min-w-[850px] table-fixed">
+          <thead>
+            <tr class="bg-slate-100/70 border-b border-slate-200 text-slate-700 text-xs font-black uppercase tracking-wider">
+              <th class="px-6 py-4 text-left">Usuario</th>
+              <th class="px-6 py-4 text-left">Correo Electrónico</th>
               <th class="px-6 py-4 text-left">Rol</th>
-              <th class="px-6 py-4 text-left">Estado</th>
-              <th class="px-6 py-4 text-left">Acciones</th>
+              <th class="px-6 py-4 text-center">Estado</th>
+              <th class="px-6 py-4 text-right">Acciones</th>
             </tr>
           </thead>
 
-          <tbody>
+          <tbody class="divide-y divide-slate-100">
             <tr
               v-for="u in usuariosFiltrados"
               :key="u.id"
-              class="border-t hover:bg-gray-50"
+              class="hover:bg-slate-50/80 transition-colors"
             >
-              <td class="px-6 py-4 font-medium truncate">{{ u.name }}</td>
-              <td class="px-6 py-4 truncate">{{ u.apellido || 'Sin apellidos' }}</td>
-              <td class="px-6 py-4 truncate">{{ u.email || 'Sin correo' }}</td>
-              <td class="px-6 py-4 truncate">{{ u.rol?.nombre || 'Sin rol' }}</td>
-              <td class="px-6 py-4">
-                <span :class="u.activo ? 'text-green-600' : 'text-red-600'">
+              <!-- Nombre y Apellido -->
+              <td class="px-6 py-4 font-bold text-slate-800 truncate">
+                {{ u.name }} {{ u.apellido }}
+              </td>
+
+              <!-- Email -->
+              <td class="px-6 py-4 text-slate-600 text-sm truncate font-medium">
+                {{ u.email || 'Sin correo' }}
+              </td>
+
+              <!-- Rol -->
+              <td class="px-6 py-4 truncate">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-sky-50 text-sky-700 border border-sky-200/60">
+                  {{ u.rol?.nombre || 'Sin rol' }}
+                </span>
+              </td>
+
+              <!-- Estado -->
+              <td class="px-6 py-4 text-center">
+                <span
+                  class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold"
+                  :class="u.activo ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60' : 'bg-slate-100 text-slate-500 border border-slate-200'"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full" :class="u.activo ? 'bg-emerald-500' : 'bg-slate-400'"></span>
                   {{ u.activo ? 'Activo' : 'Inactivo' }}
                 </span>
               </td>
 
+              <!-- Acciones -->
               <td class="px-6 py-4">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center justify-end gap-2">
                   <button
                     @click="editar(u)"
-                    class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition"
-                    title="Editar"
+                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-[#2B3A4A] hover:text-white transition cursor-pointer"
+                    title="Editar Usuario"
                   >
-                    <i class="bi bi-pencil"></i>
-                  </button>
-
-                  <button
-                    @click="abrirEliminar(u)"
-                    class="w-9 h-9 flex items-center justify-center rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition"
-                    title="Eliminar"
-                  >
-                    <i class="bi bi-trash"></i>
+                    <i class="bi bi-pencil-fill text-sm"></i>
                   </button>
 
                   <button
                     @click="toggleEstado(u)"
-                    class="w-9 h-9 flex items-center justify-center rounded-full bg-yellow-100 text-yellow-700 hover:bg-yellow-200 transition"
-                    title="Cambiar estado"
+                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white transition cursor-pointer"
+                    :title="u.activo ? 'Desactivar' : 'Activar'"
                   >
-                    <i class="bi bi-power"></i>
+                    <i class="bi bi-power text-sm"></i>
+                  </button>
+
+                  <button
+                    @click="abrirEliminar(u)"
+                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-red-50 text-red-600 hover:bg-red-500 hover:text-white transition cursor-pointer"
+                    title="Eliminar Usuario"
+                  >
+                    <i class="bi bi-trash-fill text-sm"></i>
                   </button>
                 </div>
               </td>
             </tr>
 
+            <!-- Estado Vacío -->
             <tr v-if="usuariosFiltrados.length === 0">
-              <td colspan="6" class="py-16 text-center text-gray-400 italic">
-                No hay usuarios registrados.
+              <td colspan="5" class="py-16 text-center text-slate-400">
+                <i class="bi bi-people text-4xl block mb-2 opacity-50"></i>
+                <p class="font-medium text-sm">No se encontraron usuarios registrados.</p>
               </td>
             </tr>
           </tbody>
@@ -103,89 +141,114 @@
       </div>
     </div>
 
-    <div v-if="modal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div class="bg-white rounded-3xl w-full max-w-2xl flex flex-col overflow-hidden">
-        <div class="bg-[#47B5AC] text-white px-6 py-5 flex justify-between items-center">
-          <h2 class="text-xl font-bold">
-            {{ editando ? 'Editar Usuario' : 'Nuevo Usuario' }}
-          </h2>
+    <!-- Modal Formulario -->
+    <div v-if="modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-3xl w-full max-w-xl flex flex-col overflow-hidden shadow-2xl border border-slate-100">
+        
+        <!-- Modal Header -->
+        <div class="bg-[#2B3A4A] text-white px-6 py-5 flex justify-between items-center">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-sky-300">
+              <i class="bi bi-person-fill text-xl"></i>
+            </div>
+            <div>
+              <h2 class="text-lg font-extrabold leading-none">
+                {{ editando ? 'Editar Usuario' : 'Nuevo Usuario' }}
+              </h2>
+              <p class="text-sky-200/80 text-xs mt-1">Completa los datos del usuario</p>
+            </div>
+          </div>
 
           <button
             @click="cerrar"
-            class="w-9 h-9 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition text-white"
+            class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 transition text-slate-200 cursor-pointer"
           >
-            <i class="bi bi-x-lg"></i>
+            <i class="bi bi-x-lg text-sm"></i>
           </button>
         </div>
 
+        <!-- Modal Body -->
         <div class="p-6 space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
+              <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5">Nombre</label>
               <input
                 v-model="form.name"
-                placeholder="Nombre"
-                class="box-border w-full h-10 px-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#47B5AC]"
+                type="text"
+                placeholder="Ej. Juan"
+                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium"
               />
-              <p v-if="errores.name" class="text-red-500 text-sm mt-1">{{ errores.name }}</p>
+              <p v-if="errores.name" class="text-red-500 text-xs font-semibold mt-1">{{ errores.name }}</p>
             </div>
 
             <div>
+              <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5">Apellidos</label>
               <input
                 v-model="form.apellido"
-                placeholder="Apellidos"
-                class="box-border w-full h-10 px-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#47B5AC]"
+                type="text"
+                placeholder="Ej. Pérez"
+                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium"
               />
-              <p v-if="errores.apellido" class="text-red-500 text-sm mt-1">{{ errores.apellido }}</p>
+              <p v-if="errores.apellido" class="text-red-500 text-xs font-semibold mt-1">{{ errores.apellido }}</p>
             </div>
           </div>
 
           <div>
+            <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5">Correo Electrónico</label>
             <input
               v-model="form.email"
               type="email"
-              placeholder="Correo electrónico"
-              class="box-border w-full h-10 px-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#47B5AC]"
+              placeholder="juan.perez@ejemplo.com"
+              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium"
             />
-            <p v-if="errores.email" class="text-red-500 text-sm mt-1">{{ errores.email }}</p>
+            <p v-if="errores.email" class="text-red-500 text-xs font-semibold mt-1">{{ errores.email }}</p>
           </div>
 
           <div>
+            <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5">Contraseña</label>
             <input
               v-model="form.password"
               type="password"
-              :placeholder="editando ? 'Contraseña nueva (opcional)' : 'Contraseña'"
-              class="box-border w-full h-10 px-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#47B5AC]"
+              :placeholder="editando ? 'Dejar en blanco para conservar actual' : '••••••••'"
+              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium"
             />
-            <p v-if="errores.password" class="text-red-500 text-sm mt-1">{{ errores.password }}</p>
+            <p v-if="errores.password" class="text-red-500 text-xs font-semibold mt-1">{{ errores.password }}</p>
           </div>
 
           <div>
+            <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5">Rol de Usuario</label>
             <select
               v-model="form.rol_id"
-              class="box-border w-full h-10 px-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#47B5AC]"
+              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium cursor-pointer"
             >
-              <option value="">Selecciona rol</option>
+              <option value="">Selecciona un rol</option>
               <option v-for="r in roles" :key="r.id" :value="r.id">
                 {{ r.nombre }}
               </option>
             </select>
-            <p v-if="errores.rol_id" class="text-red-500 text-sm mt-1">{{ errores.rol_id }}</p>
+            <p v-if="errores.rol_id" class="text-red-500 text-xs font-semibold mt-1">{{ errores.rol_id }}</p>
           </div>
         </div>
 
-        <div class="flex justify-end gap-3 p-4 bg-gray-50">
-          <button @click="cerrar" class="px-4 py-2 border rounded-xl">
+        <!-- Modal Footer -->
+        <div class="flex justify-end gap-3 p-5 bg-slate-50 border-t border-slate-100">
+          <button 
+            @click="cerrar" 
+            class="px-5 py-2.5 border border-slate-200 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-100 transition cursor-pointer"
+          >
             Cancelar
           </button>
 
           <button
             @click="guardar"
             :disabled="loading"
-            class="px-4 py-2 bg-[#47B5AC] text-white rounded-xl disabled:opacity-50"
+            class="px-6 py-2.5 bg-[#2B3A4A] hover:bg-[#1F2B37] text-white font-bold text-sm rounded-xl shadow-lg shadow-[#2B3A4A]/20 disabled:opacity-50 transition cursor-pointer flex items-center gap-2"
           >
-            {{ loading ? 'Guardando...' : 'Guardar' }}
+            <i v-if="loading" class="bi bi-arrow-clockwise animate-spin text-base"></i>
+            <span>{{ loading ? 'Guardando...' : 'Guardar' }}</span>
           </button>
         </div>
+
       </div>
     </div>
   </div>
@@ -336,9 +399,10 @@ const abrirEliminar = async (u) => {
     text: 'Esta acción no se puede deshacer',
     icon: 'warning',
     showCancelButton: true,
-    confirmButtonColor: '#47B5AC',
-    cancelButtonColor: '#d33',
-    confirmButtonText: 'Sí, eliminar'
+    confirmButtonColor: '#2B3A4A',
+    cancelButtonColor: '#ef4444',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
   })
 
   if (!result.isConfirmed) return
