@@ -16,6 +16,15 @@ use App\Http\Controllers\LoteController;
 use App\Http\Controllers\ImagenController;
 use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\UnidadMedidaController;
+use App\Http\Controllers\CajaController;
+
+// --- RUTAS DE CAJA ---
+Route::get('/caja/estado', [CajaController::class, 'estadoActual']);
+Route::post('/caja/abrir', [CajaController::class, 'abrir']);
+Route::post('/caja/cerrar', [CajaController::class, 'cerrar']);
+Route::get('/caja/activas', [CajaController::class, 'cajasActivas']);
+Route::get('/caja/historial', [CajaController::class, 'historial']);
+Route::post('/caja/forzar-cierre/{id}', [CajaController::class, 'forzarCierre']);
 
 Route::get('/reportes/general', [ReporteController::class, 'reporteGeneral']);
 
@@ -50,4 +59,3 @@ Route::apiResource('detalleventas', DetalleVentaController::class);
 Route::apiResource('lotes', LoteController::class);
 Route::apiResource('imagenes', ImagenController::class);
 Route::apiResource('unidades-medida', UnidadMedidaController::class);
-Route::apiResource('compras', CompraController::class);

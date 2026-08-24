@@ -111,6 +111,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { login } from '../services/authService'
+import { cajaService } from '../services/cajaService'
 
 const router = useRouter()
 
@@ -139,7 +140,29 @@ const handleLogin = async () => {
     localStorage.setItem('token', response.access_token)
     localStorage.setItem('user', JSON.stringify(response.user))
 
-    router.push('/dashboard')
+    const rol = response.user?.rol?.nombre || response.user?.rol || ''
+
+    // 1. EL ADMINISTRADOR SIEMPRE ENTRA A INICIO / DASHBOARD
+    if (rol === 'Administrador') {
+      router.push('/dashboard')
+      return
+    }
+
+    // 2. EL CAJERO DEPENDE DEL ESTADO DE LA CAJA
+    try {
+      const resCaja = await cajaService.obtenerEstado()
+      const cajaAbierta = !!(resCaja && resCaja.caja)
+
+      if (cajaAbierta) {
+        router.push('/pos')
+      } else {
+        router.push('/caja')
+      }
+    } catch (errCaja) {
+      console.error('Error verificando caja:', errCaja)
+      router.push('/caja')
+    }
+
   } catch (err) {
     error.value = err.message || 'Credenciales inválidas, intenta de nuevo'
   } finally {

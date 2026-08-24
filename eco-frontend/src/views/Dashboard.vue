@@ -18,11 +18,11 @@
       </div>
     </div>
 
-    <!-- Tarjetas de Resumen (KPIs) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+    <!-- Tarjetas de Resumen (3 Columnas) -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       
       <!-- Ventas del Día -->
-      <div class="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/80 flex items-center justify-between">
+      <div class="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/80 flex items-center justify-between transition-transform hover:-translate-y-1">
         <div>
           <span class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Ventas Hoy</span>
           <h3 class="text-2xl sm:text-3xl font-black text-slate-800 mt-1">${{ totalVentasHoy.toFixed(2) }}</h3>
@@ -36,7 +36,7 @@
       </div>
 
       <!-- Productos Registrados -->
-      <div class="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/80 flex items-center justify-between">
+      <div class="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/80 flex items-center justify-between transition-transform hover:-translate-y-1">
         <div>
           <span class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Productos</span>
           <h3 class="text-3xl font-black text-slate-800 mt-1">{{ totalProductos }}</h3>
@@ -50,7 +50,7 @@
       </div>
 
       <!-- Usuarios del Sistema -->
-      <div class="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/80 flex items-center justify-between">
+      <div class="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/80 flex items-center justify-between transition-transform hover:-translate-y-1">
         <div>
           <span class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Usuarios</span>
           <h3 class="text-3xl font-black text-slate-800 mt-1">{{ totalUsuarios }}</h3>
@@ -58,29 +58,15 @@
             Cuentas activas
           </span>
         </div>
-        <div class="w-14 h-14 rounded-2xl bg-[#2B3A4A] text-sky-400 flex items-center justify-center text-2xl shadow-lg shadow-[#2B3A4A]/20">
+        <div class="w-14 h-14 rounded-2xl bg-[#0b121e] text-sky-400 flex items-center justify-center text-2xl shadow-lg shadow-[#0b121e]/20 border border-slate-800">
           <i class="bi bi-people-fill"></i>
-        </div>
-      </div>
-
-      <!-- Estado del Servidor / Sistema -->
-      <div class="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/80 flex items-center justify-between">
-        <div>
-          <span class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Estado</span>
-          <h3 class="text-2xl font-black text-emerald-600 mt-1">Activo</h3>
-          <span class="text-emerald-600 text-xs font-bold inline-flex items-center gap-1 mt-2">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Sistema en línea
-          </span>
-        </div>
-        <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center text-2xl">
-          <i class="bi bi-check-circle-fill"></i>
         </div>
       </div>
 
     </div>
 
     <!-- Sección de Bienvenida / Acceso Directo al POS -->
-    <div class="bg-gradient-to-br from-[#2B3A4A] via-[#23303E] to-[#1F2B37] rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
+    <div class="bg-gradient-to-br from-[#0b121e] via-[#0e1626] to-[#111c30] rounded-3xl p-8 text-white shadow-xl relative overflow-hidden border border-slate-800">
       <div class="absolute -right-10 -bottom-10 w-60 h-60 bg-sky-500/10 rounded-full blur-3xl"></div>
       
       <div class="relative z-10 max-w-xl">
@@ -94,7 +80,7 @@
         <div class="flex flex-wrap gap-3">
           <router-link
             to="/pos"
-            class="inline-flex items-center gap-2 bg-sky-400 hover:bg-sky-300 text-slate-900 font-extrabold px-6 py-3.5 rounded-2xl text-sm transition-all shadow-lg shadow-sky-400/20 active:scale-95"
+            class="inline-flex items-center gap-2 bg-sky-400 hover:bg-sky-300 text-slate-950 font-extrabold px-6 py-3.5 rounded-2xl text-sm transition-all shadow-lg shadow-sky-400/20 active:scale-95"
           >
             <i class="bi bi-cart-check-fill text-lg"></i>
             <span>Ir al Punto de Venta</span>
@@ -108,8 +94,9 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import axios from 'axios'
 import { getUsuarios } from '@/services/usuarioService'
-import { getProductos } from '@/services/productoService' // Asumiendo que existe el servicio
+import { getProductos } from '@/services/productoService'
 
 const totalUsuarios = ref(0)
 const totalProductos = ref(0)
@@ -125,13 +112,25 @@ onMounted(async () => {
     const usuarios = await getUsuarios()
     totalUsuarios.value = Array.isArray(usuarios) ? usuarios.length : (usuarios.data?.length || 0)
 
-    // Intento de obtener total de productos si el servicio existe
     if (typeof getProductos === 'function') {
       const productos = await getProductos()
       totalProductos.value = Array.isArray(productos) ? productos.length : (productos.data?.length || 0)
     }
+
+    const token = localStorage.getItem('token')
+    const resVentas = await axios.get('http://127.0.0.1:8000/api/ventas', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    
+    const ventas = resVentas.data?.data || resVentas.data || []
+    const hoy = new Date().toISOString().split('T')[0]
+    
+    totalVentasHoy.value = ventas
+      .filter(v => v.created_at && v.created_at.startsWith(hoy))
+      .reduce((sum, v) => sum + parseFloat(v.total || 0), 0)
+
   } catch (error) {
-    console.error('Error al cargar datos del dashboard:', error)
+    console.error('Error cargando métricas:', error)
   }
 })
 </script>

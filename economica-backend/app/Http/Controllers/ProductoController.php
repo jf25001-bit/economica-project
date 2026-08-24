@@ -11,17 +11,37 @@ use Illuminate\Support\Facades\DB;
 class ProductoController extends Controller
 {
     /**
+     * Verifica si el usuario autenticado es Cajero.
+     */
+    private function esCajero(): bool
+    {
+        $usuario = auth()->user();
+
+        if (!$usuario) {
+            return false;
+        }
+
+        return $usuario->rol?->nombre === 'Cajero';
+    }
+
+    /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        // Trae el producto con sus proveedores, subcategoría, imágenes y unidad de medida
         $productos = Producto::with([
-            'subcategoria.categoria', 
-            'proveedores', 
-            'imagenes', 
+            'subcategoria.categoria',
+            'proveedores',
+            'imagenes',
             'unidadMedida'
         ])->get();
+
+        /*
+         * Si es Cajero, ocultamos precio_venta de la respuesta.
+         */
+        if ($this->esCajero()) {
+            $productos->makeHidden(['precio_venta']);
+        }
 
         return response()->json($productos, 200);
     }
@@ -39,6 +59,15 @@ class ProductoController extends Controller
      */
     public function store(Request $request)
     {
+        /*
+         * Si es Cajero, NO puede crear productos con precio.
+         */
+        if ($this->esCajero()) {
+            return response()->json([
+                'message' => 'Los usuarios con rol Cajero no tienen permiso para crear productos.'
+            ], 403);
+        }
+
         $request->validate([
             'codigo_barras'    => 'nullable|string|max:50|unique:productos,codigo_barras',
             'nombre'           => 'required|string|max:100|unique:productos,nombre',
@@ -48,27 +77,31 @@ class ProductoController extends Controller
             'sub_categoria_id' => 'nullable|required_without:categoria_id|exists:sub_categorias,id',
             'categoria_id'     => 'nullable|required_without:sub_categoria_id|exists:categorias,id',
             'unidad_medida_id' => 'nullable|exists:unidad_medidas,id',
-            // Validamos que 'proveedores' sea un array y que cada ID exista en la tabla proveedores
             'proveedores'      => 'nullable|array',
             'proveedores.*'    => 'exists:proveedores,id',
         ]);
 
         return DB::transaction(function () use ($request) {
-            $data = $request->except('proveedores', 'categoria_id');
-            $data['sub_categoria_id'] = $this->resolverSubcategoriaId($request);
 
-            // Guardamos el producto (excluyendo el array de proveedores para no romper el create)
+            $data = $request->except(
+                'proveedores',
+                'categoria_id'
+            );
+
+            $data['sub_categoria_id'] =
+                $this->resolverSubcategoriaId($request);
+
             $producto = Producto::create($data);
 
-            // Sincronizamos los proveedores en la tabla pivote
             if ($request->has('proveedores')) {
-                $producto->proveedores()->sync($request->proveedores);
+                $producto->proveedores()->sync(
+                    $request->proveedores
+                );
             }
 
-            // Retornamos el producto cargado con sus relaciones actualizadas
             return response()->json([
                 'message' => 'Producto creado con éxito',
-                'data'    => $producto->load('proveedores')
+                'data' => $producto->load('proveedores')
             ], 201);
         });
     }
@@ -79,14 +112,25 @@ class ProductoController extends Controller
     public function show($id)
     {
         $producto = Producto::with([
-            'subcategoria.categoria', 
-            'proveedores', 
-            'imagenes', 
+            'subcategoria.categoria',
+            'proveedores',
+            'imagenes',
             'unidadMedida'
         ])->find($id);
 
         if (!$producto) {
-            return response()->json(['message' => 'Producto no encontrado'], 404);
+            return response()->json([
+                'message' => 'Producto no encontrado'
+            ], 404);
+        }
+
+        /*
+         * Si es Cajero, ocultamos el precio.
+         */
+        if ($this->esCajero()) {
+            $producto->makeHidden([
+                'precio_venta'
+            ]);
         }
 
         return response()->json($producto, 200);
@@ -108,7 +152,18 @@ class ProductoController extends Controller
         $producto = Producto::find($id);
 
         if (!$producto) {
-            return response()->json(['message' => 'Producto no encontrado'], 404);
+            return response()->json([
+                'message' => 'Producto no encontrado'
+            ], 404);
+        }
+
+        /*
+         * Si es Cajero, no puede modificar productos.
+         */
+        if ($this->esCajero()) {
+            return response()->json([
+                'message' => 'Los usuarios con rol Cajero no tienen permiso para modificar productos.'
+            ], 403);
         }
 
         $request->validate([
@@ -125,21 +180,26 @@ class ProductoController extends Controller
         ]);
 
         return DB::transaction(function () use ($request, $producto) {
-            $data = $request->except('proveedores', 'categoria_id');
-            $data['sub_categoria_id'] = $this->resolverSubcategoriaId($request);
 
-            // Actualizamos los datos del producto
+            $data = $request->except(
+                'proveedores',
+                'categoria_id'
+            );
+
+            $data['sub_categoria_id'] =
+                $this->resolverSubcategoriaId($request);
+
             $producto->update($data);
 
-            // Actualizamos la relación en la tabla pivote
             if ($request->has('proveedores')) {
-                // sync() elimina los proveedores viejos y asigna la lista nueva
-                $producto->proveedores()->sync($request->proveedores);
+                $producto->proveedores()->sync(
+                    $request->proveedores
+                );
             }
 
             return response()->json([
                 'message' => 'Producto actualizado con éxito',
-                'data'    => $producto->load('proveedores')
+                'data' => $producto->load('proveedores')
             ], 200);
         });
     }
@@ -152,22 +212,40 @@ class ProductoController extends Controller
         $producto = Producto::find($id);
 
         if (!$producto) {
-            return response()->json(['message' => 'Producto no encontrado'], 404);
+            return response()->json([
+                'message' => 'Producto no encontrado'
+            ], 404);
         }
 
-        // Al eliminar el producto, el onDelete('cascade') de la BD limpia automáticamente la tabla pivote
+        /*
+         * Si es Cajero, no puede eliminar productos.
+         */
+        if ($this->esCajero()) {
+            return response()->json([
+                'message' => 'Los usuarios con rol Cajero no tienen permiso para eliminar productos.'
+            ], 403);
+        }
+
         $producto->delete();
 
-        return response()->json(['message' => 'Producto eliminado con éxito'], 200);
+        return response()->json([
+            'message' => 'Producto eliminado con éxito'
+        ], 200);
     }
 
+    /**
+     * Resolver la subcategoría.
+     */
     private function resolverSubcategoriaId(Request $request): int
     {
         if ($request->filled('sub_categoria_id')) {
             return (int) $request->sub_categoria_id;
         }
 
-        $categoria = Categoria::findOrFail($request->categoria_id);
+        $categoria = Categoria::findOrFail(
+            $request->categoria_id
+        );
+
         $subcategoria = SubCategoria::firstOrCreate(
             [
                 'categoria_id' => $categoria->id,

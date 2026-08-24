@@ -1,27 +1,24 @@
 <template>
-  
   <router-view v-if="$route.path === '/' || $route.path === '/login'" />
 
-  
- <div v-else class="flex w-full">
+  <div v-else class="relative min-h-screen w-full bg-[#0d1424] m-0 p-0 overflow-x-hidden">
     <!-- Sidebar -->
     <Sidebar :isOpen="sidebarOpen" />
 
     <!-- Contenido principal -->
     <div
-  :class="[
-    'flex-1 min-h-screen bg-gray-100 transition-all duration-300 overflow-x-hidden',
-    sidebarOpen
-      ? 'md:ml-60 ml-0'
-      : 'md:ml-20 ml-0'
-  ]"
->
-    
+      :class="[
+        'min-h-screen flex flex-col bg-slate-50 transition-all duration-300 m-0 p-0',
+        sidebarOpen ? 'md:ml-60 ml-0' : 'md:ml-20 ml-0'
+      ]"
+    >
       <!-- Navbar -->
-      <Navbar @toggle-sidebar="toggleSidebar" />
+      <Navbar class="top-0 left-0 w-full" @toggle-sidebar="toggleSidebar" />
 
       <!-- Vista actual -->
-      <router-view />
+      <main class="flex-1 p-0 m-0">
+        <router-view />
+      </main>
     </div>
   </div>
 </template>
@@ -39,3 +36,12 @@ const toggleSidebar = () => {
   sidebarOpen.value = !sidebarOpen.value
 }
 </script>
+
+<style>
+html, body, #app {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  background-color: #0d1424 !important;
+}
+</style>
