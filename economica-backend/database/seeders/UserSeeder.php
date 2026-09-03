@@ -29,21 +29,27 @@ class UserSeeder extends Seeder
 
         // Crear usuario administrador
         User::updateOrCreate(
-            ['name' => 'administrador'],
+            ['name' => 'Carlos'],
             [
+                'apellido' => 'Mendoza',
+                'email'    => 'carlos.mendoza@admin.com',
+                'telefono' => '78901234',
                 'password' => Hash::make('clave1234'),
-                'rol_id' => $adminRol->id,
-                'activo' => true
+                'rol_id'   => $adminRol->id,
+                'activo'   => true
             ]
         );
 
         // Crear usuario cajero
         User::updateOrCreate(
-            ['name' => 'cajero'],
+            ['name' => 'Maria'],
             [
+                'apellido' => 'Lopez',
+                'email'    => 'maria.lopez@caja.com',
+                'telefono' => '71234567',
                 'password' => Hash::make('clave1234'),
-                'rol_id' => $cajeroRol->id,
-                'activo' => true
+                'rol_id'   => $cajeroRol->id,
+                'activo'   => true
             ]
         );
     }
