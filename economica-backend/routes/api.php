@@ -18,16 +18,7 @@ use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\UnidadMedidaController;
 use App\Http\Controllers\CajaController;
 
-// --- RUTAS DE CAJA ---
-Route::get('/caja/estado', [CajaController::class, 'estadoActual']);
-Route::post('/caja/abrir', [CajaController::class, 'abrir']);
-Route::post('/caja/cerrar', [CajaController::class, 'cerrar']);
-Route::get('/caja/activas', [CajaController::class, 'cajasActivas']);
-Route::get('/caja/historial', [CajaController::class, 'historial']);
-Route::post('/caja/forzar-cierre/{id}', [CajaController::class, 'forzarCierre']);
-
-Route::get('/reportes/general', [ReporteController::class, 'reporteGeneral']);
-
+// --- RUTAS PÚBLICAS (Sin Autenticación) ---
 Route::get('/saludo', function () {
     return response()->json(['mensaje' => 'Hola desde Laravel']);
 });
@@ -35,27 +26,45 @@ Route::get('/saludo', function () {
 Route::prefix('auth')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login', [AuthController::class, 'login']);
+});
 
-    Route::middleware('auth:api')->group(function () {
+// --- RUTAS PROTEGIDAS (Requieren Token JWT 'auth:api') ---
+Route::middleware('auth:api')->group(function () {
+
+    // Auth
+    Route::prefix('auth')->group(function () {
         Route::get('me', [AuthController::class, 'me']);
         Route::post('logout', [AuthController::class, 'logout']);
         Route::post('refresh', [AuthController::class, 'refresh']);
     });
 
+    // Rutas de Cajas
+    Route::prefix('caja')->group(function () {
+        Route::get('estado', [CajaController::class, 'estadoActual']);
+        Route::post('abrir', [CajaController::class, 'abrir']);
+        Route::post('cerrar', [CajaController::class, 'cerrar']);
+        Route::get('activas', [CajaController::class, 'cajasActivas']);
+        Route::get('historial', [CajaController::class, 'historial']);
+        Route::post('forzar-cierre/{id}', [CajaController::class, 'forzarCierre']);
+    });
+
+    // Reportes
+    Route::get('/reportes/general', [ReporteController::class, 'reporteGeneral']);
     Route::get('/reportes/tarjetas', [ReporteController::class, 'datosTarjetas']);
     Route::get('/reportes/resumen', [ReporteController::class, 'resumenJson']);
-});
 
-Route::apiResource('roles', RolController::class);
-Route::apiResource('usuarios', UserController::class);
-Route::apiResource('categorias', CategoriaController::class);
-Route::apiResource('subcategorias', SubCategoriaController::class);
-Route::apiResource('productos', ProductoController::class);
-Route::apiResource('proveedores', ProveedorController::class);
-Route::apiResource('compras', CompraController::class);
-Route::apiResource('ventas', VentaController::class);
-Route::apiResource('detallecompras', DetalleCompraController::class);
-Route::apiResource('detalleventas', DetalleVentaController::class);
-Route::apiResource('lotes', LoteController::class);
-Route::apiResource('imagenes', ImagenController::class);
-Route::apiResource('unidades-medida', UnidadMedidaController::class);
+    // Recursos API
+    Route::apiResource('roles', RolController::class);
+    Route::apiResource('usuarios', UserController::class);
+    Route::apiResource('categorias', CategoriaController::class);
+    Route::apiResource('subcategorias', SubCategoriaController::class);
+    Route::apiResource('productos', ProductoController::class);
+    Route::apiResource('proveedores', ProveedorController::class);
+    Route::apiResource('compras', CompraController::class);
+    Route::apiResource('ventas', VentaController::class);
+    Route::apiResource('detallecompras', DetalleCompraController::class);
+    Route::apiResource('detalleventas', DetalleVentaController::class);
+    Route::apiResource('lotes', LoteController::class);
+    Route::apiResource('imagenes', ImagenController::class);
+    Route::apiResource('unidades-medida', UnidadMedidaController::class);
+});

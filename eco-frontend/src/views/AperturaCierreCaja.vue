@@ -173,7 +173,6 @@
     </div>
   </div>
 </template>
-
 <script setup>
 import { ref, onMounted } from 'vue'
 import Swal from 'sweetalert2'
@@ -214,8 +213,10 @@ const formatoFecha = (fechaStr) => {
 const consultarEstado = async () => {
   cargandoEstado.value = true
   try {
-    const data = await cajaService.obtenerEstado()
-    
+    const res = await cajaService.obtenerEstado()
+    // Desempaquetado seguro contra respuestas directas o envueltas por Axios (res.data)
+    const data = res?.data ? res.data : res
+
     if (data && data.caja) {
       cajaAbierta.value = true
       cajaInfo.value = data.caja
@@ -237,26 +238,6 @@ const consultarEstado = async () => {
 const ejecutarApertura = async () => {
   procesando.value = true
   try {
-    // 1. Consultar en el historial si existe cualquier caja abierta en el sistema
-    const activas = await cajaService.obtenerCajasActivasGlobales()
-
-    if (activas && activas.length > 0) {
-      const cajaExistente = activas[0]
-      const responsable = cajaExistente.usuario?.nombre || cajaExistente.usuario?.name || 'otro usuario'
-      
-      await Swal.fire({
-        icon: 'warning',
-        title: 'Apertura Bloqueada',
-        text: `Ya existe una caja abierta en el sistema iniciada por: "${responsable}". Se debe cerrar la caja activa antes de abrir un nuevo turno.`,
-        background: '#0f172a',
-        color: '#fff',
-        confirmButtonColor: '#38bdf8'
-      })
-      procesando.value = false
-      return
-    }
-
-    // 2. Extraer usuario guardado en storage
     let userId = 1
     const userStr = localStorage.getItem('user') || localStorage.getItem('usuario')
     if (userStr) {
@@ -268,13 +249,19 @@ const ejecutarApertura = async () => {
       }
     }
 
-    // 3. Proceder a la apertura
     const datosEnvio = {
       ...formApertura.value,
-      user_id: userId
+      user_id: userId,
+      observacion: 'Apertura de turno'
     }
 
-    await cajaService.abrirCaja(datosEnvio)
+    const res = await cajaService.abrirCaja(datosEnvio)
+    const data = res?.data ? res.data : res
+
+    if (data && data.caja) {
+      cajaAbierta.value = true
+      cajaInfo.value = data.caja
+    }
     
     Swal.fire({
       icon: 'success',
@@ -288,7 +275,7 @@ const ejecutarApertura = async () => {
     
     await consultarEstado()
   } catch (e) {
-    const msg = e.response?.data?.message || 'Ocurrió un error al intentar abrir la caja.'
+    const msg = e.response?.data?.message || e.message || 'Ocurrió un error al intentar abrir la caja.'
     Swal.fire({
       icon: 'error',
       title: 'Error',
@@ -296,6 +283,7 @@ const ejecutarApertura = async () => {
       background: '#0f172a',
       color: '#fff'
     })
+    await consultarEstado()
   } finally {
     procesando.value = false
   }
@@ -304,12 +292,21 @@ const ejecutarApertura = async () => {
 const ejecutarCierre = async () => {
   procesando.value = true
   try {
-    await cajaService.cerrarCaja(formCierre.value)
+    const datosCierre = {
+      ...formCierre.value,
+      observacion: 'Cierre de turno habitual'
+    }
+
+    await cajaService.cerrarCaja(datosCierre)
     
+    cajaAbierta.value = false
+    cajaInfo.value = null
+    formCierre.value.monto_cierre = 0
+
     Swal.fire({
       icon: 'success',
       title: '¡Caja Cerrada!',
-      text: 'Se guardó el cierre de caja.',
+      text: 'Se guardó el cierre de caja correctamente.',
       timer: 1500,
       showConfirmButton: false,
       background: '#0f172a',

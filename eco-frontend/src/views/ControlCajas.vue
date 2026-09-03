@@ -61,12 +61,19 @@
                 <span class="px-2.5 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold rounded-md">Abierta</span>
               </div>
               
-              <h3 class="text-base font-black text-white mt-3">Usuario #{{ caja.user_id }}</h3>
+              <!-- NOMBRE DEL USUARIO EN LUGAR DE USUARIO #ID -->
+              <h3 class="text-base font-black text-white mt-3">{{ obtenerNombreUsuario(caja) }}</h3>
               <p class="text-xs text-slate-400 mt-1">Apertura: {{ caja.fecha_apertura }}</p>
               
-              <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center">
-                <span class="text-xs text-slate-400">Monto Base:</span>
-                <span class="text-sm font-extrabold text-emerald-400">${{ Number(caja.monto_apertura || 0).toFixed(2) }}</span>
+              <div class="mt-4 pt-3 border-t border-slate-800 space-y-1.5">
+                <div class="flex justify-between items-center">
+                  <span class="text-xs text-slate-400">Monto Inicial (Inversión):</span>
+                  <span class="text-sm font-extrabold text-slate-200">${{ Number(caja.monto_apertura || 0).toFixed(2) }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-xs text-slate-400">Vendido hasta ahora:</span>
+                  <span class="text-sm font-extrabold text-emerald-400">${{ Number(caja.total_ventas || 0).toFixed(2) }}</span>
+                </div>
               </div>
             </div>
 
@@ -106,19 +113,37 @@
             </thead>
             <tbody class="divide-y divide-slate-800">
               <tr v-for="item in historial" :key="item.id" class="hover:bg-slate-900/60 transition-colors">
-                <td class="p-3 font-extrabold text-white">Caja #{{ item.id }} (Usuario {{ item.user_id }})</td>
+                
+                <!-- MOSTRAR NOMBRE DEL USUARIO (EJ: Maria Perez) -->
+                <td class="p-3 font-extrabold text-white">
+                  Caja #{{ item.id }} ({{ obtenerNombreUsuario(item) }})
+                </td>
+
                 <td class="p-3 text-slate-400">{{ item.fecha_apertura }}</td>
                 <td class="p-3 text-slate-400">{{ item.fecha_cierre || 'En curso' }}</td>
                 <td class="p-3 font-semibold text-slate-200">${{ Number(item.monto_apertura || 0).toFixed(2) }}</td>
                 <td class="p-3 font-bold text-emerald-400">${{ Number(item.monto_cierre || 0).toFixed(2) }}</td>
+
                 <td class="p-3">
-                  <span v-if="item.observacion && item.observacion.includes('Admin')" class="px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-bold rounded-md">
-                    Cerrado x Admin
+                  <span 
+                    v-if="item.observacion && (item.observacion.toLowerCase().includes('admin') || item.observacion.toLowerCase().includes('forzad'))" 
+                    class="px-2 py-1 bg-red-500/20 text-red-400 border border-red-500/30 text-[10px] font-bold rounded-md flex items-center gap-1 w-fit"
+                    :title="item.observacion"
+                  >
+                    <i class="bi bi-shield-x"></i> Cierre Forzado x Admin
                   </span>
-                  <span v-else-if="item.estado === 'cerrada'" class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold rounded-md">
+
+                  <span 
+                    v-else-if="item.estado === 'cerrada'" 
+                    class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold rounded-md"
+                  >
                     Cierre Normal
                   </span>
-                  <span v-else class="px-2 py-0.5 bg-sky-500/10 text-sky-400 border border-sky-500/20 text-[10px] font-bold rounded-md">
+
+                  <span 
+                    v-else 
+                    class="px-2 py-0.5 bg-sky-500/10 text-sky-400 border border-sky-500/20 text-[10px] font-bold rounded-md"
+                  >
                     En Curso
                   </span>
                 </td>
@@ -137,9 +162,28 @@ import { ref, onMounted } from 'vue'
 import { cajaService } from '@/services/cajaService'
 import Swal from 'sweetalert2'
 
-const vista = ref('activas')
+const vista = ref('historial')
 const cajasActivas = ref([])
 const historial = ref([])
+const usuariosMap = ref({})
+
+// Función para obtener el nombre del usuario
+const obtenerNombreUsuario = (item) => {
+  // 1. Si la API ya trae la relación incluida
+  if (item.user?.name) return item.user.name
+  if (item.user?.nombre) return item.user.nombre
+  if (item.usuario?.nombre) return item.usuario.nombre
+  if (item.nombre_usuario) return item.nombre_usuario
+
+  // 2. Si lo encuentra en el mapa de usuarios
+  const id = item.user_id || item.usuario_id
+  if (id && usuariosMap.value[id]) {
+    return usuariosMap.value[id]
+  }
+
+  // 3. Fallback
+  return `Usuario #${id || 'N/A'}`
+}
 
 const cargarCajasActivas = async () => {
   try {
@@ -160,9 +204,31 @@ const cargarHistorial = async () => {
 }
 
 const forzarCierre = async (caja) => {
+  const montoInicial = Number(caja.monto_apertura || 0)
+  const totalVentas = Number(caja.total_ventas || 0)
+  const montoEsperado = montoInicial + totalVentas
+
   const { value: observacion, isConfirmed } = await Swal.fire({
     title: '¿Forzar Cierre de Caja?',
-    text: `Vas a cerrar la caja #${caja.id}. Ingresa el motivo:`,
+    html: `
+      <div style="text-align:left; font-size:13px; line-height:1.6; margin-bottom:14px; background:#0f172a; padding:12px 14px; border-radius:10px; border:1px solid #334155;">
+        <p style="margin:0 0 6px 0;"><strong>Caja #${caja.id} — ${obtenerNombreUsuario(caja)}</strong></p>
+        <div style="display:flex; justify-content:space-between;">
+          <span style="color:#94a3b8;">Monto Inicial (Inversión):</span>
+          <strong>$${montoInicial.toFixed(2)}</strong>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+          <span style="color:#94a3b8;">Total Vendido por el Cajero:</span>
+          <strong style="color:#34d399;">$${totalVentas.toFixed(2)}</strong>
+        </div>
+        <hr style="border-color:#334155; margin:6px 0;" />
+        <div style="display:flex; justify-content:space-between;">
+          <span style="color:#94a3b8;">Total Esperado en Caja:</span>
+          <strong style="color:#38bdf8;">$${montoEsperado.toFixed(2)}</strong>
+        </div>
+      </div>
+      <p style="font-size:12px; margin:0;">Ingresa el motivo del cierre forzado:</p>
+    `,
     input: 'text',
     inputPlaceholder: 'Ej. El cajero dejó la sesión abierta',
     showCancelButton: true,
@@ -176,7 +242,12 @@ const forzarCierre = async (caja) => {
 
   if (isConfirmed) {
     try {
-      await cajaService.forzarCierreAdmin(caja.id, observacion || 'Cierre forzado por el Administrador')
+      const motivoFinal = observacion 
+        ? `Cierre Forzado x Admin: ${observacion}` 
+        : 'Cierre Forzado x Admin'
+
+      await cajaService.forzarCierreAdmin(caja.id, motivoFinal)
+
       await Swal.fire({
         title: 'Caja Cerrada',
         text: 'Se forzó el cierre de la caja correctamente.',
@@ -184,6 +255,7 @@ const forzarCierre = async (caja) => {
         background: '#1e293b',
         color: '#ffffff'
       })
+
       cargarCajasActivas()
       cargarHistorial()
     } catch (e) {

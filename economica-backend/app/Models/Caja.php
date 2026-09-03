@@ -18,6 +18,12 @@ class Caja extends Model
         'total_ventas',
         'estado',
         'fecha_apertura',
-        'fecha_cierre'
+        'fecha_cierre',
+        'observacion',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

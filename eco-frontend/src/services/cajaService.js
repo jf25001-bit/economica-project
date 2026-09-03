@@ -1,75 +1,64 @@
 import axios from 'axios'
 
-const API_URL = 'http://127.0.0.1:8000/api/caja'
+const API_URL = 'http://127.0.0.1:8000/api'
 
-const getHeaders = () => {
-  const token = localStorage.getItem('token')
+// Función helper para obtener las cabeceras con el Token JWT / Sanctum
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token')
   return {
-    headers: { Authorization: `Bearer ${token}` }
-  }
-}
-
-const getUserId = () => {
-  try {
-    const userStr = localStorage.getItem('user')
-    const user = userStr ? JSON.parse(userStr) : null
-    return user?.id || null
-  } catch (e) {
-    return null
+    headers: {
+      'Authorization': token ? `Bearer ${token}` : '',
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    }
   }
 }
 
 export const cajaService = {
-  // Estado de caja del usuario
+  // Obtener estado actual (Desempaqueta directo res.data)
   async obtenerEstado() {
-    const userId = getUserId()
-    const response = await axios.get(`${API_URL}/estado`, {
-      ...getHeaders(),
-      params: { user_id: userId }
-    })
-    return response.data
+    const res = await axios.get(`${API_URL}/caja/estado-actual`, getAuthHeaders())
+    return res.data
   },
 
-  // Abrir caja
-  async abrirCaja(datos) {
-    const userId = getUserId()
-    const payload = {
-      ...datos,
-      user_id: userId
-    }
-    const response = await axios.post(`${API_URL}/abrir`, payload, getHeaders())
-    return response.data
+  async obtenerEstadoActual() {
+    const res = await axios.get(`${API_URL}/caja/estado-actual`, getAuthHeaders())
+    return res
   },
 
-  // Cerrar caja
-  async cerrarCaja(datos) {
-    const userId = getUserId()
-    const payload = {
-      ...datos,
-      user_id: userId
-    }
-    const response = await axios.post(`${API_URL}/cerrar`, payload, getHeaders())
-    return response.data
+  // Abrir caja (Desempaqueta directo res.data)
+  async abrirCaja(data) {
+    const res = await axios.post(`${API_URL}/caja/abrir`, data, getAuthHeaders())
+    return res.data
   },
 
-  // Obtener cajas activas globales (Para Control de Cajas)
+  // Cerrar caja normal (Desempaqueta directo res.data)
+  async cerrarCaja(data) {
+    const res = await axios.post(`${API_URL}/caja/cerrar`, data, getAuthHeaders())
+    return res.data
+  },
+
+  // Obtener cajas activas globales
   async obtenerCajasActivasGlobales() {
-    const response = await axios.get(`${API_URL}/activas`, getHeaders())
-    return response.data
+    const res = await axios.get(`${API_URL}/caja/activas`, getAuthHeaders())
+    return res.data
   },
 
-  // Obtener historial completo de cajas (Para Control de Cajas)
+  // Obtener historial de cierres
   async obtenerHistorialCierres() {
-    const response = await axios.get(`${API_URL}/historial`, getHeaders())
-    return response.data
+    const res = await axios.get(`${API_URL}/caja/historial`, getAuthHeaders())
+    return res.data
   },
 
-  // Forzar cierre por Admin
+  // Forzar cierre de caja
   async forzarCierreAdmin(cajaId, observacion) {
-    const payload = {
-      observacion: observacion
-    }
-    const response = await axios.post(`${API_URL}/forzar-cierre/${cajaId}`, payload, getHeaders())
-    return response.data
+    const res = await axios.post(
+      `${API_URL}/caja/forzar-cierre/${cajaId}`,
+      {
+        observacion: observacion || 'Cierre Forzado x Admin'
+      },
+      getAuthHeaders()
+    )
+    return res.data
   }
 }
