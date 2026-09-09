@@ -103,46 +103,53 @@ class CajaController extends Controller
     /**
      * Obtener todas las cajas abiertas en el sistema (Para Control de Cajas)
      */
-    public function cajasActivas()
-    {
-        $cajas = Caja::where('estado', 'abierta')
-            ->orderBy('id', 'desc')
-            ->get();
+   public function cajasActivas()
+{
+    $cajas = Caja::with('usuario')
+        ->where('estado', 'abierta')
+        ->orderBy('id', 'desc')
+        ->get();
 
-        return response()->json($cajas);
-    }
+    return response()->json($cajas);
+}
 
     /**
      * Obtener el historial completo de cajas (Para Control de Cajas)
      */
-    public function historial()
-    {
-        $historial = Caja::orderBy('id', 'desc')->get();
+    
+public function historial()
+{
+    $historial = Caja::with(['usuario', 'cerradoPor'])
+        ->orderBy('id', 'desc')
+        ->get();
 
-        return response()->json($historial);
-    }
+    return response()->json($historial);
+}
 
     /**
      * Forzar el cierre de una caja específica desde el módulo de administración
      */
-    public function forzarCierre(Request $request, $id)
-    {
-        $caja = Caja::find($id);
+   public function forzarCierre(Request $request, $id)
+{
+    $caja = Caja::find($id);
 
-        if (!$caja) {
-            return response()->json(['message' => 'Caja no encontrada.'], 404);
-        }
-
-        $caja->update([
-            'monto_cierre' => $request->input('monto_cierre', $caja->monto_apertura),
-            'fecha_cierre' => Carbon::now(),
-            'estado'       => 'cerrada',
-            'observacion'  => $request->input('observacion', 'Cierre forzado por Admin')
-        ]);
-
-        return response()->json([
-            'message' => 'Caja cerrada forzosamente con éxito.',
-            'caja'    => $caja
-        ]);
+    if (!$caja) {
+        return response()->json(['message' => 'Caja no encontrada.'], 404);
     }
+
+    $adminId = Auth::id() ?? auth('api')->id() ?? $request->input('admin_id');
+
+    $caja->update([
+        'monto_cierre'   => $request->input('monto_cierre', $caja->monto_apertura),
+        'fecha_cierre'   => Carbon::now(),
+        'estado'         => 'cerrada',
+        'observacion'    => $request->input('observacion', 'Cierre forzado por Administrador'),
+        'cerrado_por_id' => $adminId,
+    ]);
+
+    return response()->json([
+        'message' => 'Caja cerrada forzosamente con éxito.',
+        'caja'    => $caja->load(['usuario', 'cerradoPor'])
+    ]);
+}
 }

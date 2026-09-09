@@ -61,12 +61,18 @@
                 <span class="px-2.5 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold rounded-md">Abierta</span>
               </div>
               
-              <h3 class="text-base font-black text-white mt-3">Usuario #{{ caja.user_id }}</h3>
+              <h3 class="text-base font-black text-white mt-3">{{ nombreUsuario(caja) }}</h3>
               <p class="text-xs text-slate-400 mt-1">Apertura: {{ caja.fecha_apertura }}</p>
               
-              <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center">
-                <span class="text-xs text-slate-400">Monto Base:</span>
-                <span class="text-sm font-extrabold text-emerald-400">${{ Number(caja.monto_apertura || 0).toFixed(2) }}</span>
+              <div class="mt-4 pt-3 border-t border-slate-800 space-y-1.5">
+                <div class="flex justify-between items-center text-xs">
+                  <span class="text-slate-400">Monto Base:</span>
+                  <span class="font-extrabold text-white">${{ Number(caja.monto_apertura || 0).toFixed(2) }}</span>
+                </div>
+                <div class="flex justify-between items-center text-xs">
+                  <span class="text-slate-400">Ventas Registradas:</span>
+                  <span class="font-bold text-emerald-400">+${{ Number(caja.total_ventas || 0).toFixed(2) }}</span>
+                </div>
               </div>
             </div>
 
@@ -106,19 +112,27 @@
             </thead>
             <tbody class="divide-y divide-slate-800">
               <tr v-for="item in historial" :key="item.id" class="hover:bg-slate-900/60 transition-colors">
-                <td class="p-3 font-extrabold text-white">Caja #{{ item.id }} (Usuario {{ item.user_id }})</td>
+                <td class="p-3 font-extrabold text-white">Caja #{{ item.id }} ({{ nombreUsuario(item) }})</td>
                 <td class="p-3 text-slate-400">{{ item.fecha_apertura }}</td>
                 <td class="p-3 text-slate-400">{{ item.fecha_cierre || 'En curso' }}</td>
                 <td class="p-3 font-semibold text-slate-200">${{ Number(item.monto_apertura || 0).toFixed(2) }}</td>
                 <td class="p-3 font-bold text-emerald-400">${{ Number(item.monto_cierre || 0).toFixed(2) }}</td>
                 <td class="p-3">
-                  <span v-if="item.observacion && item.observacion.includes('Admin')" class="px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-bold rounded-md">
-                    Cerrado x Admin
-                  </span>
-                  <span v-else-if="item.estado === 'cerrada'" class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold rounded-md">
+                  <!-- Validación ampliada para cierre forzado -->
+                  <div v-if="item.cerrado_por_id || (item.observacion && (item.observacion.includes('Forzado') || item.observacion.includes('forzado') || item.observacion.includes('Admin')))" class="space-y-1">
+                    <span class="px-2.5 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[10px] font-bold rounded-md inline-flex items-center gap-1">
+                      <i class="bi bi-shield-exclamation"></i> Cierre Forzado por Admin
+                    </span>
+                    <p v-if="item.observacion" class="text-[10px] text-slate-400 leading-tight">
+                      {{ item.observacion }}
+                    </p>
+                  </div>
+
+                  <span v-else-if="item.estado === 'cerrada'" class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold rounded-md inline-block">
                     Cierre Normal
                   </span>
-                  <span v-else class="px-2 py-0.5 bg-sky-500/10 text-sky-400 border border-sky-500/20 text-[10px] font-bold rounded-md">
+
+                  <span v-else class="px-2.5 py-1 bg-sky-500/10 text-sky-400 border border-sky-500/20 text-[10px] font-bold rounded-md inline-block">
                     En Curso
                   </span>
                 </td>
@@ -141,6 +155,10 @@ const vista = ref('activas')
 const cajasActivas = ref([])
 const historial = ref([])
 
+const nombreUsuario = (item) => {
+  return item.usuario?.nombre || item.usuario?.name || `Usuario #${item.user_id}`
+}
+
 const cargarCajasActivas = async () => {
   try {
     const res = await cajaService.obtenerCajasActivasGlobales()
@@ -160,9 +178,33 @@ const cargarHistorial = async () => {
 }
 
 const forzarCierre = async (caja) => {
+  const montoInicial = Number(caja.monto_apertura || 0).toFixed(2)
+  const totalVentas = Number(caja.total_ventas || 0).toFixed(2)
+  const totalEsperado = (Number(caja.monto_apertura || 0) + Number(caja.total_ventas || 0)).toFixed(2)
+  const usuarioNom = nombreUsuario(caja)
+
   const { value: observacion, isConfirmed } = await Swal.fire({
     title: '¿Forzar Cierre de Caja?',
-    text: `Vas a cerrar la caja #${caja.id}. Ingresa el motivo:`,
+    html: `
+      <p class="text-xs text-slate-300 mb-3">Vas a cerrar la <strong>CAJA #${caja.id}</strong> asignada a <strong>${usuarioNom}</strong></p>
+      
+      <div style="background-color: #0f172a; border: 1px solid #334155; padding: 12px; border-radius: 12px; margin-bottom: 15px; text-align: left;">
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; color: #94a3b8;">
+          <span>Monto Inicial:</span>
+          <strong style="color: #f8fafc;">$${montoInicial}</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; color: #94a3b8;">
+          <span>Total Vendido:</span>
+          <strong style="color: #34d399;">+$${totalVentas}</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; padding-top: 6px; border-top: 1px dashed #334155; color: #38bdf8;">
+          <span>Esperado en Caja:</span>
+          <span>$${totalEsperado}</span>
+        </div>
+      </div>
+
+      <p class="text-xs text-slate-300 mb-2 font-medium">Ingresa el motivo del cierre:</p>
+    `,
     input: 'text',
     inputPlaceholder: 'Ej. El cajero dejó la sesión abierta',
     showCancelButton: true,
