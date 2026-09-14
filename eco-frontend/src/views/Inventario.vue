@@ -83,62 +83,11 @@
                     type="button"
                     class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-600 transition hover:bg-gray-100 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                     :disabled="item.lotes.length === 0"
-                    @click="alternarDetalle(item.id)"
+                    @click="abrirDetalleLotes(item)"
                   >
-                    <i :class="detalleAbierto === item.id ? 'bi bi-chevron-up' : 'bi bi-chevron-down'"></i>
+                    <i class="bi bi-eye"></i>
                     Ver lotes
                   </button>
-                </td>
-              </tr>
-
-              <!-- Subtabla Lotes -->
-              <tr
-                v-if="detalleAbierto === item.id"
-                class="bg-gray-50/60"
-              >
-                <td colspan="8" class="p-3 sm:p-4">
-                  <div class="rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm w-full">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 px-4 py-3 bg-gray-50/50">
-                      <div>
-                        <p class="text-xs sm:text-sm font-semibold text-gray-700">Detalle de lotes en existencia</p>
-                        <p class="text-[11px] sm:text-xs text-gray-500">Salida FIFO: primero se descuenta el lote con vencimiento más cercano.</p>
-                      </div>
-                      <span class="text-xs sm:text-sm font-semibold text-[#5B80B0] shrink-0">
-                        Total: {{ item.stock }}
-                      </span>
-                    </div>
-
-                    <div class="overflow-x-auto w-full">
-                      <table class="w-full min-w-[500px]">
-                        <thead class="bg-gray-50">
-                          <tr class="text-left text-[11px] sm:text-xs uppercase text-gray-500">
-                            <th class="px-4 py-2.5 font-semibold whitespace-nowrap w-24">Orden FIFO</th>
-                            <th class="px-4 py-2.5 font-semibold whitespace-nowrap">Lote</th>
-                            <th class="px-4 py-2.5 font-semibold whitespace-nowrap text-center">Cantidad Inicial</th>
-                            <th class="px-4 py-2.5 font-semibold whitespace-nowrap text-center">Cantidad Actual</th>
-                            <th class="px-4 py-2.5 font-semibold whitespace-nowrap text-right">Vencimiento</th>
-                          </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">
-                          <tr
-                            v-for="(lote, index) in item.lotes"
-                            :key="lote.id"
-                            class="text-xs sm:text-sm text-gray-700 hover:bg-gray-50"
-                          >
-                            <td class="px-4 py-2.5 whitespace-nowrap">
-                              <span class="rounded-full bg-[#5B80B0]/10 px-2 py-0.5 text-xs font-semibold text-[#5B80B0]">
-                                #{{ index + 1 }}
-                              </span>
-                            </td>
-                            <td class="px-4 py-2.5 font-mono text-xs font-medium whitespace-nowrap">{{ lote.codigo_lote || 'Sin lote' }}</td>
-                            <td class="px-4 py-2.5 whitespace-nowrap text-center">{{ lote.cantidad_inicial }}</td>
-                            <td class="px-4 py-2.5 font-semibold whitespace-nowrap text-center">{{ lote.cantidad_actual }}</td>
-                            <td class="px-4 py-2.5 whitespace-nowrap text-right text-gray-500">{{ formatearFecha(lote.fecha_expiracion) }}</td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
                 </td>
               </tr>
             </template>
@@ -160,6 +109,116 @@
       </div>
     </div>
 
+    <!-- Modal de Detalle de Lotes -->
+    <div
+      v-if="productoSeleccionado"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto"
+      @click.self="cerrarDetalleLotes"
+    >
+      <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-3xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center text-sky-400 shrink-0">
+              <i class="bi bi-box-seam text-lg"></i>
+            </div>
+            <div class="min-w-0">
+              <h3 class="text-base font-bold text-white m-0 truncate">
+                Detalle de lotes
+              </h3>
+              <p class="text-[11px] text-slate-400 font-medium m-0 truncate">
+                {{ productoSeleccionado.nombre }} - {{ productoSeleccionado.codigo }}
+              </p>
+            </div>
+          </div>
+          <button
+            @click="cerrarDetalleLotes"
+            class="text-slate-400 hover:text-white hover:bg-slate-800 w-8 h-8 rounded-lg flex items-center justify-center transition cursor-pointer border-0 bg-transparent shrink-0"
+          >
+            <i class="bi bi-x-lg text-sm"></i>
+          </button>
+        </div>
+
+        <div class="p-6 space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+            <div>
+              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Producto</span>
+              <span class="text-sm font-bold text-slate-800 block mt-0.5 truncate">
+                {{ productoSeleccionado.nombre }}
+              </span>
+            </div>
+            <div>
+              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Categoría</span>
+              <span class="text-sm font-bold text-slate-800 block mt-0.5 truncate">
+                {{ productoSeleccionado.categoria }}
+              </span>
+            </div>
+            <div>
+              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Stock total</span>
+              <span class="text-sm font-black text-slate-900 block mt-0.5">
+                {{ productoSeleccionado.stock }}
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2 mb-2">
+              <div>
+                <h4 class="text-xs font-black uppercase tracking-wider text-slate-500 m-0">
+                  Lotes en existencia
+                </h4>
+                <p class="text-[11px] text-slate-500 font-medium m-0 mt-1">
+                  Salida FIFO: primero se descuenta el lote con vencimiento más cercano.
+                </p>
+              </div>
+              <span class="text-xs sm:text-sm font-bold text-[#5B80B0] shrink-0">
+                Total: {{ productoSeleccionado.stock }}
+              </span>
+            </div>
+
+            <div class="border border-slate-200 rounded-xl overflow-auto max-h-72">
+              <table class="w-full min-w-[560px] text-left border-collapse text-xs">
+                <thead class="sticky top-0 bg-slate-100 border-b border-slate-200 z-10">
+                  <tr class="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                    <th class="px-4 py-2.5 whitespace-nowrap">Orden FIFO</th>
+                    <th class="px-4 py-2.5 whitespace-nowrap">Lote</th>
+                    <th class="px-4 py-2.5 whitespace-nowrap text-center">Cantidad Inicial</th>
+                    <th class="px-4 py-2.5 whitespace-nowrap text-center">Cantidad Actual</th>
+                    <th class="px-4 py-2.5 whitespace-nowrap text-right">Vencimiento</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr
+                    v-for="(lote, index) in productoSeleccionado.lotes"
+                    :key="lote.id"
+                    class="text-slate-700 hover:bg-slate-50/70"
+                  >
+                    <td class="px-4 py-2.5 whitespace-nowrap">
+                      <span class="rounded-full bg-[#5B80B0]/10 px-2 py-0.5 text-xs font-semibold text-[#5B80B0]">
+                        #{{ index + 1 }}
+                      </span>
+                    </td>
+                    <td class="px-4 py-2.5 font-mono text-xs font-bold whitespace-nowrap text-slate-800">{{ lote.codigo_lote || 'Sin lote' }}</td>
+                    <td class="px-4 py-2.5 whitespace-nowrap text-center font-medium text-slate-600">{{ lote.cantidad_inicial }}</td>
+                    <td class="px-4 py-2.5 font-black whitespace-nowrap text-center text-slate-900">{{ lote.cantidad_actual }}</td>
+                    <td class="px-4 py-2.5 whitespace-nowrap text-right text-slate-500">{{ formatearFecha(lote.fecha_expiracion) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="px-6 py-3 bg-slate-50 border-t border-slate-100 flex justify-end">
+          <button
+            @click="cerrarDetalleLotes"
+            class="px-4 py-2 bg-slate-200 hover:bg-slate-300 active:bg-slate-400 text-slate-700 font-bold text-xs rounded-xl transition cursor-pointer border-0"
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Error -->
     <div v-if="error" class="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
       {{ error }}
@@ -177,7 +236,7 @@ const lotes = ref([])
 const busqueda = ref('')
 const cargando = ref(false)
 const error = ref('')
-const detalleAbierto = ref(null)
+const productoSeleccionado = ref(null)
 
 const lotesPorProducto = computed(() => {
   return lotes.value.reduce((grupos, lote) => {
@@ -270,8 +329,12 @@ const formatearFecha = (fecha) => {
     : fechaObj.toLocaleDateString()
 }
 
-const alternarDetalle = (id) => {
-  detalleAbierto.value = detalleAbierto.value === id ? null : id
+const abrirDetalleLotes = (item) => {
+  productoSeleccionado.value = item
+}
+
+const cerrarDetalleLotes = () => {
+  productoSeleccionado.value = null
 }
 
 onMounted(() => {
