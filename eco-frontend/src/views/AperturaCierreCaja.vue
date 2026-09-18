@@ -14,6 +14,22 @@
       </div>
     </div>
 
+    <!-- Banner Alerta Caja Cerrada (Mismo fondo #0f172a que las demás tarjetas) -->
+    <div 
+      v-if="!cargandoEstado && !cajaAbierta" 
+      class="bg-[#0f172a] border border-amber-500/40 rounded-2xl p-4 flex items-center gap-4 text-amber-400 shadow-md"
+    >
+      <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+        <i class="bi bi-exclamation-triangle-fill text-xl text-amber-400 animate-pulse"></i>
+      </div>
+      <div>
+        <h4 class="font-bold text-sm text-amber-400">Caja Cerrada</h4>
+        <p class="text-xs text-slate-400 mt-0.5">
+          Debes realizar la apertura ingresando el monto base inicial antes de operar ventas.
+        </p>
+      </div>
+    </div>
+
     <!-- State Loader -->
     <div v-if="cargandoEstado" class="bg-[#0f172a] rounded-2xl border border-slate-800/80 p-16 flex flex-col items-center justify-center text-slate-400">
       <i class="bi bi-arrow-repeat animate-spin text-4xl text-sky-400 mb-3"></i>
@@ -221,14 +237,12 @@ const formCierre = ref({
   monto_cierre: 0
 })
 
-// Monto esperado = apertura + ventas del turno
 const montoEsperado = computed(() => {
   const apertura = parseFloat(cajaInfo.value?.monto_apertura || 0)
   const ventas = parseFloat(cajaInfo.value?.total_ventas || 0)
   return apertura + ventas
 })
 
-// Diferencia entre lo contado (input) y lo esperado (cálculo automático)
 const diferencia = computed(() => {
   return parseFloat(formCierre.value.monto_cierre || 0) - montoEsperado.value
 })
@@ -264,7 +278,6 @@ const consultarEstado = async () => {
       cajaAbierta.value = true
       cajaInfo.value = data.caja
 
-      // Precarga el monto de cierre con el cálculo automático (apertura + ventas)
       const apertura = parseFloat(data.caja.monto_apertura || 0)
       const ventas = parseFloat(data.caja.total_ventas || 0)
       formCierre.value.monto_cierre = apertura + ventas
@@ -275,6 +288,17 @@ const consultarEstado = async () => {
       if (data && data.monto_anterior !== undefined) {
         formApertura.value.monto_apertura = parseFloat(data.monto_anterior)
       }
+
+      // Alerta emergente SweetAlert2
+      Swal.fire({
+        title: '¡Caja Cerrada!',
+        text: 'Debes aperturar un turno de caja para habilitar las operaciones en el sistema.',
+        icon: 'warning',
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#0284c7',
+        background: '#0f172a',
+        color: '#fff'
+      })
     }
   } catch (e) {
     console.error("Error al consultar caja:", e)
@@ -286,7 +310,6 @@ const consultarEstado = async () => {
 const ejecutarApertura = async () => {
   procesando.value = true
   try {
-    // 1. Consultar en el historial si existe cualquier caja abierta en el sistema
     const activas = await cajaService.obtenerCajasActivasGlobales()
 
     if (activas && activas.length > 0) {
@@ -305,7 +328,6 @@ const ejecutarApertura = async () => {
       return
     }
 
-    // 2. Extraer usuario guardado en storage
     let userId = 1
     const userStr = localStorage.getItem('user') || localStorage.getItem('usuario')
     if (userStr) {
@@ -317,7 +339,6 @@ const ejecutarApertura = async () => {
       }
     }
 
-    // 3. Proceder a la apertura
     const datosEnvio = {
       ...formApertura.value,
       user_id: userId

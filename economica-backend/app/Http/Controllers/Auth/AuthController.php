@@ -14,9 +14,20 @@ use App\Models\User;
 class AuthController extends Controller
 {
     // Verifica usuarios 
+   // Verifica usuarios 
     public function login(Request $request)
     {
-        $credenciales = $request->only('name','password');
+        // 1. Validar que el usuario exista con coincidencia binaria exacta (sensible a mayúsculas/minúsculas)
+        $user = User::whereRaw('BINARY name = ?', [$request->name])->first();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Credenciales inválidas'
+            ], 401);
+        }
+
+        // 2. Intentar autenticar con las credenciales
+        $credenciales = $request->only('name', 'password');
 
         if (!$token = Auth::attempt($credenciales)) {
             return response()->json([
@@ -24,9 +35,10 @@ class AuthController extends Controller
             ], 401);
         }
 
-        $user = User::with('rol')->find(Auth::id());
+        // 3. Verificar si el usuario está activo
+        $userWithRol = User::with('rol')->find($user->id);
 
-        if (!$user->activo) {
+        if (!$userWithRol->activo) {
             Auth::logout();
             return response()->json([
                 'message' => 'Usuario desactivado'
@@ -36,7 +48,7 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
-            'user' => $user,
+            'user' => $userWithRol,
             'expires_in' => JWTAuth::factory()->getTTL() * 60
         ]);
     }
