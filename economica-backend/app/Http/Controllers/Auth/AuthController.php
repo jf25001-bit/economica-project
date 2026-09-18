@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -12,71 +13,67 @@ use App\Models\User;
 
 class AuthController extends Controller
 {
-    //verifica usuarios 
+    // Verifica usuarios 
     public function login(Request $request)
-{
-    $credenciales = $request->only('name','password');
+    {
+        $credenciales = $request->only('name','password');
 
-    if (!$token = Auth::attempt($credenciales)) {
+        if (!$token = Auth::attempt($credenciales)) {
+            return response()->json([
+                'message' => 'Credenciales inválidas'
+            ], 401);
+        }
+
+        $user = User::with('rol')->find(Auth::id());
+
+        if (!$user->activo) {
+            Auth::logout();
+            return response()->json([
+                'message' => 'Usuario desactivado'
+            ], 403);
+        }
+
         return response()->json([
-            'message' => 'Credenciales inválidas'
-        ], 401);
+            'access_token' => $token,
+            'token_type' => 'bearer',
+            'user' => $user,
+            'expires_in' => JWTAuth::factory()->getTTL() * 60
+        ]);
     }
-
-    $user = User::with('rol')->find(Auth::id());
-
-    if (!$user->activo) {
-
-        Auth::logout();
-
-        return response()->json([
-            'message' => 'Usuario desactivado'
-        ], 403);
-    }
-
-    return response()->json([
-        'access_token' => $token,
-        'token_type' => 'bearer',
-        'user' => $user,
-        'expires_in' => JWTAuth::factory()->getTTL() * 60
-    ]);
-}
     
-//se crean usuarios nuevos
-    public function register(Request $request){
-      //validamos datos a través de Request
-      $validator = Validator::make($request->all(),[
-          'name' => 'required|string|max:191',
-        //   'email' => 'required|string|email|max:191|unique:users',
-          'password' => 'required|string|min:8'
-      ]);
-      if($validator->fails()){
-          return response()->json($validator->errors(),422);
-      }
-      //creamos el usuario
-     $user = User::create([
-    'name' => $request->name,
-    'password' => Hash::make($request->password),
-    'rol_id' => $request->rol_id ?? 1,
-    'activo' => true
-]);
+    // Se crean usuarios nuevos
+    public function register(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:191',
+            'password' => 'required|string|min:8'
+        ]);
 
-      //Recordatorio Asignar rol por defecto
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
 
-      //generamos el token
-      $token = JWTAuth::fromUser($user);
-      // se retornamos la respuesta
+        $user = User::create([
+            'name' => $request->name,
+            'password' => Hash::make($request->password),
+            'rol_id' => $request->rol_id ?? 1,
+            'activo' => true
+        ]);
 
-      return response()->json([
-          'message' => 'Usuario registrado correctamente',
-          'user' => $user,
-          'access_token' => $token,
-          'token_type' => 'bearer',
-           'expires_in' => JWTAuth::factory()->getTTL() * 60
-      ],201);
-  }
- //debuelve datos de la sesion
-    protected function responseWithToken($token){
+        $token = JWTAuth::fromUser($user);
+
+        return response()->json([
+            'message' => 'Usuario registrado correctamente',
+            'user' => $user,
+            'access_token' => $token,
+            'token_type' => 'bearer',
+            'expires_in' => JWTAuth::factory()->getTTL() * 60
+        ], 201);
+    }
+
+    // Devuelve datos de la sesión
+    protected function responseWithToken($token)
+    {
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
@@ -84,32 +81,48 @@ class AuthController extends Controller
             'expires_in' => JWTAuth::factory()->getTTL() * 60
         ]);
     }
- //muestra los datos del usuario actual
- public function me()
-{
-    return response()->json(
-        User::with('rol')->find(JWTAuth::user()->id)
-    );
-}
 
-   
+    // Muestra los datos del usuario actual
+    public function me()
+    {
+        try {
+            $user = JWTAuth::parseToken()->authenticate();
+            if (!$user) {
+                return response()->json(['message' => 'Usuario no encontrado'], 404);
+            }
+            return response()->json(User::with('rol')->find($user->id));
+        } catch (JWTException $e) {
+            return response()->json(['message' => 'Token inválido o expirado'], 401);
+        }
+    }
 
+    // Cierra la sesión del usuario de forma segura
+    public function logout(Request $request)
+    {
+        try {
+            // Obtener token directamente del encabezado o de la fachada
+            $token = JWTAuth::getToken();
+            
+            if ($token) {
+                JWTAuth::invalidate($token);
+            }
+        } catch (JWTException $e) {
+            // Si el token ya expiró o no se pudo invalidar, ignoramos la excepción
+            // para permitir que el cliente cierre la sesión de todos modos
+        }
 
-//ba cerrar la sesion del usuario
-    public function logout(){
-        JWTAuth::logout();
         return response()->json([
             'message' => 'Sesión cerrada correctamente'
-    ]);
+        ], 200);
     }
 
-    //método para refrescar el token
-
-    //retornara un token de acceso
-    public function refresh(){
-        return $this->responseWithToken(JWTAuth::refresh());
+    // Método para refrescar el token
+    public function refresh()
+    {
+        try {
+            return $this->responseWithToken(JWTAuth::refresh());
+        } catch (JWTException $e) {
+            return response()->json(['message' => 'No se pudo refrescar el token'], 401);
+        }
     }
-
-
-  
 }

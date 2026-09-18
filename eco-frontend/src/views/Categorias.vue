@@ -50,7 +50,7 @@
 
           <tbody class="divide-y divide-slate-100">
             <tr
-              v-for="cat in categoriasFiltradas"
+              v-for="cat in categoriasPaginadas"
               :key="cat.id"
               class="hover:bg-slate-50/80 transition-colors"
             >
@@ -111,6 +111,13 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Paginación -->
+      <Paginacion
+        :current-page="paginaActual"
+        :total-pages="totalPaginas"
+        @update:current-page="paginaActual = $event"
+      />
     </div>
 
     <!-- Modal Formulario -->
@@ -247,8 +254,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import Swal from 'sweetalert2'
+import Paginacion from '@/components/Paginacion.vue'
 import {
   getCategorias,
   createCategoria,
@@ -278,6 +286,24 @@ const categoriasFiltradas = computed(() => {
     cat.nombre.toLowerCase().includes(filtro.value.toLowerCase().trim())
   )
 })
+
+// --- Paginación ---
+const paginaActual = ref(1)
+const porPagina = 8
+
+const totalPaginas = computed(() =>
+  Math.max(1, Math.ceil(categoriasFiltradas.value.length / porPagina))
+)
+
+const categoriasPaginadas = computed(() => {
+  const inicio = (paginaActual.value - 1) * porPagina
+  return categoriasFiltradas.value.slice(inicio, inicio + porPagina)
+})
+
+watch(filtro, () => {
+  paginaActual.value = 1
+})
+// --- Fin Paginación ---
 
 onMounted(() => cargar())
 

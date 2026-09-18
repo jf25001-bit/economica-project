@@ -69,7 +69,7 @@
 
           <tbody class="divide-y divide-slate-100">
             <tr
-              v-for="u in usuariosFiltrados"
+              v-for="u in usuariosPaginados"
               :key="u.id"
               class="hover:bg-slate-50/80 transition-colors"
             >
@@ -151,6 +151,13 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Paginación -->
+      <Paginacion
+        :current-page="paginaActual"
+        :total-pages="totalPaginas"
+        @update:current-page="paginaActual = $event"
+      />
     </div>
 
     <!-- Modal Formulario -->
@@ -287,8 +294,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import Swal from 'sweetalert2'
+import Paginacion from '@/components/Paginacion.vue'
 import { getUsuarios, createUsuario, updateUsuario, deleteUsuario } from '@/services/usuarioService'
 import { getRoles } from '@/services/rolService'
 
@@ -337,6 +345,24 @@ const usuariosFiltrados = computed(() => {
     return matchQuery && matchRol
   })
 })
+
+// --- Paginación ---
+const paginaActual = ref(1)
+const porPagina = 8
+
+const totalPaginas = computed(() =>
+  Math.max(1, Math.ceil(usuariosFiltrados.value.length / porPagina))
+)
+
+const usuariosPaginados = computed(() => {
+  const inicio = (paginaActual.value - 1) * porPagina
+  return usuariosFiltrados.value.slice(inicio, inicio + porPagina)
+})
+
+watch([search, filtroRol], () => {
+  paginaActual.value = 1
+})
+// --- Fin Paginación ---
 
 const abrirModal = () => {
   modal.value = true

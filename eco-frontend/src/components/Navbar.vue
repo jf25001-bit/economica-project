@@ -12,7 +12,7 @@
       </button>
 
       <div class="hidden sm:flex flex-col">
-        <span class="text-sm font-black text-slate-200 leading-tight">Chalatenango</span>
+        
       </div>
     </div>
 

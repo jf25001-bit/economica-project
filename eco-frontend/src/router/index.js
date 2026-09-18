@@ -56,10 +56,14 @@ const routes = [
     }
   },
   {
-  path: '/control-cajas',
-  name: 'ControlCajas',
-  component: () => import('@/views/ControlCajas.vue')
-},
+    path: '/control-cajas',
+    name: 'ControlCajas',
+    component: () => import('@/views/ControlCajas.vue'),
+    meta: {
+      requiresAuth: true,
+      allowedRoles: ['Administrador']
+    }
+  },
 
   // CATEGORÍAS
   {
@@ -171,12 +175,32 @@ router.beforeEach(async (to) => {
     console.error('Error leyendo usuario:', error)
   }
 
-  // 1. Si NO está autenticado y la ruta requiere Auth, mandar a Login
-  if (to.meta.requiresAuth && !token) {
-    return '/login'
+  // Rol normalizado en minúsculas para evitar diferencias de mayúsculas/minúsculas
+  const rol = String(user?.rol?.nombre || user?.rol || '').trim().toLowerCase()
+
+  // 1. Manejo de la ruta raíz '/'
+  if (to.path === '/') {
+    if (!token) return '/login'
+
+    if (rol === 'cajero') {
+      let cajaAbierta = false
+      try {
+        const resCaja = await cajaService.obtenerEstado()
+        cajaAbierta = !!(resCaja && resCaja.caja)
+      } catch (e) {
+        cajaAbierta = false
+      }
+      return cajaAbierta ? '/pos' : '/caja'
+    }
+    return '/dashboard'
   }
 
-  // 2. Si SI está autenticado e intenta ir a Login o a la raíz, redirigir según su estado/rol
+  // 2. Si NO está autenticado y la ruta requiere Auth, mandar a Login
+  if (to.meta.requiresAuth && !token) {
+    return to.path === '/login' ? true : '/login'
+  }
+
+  // 3. Si SÍ está autenticado e intenta ir a Login, redirigir según su estado/rol
   if (to.path === '/login' && token) {
     let cajaAbierta = false
     try {
@@ -186,22 +210,19 @@ router.beforeEach(async (to) => {
       cajaAbierta = false
     }
 
-    const rol = user?.rol?.nombre || user?.rol || ''
-    
-    if (rol === 'Cajero') {
-      return cajaAbierta ? '/pos' : '/caja'
+    if (rol === 'cajero') {
+      const destinoCajero = cajaAbierta ? '/pos' : '/caja'
+      return to.path === destinoCajero ? true : destinoCajero
     }
-    return '/dashboard'
+    return to.path === '/dashboard' ? true : '/dashboard'
   }
 
-  // Si la ruta no requiere autenticación y no es el login con token, permitir
+  // Si la ruta no requiere autenticación y no es login con token, permitir
   if (!to.meta.requiresAuth) {
     return true
   }
 
-  const rol = user?.rol?.nombre || user?.rol || ''
-
-  // 3. Verificar estado de la caja desde el servidor
+  // 4. Verificar estado de la caja desde el servidor
   let cajaAbierta = false
   try {
     const resCaja = await cajaService.obtenerEstado()
@@ -213,15 +234,17 @@ router.beforeEach(async (to) => {
   // ==========================================
   // RESTRICCIÓN PARA CAJERO
   // ==========================================
-  if (rol === 'Cajero') {
-    // Si la caja está cerrada, el Cajero SOLO puede estar en '/caja'
+  if (rol === 'cajero') {
+    // Si la caja está cerrada, OBLIGAR al cajero a ir a /caja y bloquear cualquier otra ruta
     if (!cajaAbierta && to.path !== '/caja') {
       return '/caja'
     }
 
+    // Si la caja ya está abierta, validar sus rutas permitidas
     const rutasPermitidas = ['/pos', '/productos', '/inventario', '/caja']
     if (!rutasPermitidas.includes(to.path)) {
-      return cajaAbierta ? '/pos' : '/caja'
+      const destinoCajero = cajaAbierta ? '/pos' : '/caja'
+      return to.path === destinoCajero ? true : destinoCajero
     }
   }
 
@@ -229,17 +252,21 @@ router.beforeEach(async (to) => {
   // RESTRICCIÓN DE PUNTO DE VENTA (ADMIN Y CAJERO)
   // ==========================================
   if (to.meta.requiresCaja && !cajaAbierta) {
-    return '/caja'
+    return to.path === '/caja' ? true : '/caja'
   }
 
   // ==========================================
   // VALIDAR ROLES DE CADA RUTA
   // ==========================================
-  if (to.meta.allowedRoles && !to.meta.allowedRoles.includes(rol)) {
-    return rol === 'Cajero' ? (cajaAbierta ? '/pos' : '/caja') : '/dashboard'
+  if (to.meta.allowedRoles) {
+    const rolesPermitidos = to.meta.allowedRoles.map(r => r.toLowerCase())
+    if (!rolesPermitidos.includes(rol)) {
+      const destinoFallback = rol === 'cajero' ? (cajaAbierta ? '/pos' : '/caja') : '/dashboard'
+      return to.path === destinoFallback ? true : destinoFallback
+    }
   }
 
   return true
 })
 
-export default router 
+export default router

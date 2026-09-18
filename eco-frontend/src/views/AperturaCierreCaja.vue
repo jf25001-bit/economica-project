@@ -137,10 +137,25 @@
             <p class="text-xs text-slate-400 mt-1">Conteo y confirmación de dinero total en efectivo</p>
           </div>
 
+          <!-- Resumen del turno -->
+          <div class="grid grid-cols-2 gap-4 bg-slate-900/60 border border-slate-800 rounded-xl p-4">
+            <div>
+              <p class="text-[10px] font-black uppercase tracking-wider text-slate-500">Monto Apertura</p>
+              <p class="text-lg font-black text-white mt-1">${{ formatoMonto(cajaInfo?.monto_apertura) }}</p>
+            </div>
+            <div>
+              <p class="text-[10px] font-black uppercase tracking-wider text-slate-500">Ventas del Turno</p>
+              <p class="text-lg font-black text-white mt-1">${{ formatoMonto(cajaInfo?.total_ventas) }}</p>
+            </div>
+          </div>
+
           <div>
             <label class="block text-slate-400 text-[11px] font-black uppercase tracking-wider mb-2">
               MONTO TOTAL EN EFECTIVO
             </label>
+            <p class="text-[11px] text-sky-400 font-bold mb-2">
+              <i class="bi bi-magic"></i> Calculado automáticamente: ${{ formatoMonto(montoEsperado) }} — puedes ajustarlo si el conteo físico difiere.
+            </p>
             <div class="relative">
               <span class="absolute left-4 top-1/2 -translate-y-1/2 text-rose-400 font-bold text-base">$</span>
               <input
@@ -156,6 +171,18 @@
                 USD
               </span>
             </div>
+
+            <!-- Diferencia en vivo -->
+            <p
+              v-if="diferencia !== 0"
+              :class="[
+                'text-xs font-bold mt-2',
+                diferencia > 0 ? 'text-emerald-400' : 'text-rose-400'
+              ]"
+            >
+              <i :class="diferencia > 0 ? 'bi bi-arrow-up-circle' : 'bi bi-arrow-down-circle'"></i>
+              {{ diferencia > 0 ? 'Sobrante' : 'Faltante' }} de ${{ formatoMonto(Math.abs(diferencia)) }} respecto al monto esperado
+            </p>
           </div>
 
           <button
@@ -175,7 +202,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import Swal from 'sweetalert2'
 import { cajaService } from '@/services/cajaService'
 
@@ -193,6 +220,23 @@ const formApertura = ref({
 const formCierre = ref({
   monto_cierre: 0
 })
+
+// Monto esperado = apertura + ventas del turno
+const montoEsperado = computed(() => {
+  const apertura = parseFloat(cajaInfo.value?.monto_apertura || 0)
+  const ventas = parseFloat(cajaInfo.value?.total_ventas || 0)
+  return apertura + ventas
+})
+
+// Diferencia entre lo contado (input) y lo esperado (cálculo automático)
+const diferencia = computed(() => {
+  return parseFloat(formCierre.value.monto_cierre || 0) - montoEsperado.value
+})
+
+const formatoMonto = (valor) => {
+  const num = parseFloat(valor || 0)
+  return num.toFixed(2)
+}
 
 const formatoFecha = (fechaStr) => {
   if (!fechaStr) return 'Hoy'
@@ -219,6 +263,11 @@ const consultarEstado = async () => {
     if (data && data.caja) {
       cajaAbierta.value = true
       cajaInfo.value = data.caja
+
+      // Precarga el monto de cierre con el cálculo automático (apertura + ventas)
+      const apertura = parseFloat(data.caja.monto_apertura || 0)
+      const ventas = parseFloat(data.caja.total_ventas || 0)
+      formCierre.value.monto_cierre = apertura + ventas
     } else {
       cajaAbierta.value = false
       cajaInfo.value = null
