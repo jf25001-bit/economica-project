@@ -161,7 +161,7 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 
-const API_BASE = 'http://localhost:8000/api/auth'
+const API_BASE = 'http://localhost:8000/api'
 
 const periodoSeleccionado = ref('mes')
 const cargandoTarjetas = ref(true)

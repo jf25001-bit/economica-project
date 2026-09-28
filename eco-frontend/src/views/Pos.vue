@@ -164,7 +164,7 @@
 
     </div>
 
-    <!-- MODAL DE COBRO CORREGIDO -->
+    <!-- MODAL DE COBRO -->
     <div 
       v-if="mostrarModalCobro" 
       class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
@@ -253,8 +253,8 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
-import axios from 'axios'
 import Swal from 'sweetalert2'
+import { getProductos, createVenta } from '@/services/ventaService'
 
 const productosCatalogo = ref([])
 const guardandoVenta = ref(false)
@@ -270,8 +270,8 @@ const mostrarModalCobro = ref(false)
 
 const cargarCatalogo = async () => {
   try {
-    const res = await axios.get('http://127.0.0.1:8000/api/productos')
-    productosCatalogo.value = res.data.data || res.data || []
+    const res = await getProductos()
+    productosCatalogo.value = res.data || res || []
   } catch (error) {
     console.error('Error cargando catálogo:', error)
   }
@@ -433,6 +433,7 @@ const confirmarYRegistrarVenta = async () => {
   const datosVenta = {
     cliente: nombreCliente.value.trim() || 'Consumidor Final',
     total: totalCalculado.value,
+    dinero_recibido: Number(efectivoRecibido.value), // <-- AÑADIR ESTA LÍNEA
     productos: carrito.value.map(item => ({
       producto_id: item.producto_id,
       cantidad: item.cantidad,
@@ -441,7 +442,7 @@ const confirmarYRegistrarVenta = async () => {
   }
 
   try {
-    await axios.post('http://127.0.0.1:8000/api/ventas', datosVenta)
+    await createVenta(datosVenta)
     
     mostrarModalCobro.value = false
 

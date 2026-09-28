@@ -14,7 +14,7 @@ class VentaController extends Controller
 {
     public function index()
     {
-        $ventas = Venta::with(['detalles.producto'])->get();
+        $ventas = Venta::with(['usuario', 'detalles.producto'])->get();
 
         return response()->json($ventas, 200);
     }
@@ -23,6 +23,7 @@ class VentaController extends Controller
     {
         $request->validate([
             'fecha_venta' => 'nullable|date',
+            'dinero_recibido' => 'required|numeric|min:0',
             'productos' => 'required|array|min:1',
             'productos.*.producto_id' => 'required|exists:productos,id',
             'productos.*.cantidad' => 'required|integer|min:1',
@@ -33,9 +34,12 @@ class VentaController extends Controller
         try {
 
             $venta = Venta::create([
+                'user_id' => $request->user()?->id ?? $request->input('user_id'),
                 'fecha_venta' => $request->fecha_venta ?? now()->toDateString(),
                 'cliente' => $request->input('cliente', 'Consumidor Final'),
-                'total' => 0
+                'total' => 0,
+                'dinero_recibido' => $request->dinero_recibido,
+                'vuelto' => 0
             ]);
 
             $totalVenta = 0;
@@ -104,15 +108,27 @@ class VentaController extends Controller
                 $producto->decrement('stock', $cantidadSolicitada);
             }
 
+            if ($request->dinero_recibido < $totalVenta) {
+
+                DB::rollBack();
+
+                return response()->json([
+                    'message' => "El dinero recibido (\${$request->dinero_recibido}) es menor al total de la venta (\${$totalVenta})"
+                ], 400);
+            }
+
+            $vuelto = $request->dinero_recibido - $totalVenta;
+
             $venta->update([
-                'total' => $totalVenta
+                'total' => $totalVenta,
+                'vuelto' => $vuelto
             ]);
 
             DB::commit();
 
             return response()->json([
                 'message' => 'Venta procesada con éxito',
-                'data' => $venta->load('detalles.producto')
+                'data' => $venta->load(['usuario', 'detalles.producto'])
             ], 201);
 
         } catch (\Exception $e) {
@@ -128,7 +144,7 @@ class VentaController extends Controller
 
     public function show($id)
     {
-        $venta = Venta::with(['detalles.producto'])->find($id);
+        $venta = Venta::with(['usuario', 'detalles.producto'])->find($id);
 
         if (!$venta) {
             return response()->json([
@@ -148,7 +164,9 @@ class VentaController extends Controller
             $validated = $request->validate([
                 'fecha_venta' => 'sometimes|date',
                 'total' => 'sometimes|numeric',
-                'cliente' => 'sometimes|string|max:100'
+                'cliente' => 'sometimes|string|max:100',
+                'dinero_recibido' => 'sometimes|numeric|min:0',
+                'vuelto' => 'sometimes|numeric|min:0'
             ]);
 
             $venta->update($validated);

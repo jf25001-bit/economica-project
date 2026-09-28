@@ -12,10 +12,18 @@ class Venta extends Model
     protected $table = 'ventas';
 
     protected $fillable = [
+        'user_id',
         'fecha_venta',
         'cliente',
-        'total'
+        'total',
+        'dinero_recibido',
+        'vuelto'
     ];
+
+    public function usuario()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 
     public function detalles()
     {

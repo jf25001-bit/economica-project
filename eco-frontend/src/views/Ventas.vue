@@ -28,12 +28,14 @@
       </div>
 
       <div class="overflow-x-auto w-full">
-        <table class="w-full text-left border-separate border-spacing-0 min-w-[650px]">
+        <table class="w-full text-left border-separate border-spacing-0 min-w-[750px]">
           <thead>
             <tr class="bg-slate-100/80 text-[11px] font-black uppercase tracking-wider text-slate-500">
               <th class="px-6 py-3.5 border-b border-slate-200">Factura</th>
               <th class="px-6 py-3.5 border-b border-slate-200">Cliente</th>
               <th class="px-6 py-3.5 border-b border-slate-200">Fecha</th>
+              <th class="px-6 py-3.5 border-b border-slate-200">Recibido</th>
+              <th class="px-6 py-3.5 border-b border-slate-200">Vuelto</th>
               <th class="px-6 py-3.5 border-b border-slate-200">Total</th>
               <th class="px-6 py-3.5 text-center border-b border-slate-200">Acciones</th>
             </tr>
@@ -54,6 +56,12 @@
               <td class="px-6 py-4 font-medium text-slate-500 border-b border-slate-100">
                 {{ formatearFecha(venta.fecha_venta || venta.created_at) }}
               </td>
+              <td class="px-6 py-4 font-bold text-slate-600 border-b border-slate-100">
+                ${{ Number(venta.dinero_recibido || 0).toFixed(2) }}
+              </td>
+              <td class="px-6 py-4 font-bold text-slate-600 border-b border-slate-100">
+                ${{ Number(venta.vuelto || 0).toFixed(2) }}
+              </td>
               <td class="px-6 py-4 font-black text-slate-900 border-b border-slate-100">
                 ${{ Number(venta.total).toFixed(2) }}
               </td>
@@ -71,7 +79,7 @@
             </tr>
 
             <tr v-if="ventas.length === 0">
-              <td colspan="5" class="text-center py-12 text-slate-400 font-medium italic border-b border-slate-100">
+              <td colspan="7" class="text-center py-12 text-slate-400 font-medium italic border-b border-slate-100">
                 <i class="bi bi-receipt text-3xl block mb-2 text-slate-300"></i>
                 No hay ventas registradas.
               </td>
@@ -87,7 +95,7 @@
       class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto"
       @click.self="cerrarModal"
     >
-      <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-3xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         <!-- Header Modal -->
         <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
           <div class="flex items-center gap-3">
@@ -112,7 +120,7 @@
         <!-- Cuerpo Modal -->
         <div class="p-6 space-y-4">
           <!-- Metadatos de la Venta -->
-          <div class="grid grid-cols-2 gap-4 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
             <div>
               <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Cliente</span>
               <span class="text-sm font-bold text-slate-800 block mt-0.5">
@@ -123,6 +131,18 @@
               <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Fecha</span>
               <span class="text-sm font-bold text-slate-800 block mt-0.5">
                 {{ formatearFecha(ventaSeleccionada?.fecha_venta || ventaSeleccionada?.created_at) }}
+              </span>
+            </div>
+            <div>
+              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Dinero Recibido</span>
+              <span class="text-sm font-bold text-slate-800 block mt-0.5">
+                ${{ Number(ventaSeleccionada?.dinero_recibido || 0).toFixed(2) }}
+              </span>
+            </div>
+            <div>
+              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Vuelto</span>
+              <span class="text-sm font-bold text-slate-800 block mt-0.5">
+                ${{ Number(ventaSeleccionada?.vuelto || 0).toFixed(2) }}
               </span>
             </div>
           </div>
@@ -196,7 +216,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import { getVentas } from '@/services/ventaService'
 
 const ventas = ref([])
 const mostrarModalDetalle = ref(false)
@@ -204,8 +224,8 @@ const ventaSeleccionada = ref(null)
 
 const consultarVentas = async () => {
   try {
-    const res = await axios.get('http://127.0.0.1:8000/api/ventas')
-    ventas.value = res.data.data || res.data || []
+    const res = await getVentas()
+    ventas.value = res.data || res || []
   } catch (error) {
     console.error('Error cargando historial de ventas:', error)
   }

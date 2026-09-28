@@ -1,23 +1,35 @@
-import axios from 'axios'
-// Ruta principal donde se encuentran las rutas de autenticación
-const API_URL = 'http://127.0.0.1:8000/api/auth'
+import api from './api'
 
 // Función para iniciar sesión
 export const login = async (credentials) => {
   try {
-      // Envía usuario y contraseña al backend
-    const response = await axios.post(
-      `${API_URL}/login`,
-      credentials
-    )
+    // Usa 'api' centralizado en lugar de axios directo
+    const response = await api.post('/auth/login', credentials)
 
-    // Retorna los datos recibidos (token y usuario)
+    // Guardar token en localStorage si viene en la respuesta
+    if (response.data.access_token) {
+      localStorage.setItem('token', response.data.access_token)
+    }
+
     return response.data
   } catch (error) {
-
-    // Cacha el  errores si las credenciales son incorrectas
     throw error.response?.data || {
       message: 'Error al iniciar sesión'
     }
+  }
+}
+
+// Función para obtener datos del usuario autenticado
+export const getMe = async () => {
+  const response = await api.get('/auth/me')
+  return response.data
+}
+
+// Función para cerrar sesión
+export const logout = async () => {
+  try {
+    await api.post('/auth/logout')
+  } finally {
+    localStorage.removeItem('token')
   }
 }
