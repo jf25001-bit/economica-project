@@ -13,8 +13,6 @@ class Compra extends Model
 
     protected $fillable = [
         'fecha_compra',
-        'fecha_llegada',
-        'estado',
         'total'
     ];
 

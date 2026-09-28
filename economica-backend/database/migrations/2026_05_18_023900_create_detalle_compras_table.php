@@ -25,13 +25,19 @@ return new class extends Migration
                 ->constrained('productos')
                 ->nullOnDelete();
 
-            // Registro histórico fijo
+            // Cantidad de paquetes/cajas compradas
             $table->integer('cantidad')
                 ->nullable();
 
+            // Unidades contenidas en cada paquete
+            $table->integer('unidades_por_paquete')
+                ->default(1);
+
+            // Precio por paquete ($)
             $table->decimal('precio_compra', 10, 2)
                 ->nullable();
 
+            // Subtotal del ítem (cantidad * precio_compra)
             $table->decimal('subtotal', 10, 2)
                 ->nullable();
 

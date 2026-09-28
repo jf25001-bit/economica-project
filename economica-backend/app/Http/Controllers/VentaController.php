@@ -22,6 +22,7 @@ class VentaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'fecha_venta' => 'nullable|date',
             'productos' => 'required|array|min:1',
             'productos.*.producto_id' => 'required|exists:productos,id',
             'productos.*.cantidad' => 'required|integer|min:1',
@@ -32,7 +33,7 @@ class VentaController extends Controller
         try {
 
             $venta = Venta::create([
-                'fecha_venta' => now()->toDateString(),
+                'fecha_venta' => $request->fecha_venta ?? now()->toDateString(),
                 'cliente' => $request->input('cliente', 'Consumidor Final'),
                 'total' => 0
             ]);

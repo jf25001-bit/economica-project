@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Compra;
@@ -51,24 +52,25 @@ class CompraController extends Controller
 
             foreach ($request->detalles as $item) {
                 $producto = Producto::findOrFail($item['producto_id']);
+                
                 $paquetesComprados = (int) $item['cantidad'];
                 $unidadesPorPaquete = isset($item['unidades_por_paquete']) && $item['unidades_por_paquete'] > 0 
                     ? (int) $item['unidades_por_paquete'] 
                     : 1;
 
+                // Cálculo de unidades totales para inventario y costo paquete
                 $unidadesTotales = $paquetesComprados * $unidadesPorPaquete;
                 $precioPaquete = (float) $item['precio_compra'];
                 $subtotal = $paquetesComprados * $precioPaquete;
                 $totalGeneral += $subtotal;
 
-                $precioUnitarioCalculado = $precioPaquete / $unidadesPorPaquete;
-
+                // Se guarda la cantidad de paquetes y precio por paquete para la UI
                 $detalle = DetalleCompra::create([
                     'compra_id' => $compra->id,
                     'producto_id' => $producto->id,
-                    'cantidad' => $unidadesTotales,
+                    'cantidad' => $paquetesComprados,
                     'unidades_por_paquete' => $unidadesPorPaquete,
-                    'precio_compra' => $precioUnitarioCalculado,
+                    'precio_compra' => $precioPaquete,
                     'subtotal' => $subtotal
                 ]);
 
@@ -76,6 +78,7 @@ class CompraController extends Controller
                     ? $item['codigo_lote'] 
                     : 'LOTE-C' . $compra->id . '-P' . $producto->id;
 
+                // Al lote y al stock ingresan las UNIDADES TOTALES
                 Lote::create([
                     'detalle_compra_id' => $detalle->id,
                     'producto_id'       => $producto->id,
@@ -126,10 +129,11 @@ class CompraController extends Controller
             $detallesRecibidos = collect($request->detalles);
             $idsEnviados = $detallesRecibidos->pluck('detalle_id')->filter()->toArray();
 
-            // 1. Revertir el stock de detalles eliminados
+            // 1. Revertir el stock de detalles eliminados (en base a sus unidades reales)
             $detallesAEliminar = $compra->detalles()->whereNotIn('id', $idsEnviados)->get();
             foreach ($detallesAEliminar as $detOld) {
-                Producto::where('id', $detOld->producto_id)->decrement('stock', $detOld->cantidad);
+                $unidadesViejas = $detOld->cantidad * $detOld->unidades_por_paquete;
+                Producto::where('id', $detOld->producto_id)->decrement('stock', $unidadesViejas);
                 $detOld->delete();
             }
 
@@ -138,26 +142,27 @@ class CompraController extends Controller
                 $paquetes = (int) $det['cantidad'];
                 $unidPorPaquete = (int) $det['unidades_por_paquete'];
                 $unidadesTotalesNuevas = $paquetes * $unidPorPaquete;
+                
                 $precioPaquete = (float) $det['precio_compra'];
                 $subtotalItem = $paquetes * $precioPaquete;
-                $precioUnitario = $precioPaquete / $unidPorPaquete;
-
                 $totalGeneral += $subtotalItem;
 
                 $detalleExistente = isset($det['detalle_id']) ? DetalleCompra::find($det['detalle_id']) : null;
 
                 if ($detalleExistente) {
-                    // Ajuste de stock por la diferencia
-                    $diferenciaStock = $unidadesTotalesNuevas - $detalleExistente->cantidad;
+                    // Calculamos la diferencia en unidades totales para ajustar el stock del producto
+                    $unidadesTotalesAnteriores = $detalleExistente->cantidad * $detalleExistente->unidades_por_paquete;
+                    $diferenciaStock = $unidadesTotalesNuevas - $unidadesTotalesAnteriores;
+                    
                     if ($diferenciaStock != 0) {
                         Producto::where('id', $det['producto_id'])->increment('stock', $diferenciaStock);
                     }
 
                     $detalleExistente->update([
                         'producto_id' => $det['producto_id'],
-                        'cantidad' => $unidadesTotalesNuevas,
+                        'cantidad' => $paquetes,
                         'unidades_por_paquete' => $unidPorPaquete,
-                        'precio_compra' => $precioUnitario,
+                        'precio_compra' => $precioPaquete,
                         'subtotal' => $subtotalItem
                     ]);
 
@@ -166,16 +171,16 @@ class CompraController extends Controller
                     // Detalle nuevo agregado durante la edición
                     $detalle = $compra->detalles()->create([
                         'producto_id' => $det['producto_id'],
-                        'cantidad' => $unidadesTotalesNuevas,
+                        'cantidad' => $paquetes,
                         'unidades_por_paquete' => $unidPorPaquete,
-                        'precio_compra' => $precioUnitario,
+                        'precio_compra' => $precioPaquete,
                         'subtotal' => $subtotalItem
                     ]);
 
                     Producto::where('id', $det['producto_id'])->increment('stock', $unidadesTotalesNuevas);
                 }
 
-                // Actualizar o Crear el Lote
+                // Actualizar o Crear el Lote correspondiente con las UNIDADES TOTALES
                 $codigoLote = !empty($det['codigo_lote']) 
                     ? $det['codigo_lote'] 
                     : 'LOTE-C' . $compra->id . '-P' . $det['producto_id'];

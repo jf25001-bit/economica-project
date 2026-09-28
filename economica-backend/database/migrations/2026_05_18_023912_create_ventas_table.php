@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('ventas', function (Blueprint $table) {
             $table->id();
 
-            $table->date('fecha_venta')->nullable();
+            $table->dateTime('fecha_venta')->nullable();
 
             $table->string('cliente', 100)
                 ->default('Consumidor Final');

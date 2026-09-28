@@ -18,19 +18,16 @@
         .report-title-bar { background-color: #F7FAFC; border-left: 4px solid #5B80B0; padding: 12px 18px; margin-bottom: 30px; border-radius: 0 4px 4px 0; }
         .report-title-bar h2 { font-size: 16px; text-transform: uppercase; color: #2D3748; letter-spacing: 0.5px; }
         
-        
         .balance-container { display: flex; gap: 15px; margin-bottom: 30px; }
         .card { flex: 1; padding: 18px; border-radius: 8px; border: 1px solid #E2E8F0; }
         .card .title { font-size: 11px; text-transform: uppercase; font-weight: 700; color: #718096; letter-spacing: 0.5px; }
         .card .value { font-size: 24px; font-weight: 800; margin-top: 6px; }
         
-    
         .card.ventas { background-color: #EBF8FF; border-color: #BEE3F8; color: #2B6CB0; }
         .card.compras { background-color: #FFF5F5; border-color: #FED7D7; color: #C53030; }
         .card.balance { background-color: rgba(91, 128, 176, 0.10); border-color: rgba(91, 128, 176, 0.25); color: #5B80B0; }
         .card.negativo { background-color: #FFF5F5; border-color: #FED7D7; color: #9B1C1C; }
 
-      
         table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 15px; border-radius: 6px; overflow: hidden; border: 1px solid #E2E8F0; }
         th { background-color: #5B80B0; color: white; font-size: 11px; font-weight: 600; text-transform: uppercase; padding: 12px 16px; text-align: left; letter-spacing: 0.5px; }
         td { padding: 12px 16px; border-bottom: 1px solid #E2E8F0; font-size: 13px; color: #4A5568; background: #fff; }
@@ -112,10 +109,13 @@
             </thead>
             <tbody>
                 @forelse($datos as $reg)
+                    @php
+                        $fechaRegistro = $reg->fecha_compra ?? $reg->fecha_venta ?? $reg->created_at ?? null;
+                    @endphp
                     <tr>
                         <td style="font-weight: 600;">#{{ $reg->id }}</td>
-                        <td>{{ date('d/m/Y h:i A', strtotime($reg->created_at)) }}</td>
-                        <td class="text-center"><span class="badge">Procesado</span></td>
+                        <td>{{ $fechaRegistro ? date('d/m/Y h:i A', strtotime($fechaRegistro)) : 'N/A' }}</td>
+                        <td class="text-center"><span class="badge">{{ strtoupper($reg->estado ?? 'Procesado') }}</span></td>
                         <td class="text-right" style="font-weight: 600; color: #1A202C;">${{ number_format($reg->total, 2) }}</td>
                     </tr>
                 @empty

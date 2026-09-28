@@ -14,15 +14,7 @@ return new class extends Migration
         Schema::create('compras', function (Blueprint $table) {
             $table->id();
 
-            $table->date('fecha_compra')->nullable();
-            $table->date('fecha_llegada')->nullable();
-
-            $table->enum('estado', [
-                'pendiente',
-                'completada',
-                'cancelada'
-            ])->default('pendiente');
-
+            $table->dateTime('fecha_compra')->nullable();
             $table->decimal('total', 10, 2)->nullable();
 
             $table->timestamps();

@@ -9,7 +9,6 @@ class Categoria extends Model
 {
     use HasFactory;
 
-    
     protected $table = 'categorias';
 
     protected $fillable = [
@@ -20,5 +19,13 @@ class Categoria extends Model
     public function subcategorias()
     {
         return $this->hasMany(Subcategoria::class, 'categoria_id');
+    }
+
+    
+    protected static function booted(): void
+    {
+        static::deleting(function ($categoria) {
+            $categoria->subcategorias()->delete();
+        });
     }
 }
