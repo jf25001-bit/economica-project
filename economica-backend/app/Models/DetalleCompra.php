@@ -14,6 +14,7 @@ class DetalleCompra extends Model
     protected $fillable = [
         'compra_id',
         'producto_id',
+        'proveedor_id', 
         'cantidad',
         'unidades_por_paquete',
         'precio_compra',
@@ -33,6 +34,15 @@ class DetalleCompra extends Model
         return $this->belongsTo(
             Producto::class,
             'producto_id'
+        );
+    }
+
+    
+    public function proveedor()
+    {
+        return $this->belongsTo(
+            Proveedor::class,
+            'proveedor_id'
         );
     }
 

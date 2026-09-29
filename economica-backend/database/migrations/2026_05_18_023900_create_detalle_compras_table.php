@@ -25,6 +25,12 @@ return new class extends Migration
                 ->constrained('productos')
                 ->nullOnDelete();
 
+            // Proveedor del producto comprado
+            $table->foreignId('proveedor_id')
+                ->nullable()
+                ->constrained('proveedores')
+                ->nullOnDelete();
+
             // Cantidad de paquetes/cajas compradas
             $table->integer('cantidad')
                 ->nullable();

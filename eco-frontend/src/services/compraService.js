@@ -1,34 +1,21 @@
-import axios from 'axios'
-
-const API_URL = 'http://127.0.0.1:8000/api/compras'
-
-const getHeaders = () => {
-  const token = localStorage.getItem('token')
-
-  return {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/json'
-    }
-  }
-}
+import api from './api'
 
 export const getCompras = async () => {
-  const response = await axios.get(API_URL, getHeaders())
+  const response = await api.get('/compras')
   return response.data
 }
 
 export const createCompra = async (data) => {
-  const response = await axios.post(API_URL, data, getHeaders())
+  const response = await api.post('/compras', data)
   return response.data
 }
 
 export const updateCompra = async (id, data) => {
-  const response = await axios.put(`${API_URL}/${id}`, data, getHeaders())
+  const response = await api.put(`/compras/${id}`, data)
   return response.data
 }
 
 export const deleteCompra = async (id) => {
-  const response = await axios.delete(`${API_URL}/${id}`, getHeaders())
+  const response = await api.delete(`/compras/${id}`)
   return response.data
 }

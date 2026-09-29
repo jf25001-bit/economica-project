@@ -116,7 +116,11 @@
               <input
                 v-model="fechaCompraNueva"
                 type="date"
-                class="form-force-input px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white text-slate-800 outline-none focus:border-slate-900 font-medium"
+                :readonly="modoEdicion"
+                :class="[
+                  'form-force-input px-3 py-2 border rounded-lg text-sm font-medium outline-none',
+                  modoEdicion ? 'bg-slate-100 text-slate-500 border-slate-200 cursor-not-allowed' : 'bg-white text-slate-800 border-slate-300 focus:border-slate-900'
+                ]"
               />
             </div>
             <div class="p-3.5 border border-slate-200 rounded-xl bg-white shadow-sm flex items-center justify-between">
@@ -152,6 +156,28 @@
                   </span>
                   <i class="bi bi-search text-slate-400 text-xs shrink-0 ml-2"></i>
                 </button>
+              </div>
+
+              <!-- SELECCIONAR PROVEEDOR (RELACIONADO AL PRODUCTO ELEGIDO) -->
+              <div class="field-block">
+                <label class="text-xs font-semibold text-slate-600 block mb-1">Proveedor Suministrador</label>
+                <select
+                  v-model="d.proveedor_id"
+                  :disabled="!d.producto_id"
+                  class="form-force-input h-10 px-3 border border-slate-300 rounded-lg text-sm bg-white text-slate-800 outline-none focus:border-slate-900 disabled:bg-slate-100 disabled:text-slate-400"
+                >
+                  <option value="">-- Seleccionar Proveedor --</option>
+                  <option 
+                    v-for="prov in obtenerProveedoresDelProducto(d.producto_id)" 
+                    :key="prov.id" 
+                    :value="prov.id"
+                  >
+                    {{ prov.nombre_proveedor || prov.nombre }}
+                  </option>
+                </select>
+                <p v-if="d.producto_id && obtenerProveedoresDelProducto(d.producto_id).length === 0" class="text-[11px] text-amber-600 mt-1">
+                  * Este producto no tiene proveedores vinculados aún.
+                </p>
               </div>
 
               <!-- CANTIDAD Y UNIDADES POR PAQUETE -->
@@ -201,8 +227,12 @@
                   <input
                     v-model="d.codigo_lote"
                     type="text"
+                    :readonly="modoEdicion"
                     placeholder="Ej: LOTE-123"
-                    class="form-force-input h-10 px-3 border border-slate-300 rounded-lg text-sm bg-white text-slate-800 outline-none focus:border-slate-900"
+                    :class="[
+                      'form-force-input h-10 px-3 border rounded-lg text-sm outline-none',
+                      modoEdicion ? 'bg-slate-100 text-slate-500 border-slate-200 cursor-not-allowed' : 'bg-white text-slate-800 border-slate-300 focus:border-slate-900'
+                    ]"
                   />
                 </div>
                 <div>
@@ -215,7 +245,7 @@
                 </div>
               </div>
 
-              <!-- SUBTOTAL Y ELIMINAR -->
+              <!-- SUBTOTAL Y ELIMINAR (SE OCULTA EN MODO EDICIÓN) -->
               <div class="pt-3 border-t border-slate-200 flex items-center justify-between bg-slate-50 -mx-4 -mb-4 p-3.5 rounded-b-xl">
                 <div>
                   <span class="text-[10px] text-slate-400 font-bold uppercase block tracking-wider">Subtotal Ítem</span>
@@ -225,6 +255,7 @@
                 </div>
 
                 <button 
+                  v-if="!modoEdicion"
                   type="button"
                   @click="remove(i)" 
                   class="h-9 px-3.5 inline-flex items-center justify-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 transition cursor-pointer text-xs font-bold"
@@ -237,8 +268,9 @@
             </div>
           </div>
 
-          <!-- BOTÓN AGREGAR OTRO PRODUCTO -->
+          <!-- BOTÓN AGREGAR OTRO PRODUCTO (AHORA OCULTO EN MODO EDICIÓN) -->
           <button
+            v-if="!modoEdicion"
             @click="add"
             type="button"
             class="w-full py-3.5 rounded-xl border-2 border-dashed border-slate-300 bg-white hover:bg-slate-100 hover:border-slate-800 text-xs font-bold text-slate-800 transition flex items-center justify-center gap-2 cursor-pointer shadow-sm"
@@ -319,9 +351,11 @@
 import { ref, onMounted, computed } from 'vue'
 import { getCompras, createCompra, updateCompra } from '../services/compraService'
 import { getProductos } from '../services/productoService'
+import { getProveedores } from '../services/proveedorService'
 
 const compras = ref([])
 const productos = ref([])
+const proveedores = ref([])
 const modal = ref(false)
 const modalProductos = ref(false)
 const cargando = ref(false)
@@ -353,10 +387,35 @@ const cargarProductos = async () => {
   }
 }
 
+const cargarProveedores = async () => {
+  try {
+    const res = await getProveedores()
+    const dataExtraida = res.data?.data || res.data || res
+    proveedores.value = Array.isArray(dataExtraida) ? dataExtraida : []
+  } catch (err) {
+    console.error('Error al cargar proveedores:', err)
+  }
+}
+
 onMounted(() => {
   cargar()
   cargarProductos()
+  cargarProveedores()
 })
+
+function obtenerProveedoresDelProducto(productoId) {
+  if (!productoId) return []
+  
+  const prod = productos.value.find(p => String(p.id) === String(productoId))
+  if (prod && Array.isArray(prod.proveedores) && prod.proveedores.length > 0) {
+    return prod.proveedores
+  }
+
+  return proveedores.value.filter(p => {
+    if (!Array.isArray(p.productos)) return false
+    return p.productos.some(prodItem => String(prodItem.id) === String(productoId))
+  })
+}
 
 function abrirModalCrear() {
   modoEdicion.value = false
@@ -364,6 +423,7 @@ function abrirModalCrear() {
   fechaCompraNueva.value = new Date().toISOString().split('T')[0]
   detalles.value = [{ 
     producto_id: '', 
+    proveedor_id: '',
     cantidad: 1, 
     unidades_por_paquete: 1,
     precio_compra: 0,
@@ -385,6 +445,7 @@ function abrirEditar(compra) {
         id: det.id,
         detalle_id: det.id,
         producto_id: det.producto_id,
+        proveedor_id: det.proveedor_id || '',
         cantidad: det.cantidad || 1,
         unidades_por_paquete: det.unidades_por_paquete || 1,
         precio_compra: Number(det.precio_compra || 0),
@@ -395,6 +456,7 @@ function abrirEditar(compra) {
   } else {
     detalles.value = [{ 
       producto_id: '', 
+      proveedor_id: '',
       cantidad: 1, 
       unidades_por_paquete: 1,
       precio_compra: 0,
@@ -409,6 +471,7 @@ function abrirEditar(compra) {
 function add() {
   detalles.value.push({ 
     producto_id: '', 
+    proveedor_id: '',
     cantidad: 1, 
     unidades_por_paquete: 1,
     precio_compra: 0,
@@ -438,6 +501,7 @@ function abrirSelector(i) {
 
 function seleccionarProducto(p) {
   detalles.value[indexProducto.value].producto_id = p.id
+  detalles.value[indexProducto.value].proveedor_id = ''
   modalProductos.value = false
 }
 
@@ -459,10 +523,10 @@ async function guardar() {
   }
 
   const incompleto = detalles.value.some(
-    d => !d.producto_id || !d.cantidad || d.precio_compra === null || d.precio_compra < 0
+    d => !d.producto_id || !d.proveedor_id || !d.cantidad || d.precio_compra === null || d.precio_compra < 0
   )
   if (incompleto) {
-    return alert('Por favor selecciona un producto, asigna la cantidad y un precio válido.')
+    return alert('Por favor selecciona un producto, su proveedor, asigna la cantidad y un precio válido.')
   }
 
   cargando.value = true
@@ -473,6 +537,7 @@ async function guardar() {
         id: d.detalle_id || d.id || undefined,
         detalle_id: d.detalle_id || d.id || undefined,
         producto_id: Number(d.producto_id),
+        proveedor_id: Number(d.proveedor_id),
         cantidad: Number(d.cantidad),
         unidades_por_paquete: Number(d.unidades_por_paquete || 1),
         precio_compra: Number(d.precio_compra),

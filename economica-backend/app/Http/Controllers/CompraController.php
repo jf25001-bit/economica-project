@@ -16,6 +16,7 @@ class CompraController extends Controller
         try {
             $compras = Compra::with([
                 'detalles.producto',
+                'detalles.proveedor', // Cargar relación de proveedor
                 'detalles.lotes'
             ])->latest()->get();
             
@@ -34,6 +35,7 @@ class CompraController extends Controller
             'fecha_compra' => 'nullable|date',
             'detalles' => 'required|array|min:1',
             'detalles.*.producto_id' => 'required|exists:productos,id',
+            'detalles.*.proveedor_id' => 'required|exists:proveedores,id', // Validar proveedor
             'detalles.*.cantidad' => 'required|integer|min:1', 
             'detalles.*.unidades_por_paquete' => 'nullable|integer|min:1', 
             'detalles.*.precio_compra' => 'required|numeric|min:0', 
@@ -58,27 +60,26 @@ class CompraController extends Controller
                     ? (int) $item['unidades_por_paquete'] 
                     : 1;
 
-                // Cálculo de unidades totales para inventario y costo paquete
                 $unidadesTotales = $paquetesComprados * $unidadesPorPaquete;
                 $precioPaquete = (float) $item['precio_compra'];
                 $subtotal = $paquetesComprados * $precioPaquete;
                 $totalGeneral += $subtotal;
 
-                // Se guarda la cantidad de paquetes y precio por paquete para la UI
+                // Se guarda el proveedor_id asignado desde el frontend
                 $detalle = DetalleCompra::create([
-                    'compra_id' => $compra->id,
-                    'producto_id' => $producto->id,
-                    'cantidad' => $paquetesComprados,
+                    'compra_id'            => $compra->id,
+                    'producto_id'          => $producto->id,
+                    'proveedor_id'         => $item['proveedor_id'], // <- AGREGADO
+                    'cantidad'             => $paquetesComprados,
                     'unidades_por_paquete' => $unidadesPorPaquete,
-                    'precio_compra' => $precioPaquete,
-                    'subtotal' => $subtotal
+                    'precio_compra'        => $precioPaquete,
+                    'subtotal'             => $subtotal
                 ]);
 
                 $codigoLote = !empty($item['codigo_lote']) 
                     ? $item['codigo_lote'] 
                     : 'LOTE-C' . $compra->id . '-P' . $producto->id;
 
-                // Al lote y al stock ingresan las UNIDADES TOTALES
                 Lote::create([
                     'detalle_compra_id' => $detalle->id,
                     'producto_id'       => $producto->id,
@@ -97,7 +98,7 @@ class CompraController extends Controller
 
             return response()->json([
                 'message' => 'Compra procesada e inventario actualizado correctamente',
-                'compra' => $compra->fresh('detalles.producto', 'detalles.lotes')
+                'compra' => $compra->fresh('detalles.producto', 'detalles.proveedor', 'detalles.lotes')
             ], 201);
 
         } catch (\Exception $e) {
@@ -115,6 +116,7 @@ class CompraController extends Controller
             'fecha_compra' => 'required|date',
             'detalles' => 'required|array|min:1',
             'detalles.*.producto_id' => 'required|exists:productos,id',
+            'detalles.*.proveedor_id' => 'required|exists:proveedores,id', // Validar proveedor
             'detalles.*.cantidad' => 'required|integer|min:1',
             'detalles.*.unidades_por_paquete' => 'required|integer|min:1',
             'detalles.*.precio_compra' => 'required|numeric|min:0',
@@ -129,7 +131,7 @@ class CompraController extends Controller
             $detallesRecibidos = collect($request->detalles);
             $idsEnviados = $detallesRecibidos->pluck('detalle_id')->filter()->toArray();
 
-            // 1. Revertir el stock de detalles eliminados (en base a sus unidades reales)
+            // 1. Revertir el stock de detalles eliminados
             $detallesAEliminar = $compra->detalles()->whereNotIn('id', $idsEnviados)->get();
             foreach ($detallesAEliminar as $detOld) {
                 $unidadesViejas = $detOld->cantidad * $detOld->unidades_por_paquete;
@@ -150,7 +152,6 @@ class CompraController extends Controller
                 $detalleExistente = isset($det['detalle_id']) ? DetalleCompra::find($det['detalle_id']) : null;
 
                 if ($detalleExistente) {
-                    // Calculamos la diferencia en unidades totales para ajustar el stock del producto
                     $unidadesTotalesAnteriores = $detalleExistente->cantidad * $detalleExistente->unidades_por_paquete;
                     $diferenciaStock = $unidadesTotalesNuevas - $unidadesTotalesAnteriores;
                     
@@ -159,28 +160,28 @@ class CompraController extends Controller
                     }
 
                     $detalleExistente->update([
-                        'producto_id' => $det['producto_id'],
-                        'cantidad' => $paquetes,
+                        'producto_id'          => $det['producto_id'],
+                        'proveedor_id'         => $det['proveedor_id'], // <- AGREGADO
+                        'cantidad'             => $paquetes,
                         'unidades_por_paquete' => $unidPorPaquete,
-                        'precio_compra' => $precioPaquete,
-                        'subtotal' => $subtotalItem
+                        'precio_compra'        => $precioPaquete,
+                        'subtotal'             => $subtotalItem
                     ]);
 
                     $detalle = $detalleExistente;
                 } else {
-                    // Detalle nuevo agregado durante la edición
                     $detalle = $compra->detalles()->create([
-                        'producto_id' => $det['producto_id'],
-                        'cantidad' => $paquetes,
+                        'producto_id'          => $det['producto_id'],
+                        'proveedor_id'         => $det['proveedor_id'], // <- AGREGADO
+                        'cantidad'             => $paquetes,
                         'unidades_por_paquete' => $unidPorPaquete,
-                        'precio_compra' => $precioPaquete,
-                        'subtotal' => $subtotalItem
+                        'precio_compra'        => $precioPaquete,
+                        'subtotal'             => $subtotalItem
                     ]);
 
                     Producto::where('id', $det['producto_id'])->increment('stock', $unidadesTotalesNuevas);
                 }
 
-                // Actualizar o Crear el Lote correspondiente con las UNIDADES TOTALES
                 $codigoLote = !empty($det['codigo_lote']) 
                     ? $det['codigo_lote'] 
                     : 'LOTE-C' . $compra->id . '-P' . $det['producto_id'];
@@ -188,24 +189,24 @@ class CompraController extends Controller
                 Lote::updateOrCreate(
                     ['detalle_compra_id' => $detalle->id],
                     [
-                        'producto_id' => $det['producto_id'],
-                        'codigo_lote' => $codigoLote,
+                        'producto_id'      => $det['producto_id'],
+                        'codigo_lote'      => $codigoLote,
                         'fecha_expiracion' => $det['fecha_expiracion'] ?? null,
                         'cantidad_inicial' => $unidadesTotalesNuevas,
-                        'cantidad_actual' => $unidadesTotalesNuevas
+                        'cantidad_actual'  => $unidadesTotalesNuevas
                     ]
                 );
             }
 
-            // 3. Actualizar la compra con la nueva fecha y total recalculado
+            // 3. Actualizar la compra
             $compra->update([
                 'fecha_compra' => $request->fecha_compra,
-                'total' => $totalGeneral,
+                'total'        => $totalGeneral,
             ]);
 
             return response()->json([
                 'message' => 'Orden de compra actualizada con éxito',
-                'compra' => $compra->fresh('detalles.producto', 'detalles.lotes')
+                'compra'  => $compra->fresh('detalles.producto', 'detalles.proveedor', 'detalles.lotes')
             ], 200);
         });
     }
@@ -215,6 +216,7 @@ class CompraController extends Controller
         try {
             $compra = Compra::with([
                 'detalles.producto',
+                'detalles.proveedor', // Cargar relación de proveedor
                 'detalles.lotes'
             ])->findOrFail($id);
             return response()->json($compra);

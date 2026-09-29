@@ -1,71 +1,26 @@
-import axios from 'axios'
+import api from './api' // O usando axios directo con token si no usas una instancia base
 
-const API_URL = 'http://127.0.0.1:8000/api/proveedores'
-const PRODUCTOS_URL = 'http://127.0.0.1:8000/api/productos'
-
-const getHeaders = () => {
-  const token = localStorage.getItem('token')
-
-  return {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  }
-}
-
-// Obtener proveedores
 export const getProveedores = async () => {
-  const response = await axios.get(
-    API_URL,
-    getHeaders()
-  )
-
+  const response = await api.get('/proveedores')
   return response.data
 }
 
-// Obtener catálogo de productos
 export const getProductos = async () => {
-  const response = await axios.get(
-    PRODUCTOS_URL,
-    getHeaders()
-  )
-
+  const response = await api.get('/productos')
   return response.data
 }
 
-// Crear proveedor
 export const createProveedor = async (data) => {
-  const response = await axios.post(
-    API_URL,
-    data,
-    getHeaders()
-  )
-
+  const response = await api.post('/proveedores', data)
   return response.data
 }
 
-// Actualizar proveedor
-export const updateProveedor = async (
-  id,
-  data
-) => {
-  const response = await axios.put(
-    `${API_URL}/${id}`,
-    data,
-    getHeaders()
-  )
-
+export const updateProveedor = async (id, data) => {
+  const response = await api.put(`/proveedores/${id}`, data)
   return response.data
 }
 
-// Eliminar proveedor
-export const deleteProveedor = async (
-  id
-) => {
-  const response = await axios.delete(
-    `${API_URL}/${id}`,
-    getHeaders()
-  )
-
+export const deleteProveedor = async (id) => {
+  const response = await api.delete(`/proveedores/${id}`)
   return response.data
 }
