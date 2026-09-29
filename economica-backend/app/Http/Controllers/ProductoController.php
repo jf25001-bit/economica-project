@@ -6,16 +6,14 @@ use App\Models\Producto;
 use App\Models\Categoria;
 use App\Models\SubCategoria;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class ProductoController extends Controller
 {
-    /**
-     * Verifica si el usuario autenticado es Cajero.
-     */
     private function esCajero(): bool
     {
-        $usuario = auth()->user();
+        $usuario = Auth::user();
 
         if (!$usuario) {
             return false;
@@ -24,9 +22,6 @@ class ProductoController extends Controller
         return $usuario->rol?->nombre === 'Cajero';
     }
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         $productos = Producto::with([
@@ -36,32 +31,20 @@ class ProductoController extends Controller
             'unidadMedida'
         ])->get();
 
-        /*
-         * Si es Cajero, ocultamos precio_venta de la respuesta.
-         */
         if ($this->esCajero()) {
-            $productos->makeHidden(['precio_venta']);
+            $productos->makeHidden(['precio_compra']);
         }
 
         return response()->json($productos, 200);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        /*
-         * Si es Cajero, NO puede crear productos con precio.
-         */
         if ($this->esCajero()) {
             return response()->json([
                 'message' => 'Los usuarios con rol Cajero no tienen permiso para crear productos.'
@@ -82,21 +65,13 @@ class ProductoController extends Controller
         ]);
 
         return DB::transaction(function () use ($request) {
-
-            $data = $request->except(
-                'proveedores',
-                'categoria_id'
-            );
-
-            $data['sub_categoria_id'] =
-                $this->resolverSubcategoriaId($request);
+            $data = $request->except('proveedores', 'categoria_id');
+            $data['sub_categoria_id'] = $this->resolverSubcategoriaId($request);
 
             $producto = Producto::create($data);
 
             if ($request->has('proveedores')) {
-                $producto->proveedores()->sync(
-                    $request->proveedores
-                );
+                $producto->proveedores()->sync($request->proveedores);
             }
 
             return response()->json([
@@ -106,9 +81,6 @@ class ProductoController extends Controller
         });
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show($id)
     {
         $producto = Producto::with([
@@ -124,29 +96,18 @@ class ProductoController extends Controller
             ], 404);
         }
 
-        /*
-         * Si es Cajero, ocultamos el precio.
-         */
         if ($this->esCajero()) {
-            $producto->makeHidden([
-                'precio_venta'
-            ]);
+            $producto->makeHidden(['precio_compra']);
         }
 
         return response()->json($producto, 200);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Producto $producto)
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, $id)
     {
         $producto = Producto::find($id);
@@ -157,9 +118,6 @@ class ProductoController extends Controller
             ], 404);
         }
 
-        /*
-         * Si es Cajero, no puede modificar productos.
-         */
         if ($this->esCajero()) {
             return response()->json([
                 'message' => 'Los usuarios con rol Cajero no tienen permiso para modificar productos.'
@@ -180,21 +138,13 @@ class ProductoController extends Controller
         ]);
 
         return DB::transaction(function () use ($request, $producto) {
-
-            $data = $request->except(
-                'proveedores',
-                'categoria_id'
-            );
-
-            $data['sub_categoria_id'] =
-                $this->resolverSubcategoriaId($request);
+            $data = $request->except('proveedores', 'categoria_id');
+            $data['sub_categoria_id'] = $this->resolverSubcategoriaId($request);
 
             $producto->update($data);
 
             if ($request->has('proveedores')) {
-                $producto->proveedores()->sync(
-                    $request->proveedores
-                );
+                $producto->proveedores()->sync($request->proveedores);
             }
 
             return response()->json([
@@ -204,9 +154,6 @@ class ProductoController extends Controller
         });
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy($id)
     {
         $producto = Producto::find($id);
@@ -217,9 +164,6 @@ class ProductoController extends Controller
             ], 404);
         }
 
-        /*
-         * Si es Cajero, no puede eliminar productos.
-         */
         if ($this->esCajero()) {
             return response()->json([
                 'message' => 'Los usuarios con rol Cajero no tienen permiso para eliminar productos.'
@@ -233,25 +177,18 @@ class ProductoController extends Controller
         ], 200);
     }
 
-    /**
-     * Resolver la subcategoría.
-     */
     private function resolverSubcategoriaId(Request $request): int
     {
         if ($request->filled('sub_categoria_id')) {
             return (int) $request->sub_categoria_id;
         }
 
-        $categoria = Categoria::findOrFail(
-            $request->categoria_id
-        );
+        $categoria = Categoria::findOrFail($request->categoria_id);
 
-        $subcategoria = SubCategoria::firstOrCreate(
-            [
-                'categoria_id' => $categoria->id,
-                'nombre' => $categoria->nombre,
-            ]
-        );
+        $subcategoria = SubCategoria::firstOrCreate([
+            'categoria_id' => $categoria->id,
+            'nombre' => $categoria->nombre,
+        ]);
 
         return (int) $subcategoria->id;
     }

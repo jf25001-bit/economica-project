@@ -1,226 +1,227 @@
 <template>
   <div class="min-h-screen bg-slate-50/50 p-6 sm:p-8">
-    
-    <!-- Encabezado de Sección -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-      <div>
-        <h1 class="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight">
-          Reportes
-        </h1>
-        <p class="text-slate-500 text-sm font-medium mt-1">
-          La Económica — Panel de Monitoreo
-        </p>
-      </div>
+    <div class="mb-8">
+      <h1 class="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight">Reportes</h1>
+      <p class="text-slate-500 text-sm font-medium mt-1">La Económica — Documentos en PDF</p>
+    </div>
 
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
       <button
-        @click="generarPDFGeneral"
-        class="inline-flex items-center justify-center gap-2 bg-[#2B3A4A] hover:bg-[#1F2B37] text-white font-bold px-6 py-3 rounded-2xl shadow-lg shadow-[#2B3A4A]/20 transition-all active:scale-95 cursor-pointer"
+        v-for="reporte in reportes"
+        :key="reporte.id"
+        @click="abrir(reporte)"
+        class="text-left bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/80 hover:-translate-y-1 hover:shadow-2xl transition-all cursor-pointer"
       >
-        <i class="bi bi-file-earmark-pdf-fill text-sky-400 text-lg"></i>
-        <span>Exportar PDF General</span>
+        <div :class="['w-14 h-14 rounded-2xl border flex items-center justify-center text-2xl mb-4', reporte.estilo]">
+          <i :class="['bi', reporte.icono]"></i>
+        </div>
+        <h2 class="text-lg font-black text-slate-800">{{ reporte.titulo }}</h2>
+        <p class="text-sm text-slate-500 font-medium mt-1">{{ reporte.descripcion }}</p>
+        <span class="inline-flex items-center gap-2 text-xs font-bold text-[#2B3A4A] mt-4">
+          <i class="bi bi-file-earmark-pdf"></i> Generar reporte
+        </span>
       </button>
     </div>
 
-    <!-- Filtro de Periodo -->
-    <div class="flex justify-end mb-6">
-      <div class="relative w-full sm:w-64">
-        <select 
-          v-model="periodoSeleccionado" 
-          @change="obtenerEstadisticas"
-          class="w-full pl-4 pr-10 py-2.5 bg-white border border-slate-200/80 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium appearance-none cursor-pointer shadow-sm"
-        >
-          <option value="dia">Reporte de Hoy (Diario)</option>
-          <option value="semana">Reporte de la Semana</option>
-          <option value="mes">Reporte del Mes</option>
-        </select>
-        <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
-          <i class="bi bi-chevron-down text-xs"></i>
-        </span>
+    <div
+      v-if="activo"
+      class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4"
+      @click.self="cerrar"
+    >
+      <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200/80 overflow-hidden">
+        <div class="p-6 border-b border-slate-100 flex items-start justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-black text-slate-800">{{ activo.titulo }}</h2>
+            <p class="text-slate-500 text-xs font-medium mt-0.5">{{ activo.descripcion }}</p>
+          </div>
+          <button @click="cerrar" class="text-slate-400 hover:text-slate-700 transition cursor-pointer">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+
+        <div class="p-6 space-y-5">
+          <div v-if="activo.id === 'empleado'">
+            <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-2">Empleado</label>
+            <div class="relative">
+              <select
+                v-model="empleadoId"
+                :disabled="cargandoEmpleados"
+                class="w-full pl-4 pr-10 py-2.5 bg-white border border-slate-200/80 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium appearance-none cursor-pointer shadow-sm disabled:opacity-60"
+              >
+                <option :value="null" disabled>
+                  {{ cargandoEmpleados ? 'Cargando empleados...' : 'Selecciona un empleado' }}
+                </option>
+                <option v-for="e in empleados" :key="e.id" :value="e.id">{{ e.nombre }}</option>
+              </select>
+              <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                <i class="bi bi-chevron-down text-xs"></i>
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-2">Periodo</label>
+            <div class="grid grid-cols-4 gap-2">
+              <button
+                v-for="p in periodos"
+                :key="p.valor"
+                @click="periodo = p.valor"
+                :class="[
+                  'py-2 rounded-xl text-xs font-bold border transition cursor-pointer',
+                  periodo === p.valor
+                    ? 'bg-[#2B3A4A] text-white border-[#2B3A4A] shadow-lg shadow-[#2B3A4A]/20'
+                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                ]"
+              >
+                {{ p.texto }}
+              </button>
+            </div>
+          </div>
+
+          <div v-if="periodo === 'rango'" class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-2">Desde</label>
+              <input
+                type="date"
+                v-model="fechaInicio"
+                class="w-full px-3 py-2.5 bg-white border border-slate-200/80 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-2">Hasta</label>
+              <input
+                type="date"
+                v-model="fechaFin"
+                :min="fechaInicio"
+                class="w-full px-3 py-2.5 bg-white border border-slate-200/80 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20"
+              />
+            </div>
+          </div>
+
+          <div
+            v-if="error"
+            class="p-3 bg-red-50 border border-red-200/80 text-red-700 rounded-2xl flex items-center gap-3 text-sm font-semibold"
+          >
+            <i class="bi bi-exclamation-triangle-fill text-red-500"></i>
+            <span>{{ error }}</span>
+          </div>
+        </div>
+
+        <div class="p-6 pt-0 flex gap-3">
+          <button
+            @click="cerrar"
+            class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-sm transition cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            @click="generar"
+            :disabled="!puedeGenerar || cargando"
+            class="flex-1 inline-flex items-center justify-center gap-2 bg-[#2B3A4A] hover:bg-[#1f2b38] text-white font-bold px-4 py-2.5 rounded-xl text-sm transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <i :class="cargando ? 'bi bi-arrow-repeat animate-spin' : 'bi bi-download'"></i>
+            <span>{{ cargando ? 'Generando...' : 'Generar PDF' }}</span>
+          </button>
+        </div>
       </div>
     </div>
-
-    <!-- Tarjetas de Métricas del Periodo (KPIs) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-      
-      <!-- Ventas del Periodo -->
-      <div class="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/80 flex items-center justify-between">
-        <div>
-          <span class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Ventas del Periodo</span>
-          <div v-if="cargandoTarjetas" class="h-8 bg-slate-200/70 rounded-xl w-24 animate-pulse mt-2"></div>
-          <h2 v-else class="text-2xl sm:text-3xl font-black text-slate-800 mt-1">${{ (tarjetas.ventas_mes || 0).toFixed(2) }}</h2>
-          <span class="text-emerald-600 text-xs font-bold inline-flex items-center gap-1 mt-2">
-            <i class="bi bi-arrow-up-right text-xs"></i> Ingresos acumulados
-          </span>
-        </div>
-        <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center text-2xl">
-          <i class="bi bi-cash-stack"></i>
-        </div>
-      </div>
-
-      <!-- Compras del Periodo -->
-      <div class="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/80 flex items-center justify-between">
-        <div>
-          <span class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Compras del Periodo</span>
-          <div v-if="cargandoTarjetas" class="h-8 bg-slate-200/70 rounded-xl w-24 animate-pulse mt-2"></div>
-          <h2 v-else class="text-2xl sm:text-3xl font-black text-slate-800 mt-1">${{ (tarjetas.compras_mes || 0).toFixed(2) }}</h2>
-          <span class="text-slate-400 text-xs font-medium inline-flex items-center gap-1 mt-2">
-            Egresos registrados
-          </span>
-        </div>
-        <div class="w-14 h-14 rounded-2xl bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center text-2xl">
-          <i class="bi bi-cart-check-fill"></i>
-        </div>
-      </div>
-
-      <!-- Productos Registrados -->
-      <div class="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/80 flex items-center justify-between">
-        <div>
-          <span class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Productos Registrados</span>
-          <div v-if="cargandoTarjetas" class="h-8 bg-slate-200/70 rounded-xl w-16 animate-pulse mt-2"></div>
-          <h2 v-else class="text-2xl sm:text-3xl font-black text-slate-800 mt-1">{{ tarjetas.productos_totales || 0 }}</h2>
-          <span class="text-slate-400 text-xs font-medium inline-flex items-center gap-1 mt-2">
-            En catálogo
-          </span>
-        </div>
-        <div class="w-14 h-14 rounded-2xl bg-[#2B3A4A] text-sky-400 flex items-center justify-center text-2xl shadow-lg shadow-[#2B3A4A]/20">
-          <i class="bi bi-box-seam-fill"></i>
-        </div>
-      </div>
-
-      <!-- Productos con Stock Bajo -->
-      <div class="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/80 flex items-center justify-between">
-        <div>
-          <span class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Stock Bajo</span>
-          <div v-if="cargandoTarjetas" class="h-8 bg-slate-200/70 rounded-xl w-16 animate-pulse mt-2"></div>
-          <h2 v-else class="text-2xl sm:text-3xl font-black text-amber-600 mt-1">{{ tarjetas.stock_bajo || 0 }}</h2>
-          <span class="text-amber-600 text-xs font-bold inline-flex items-center gap-1 mt-2">
-            <i class="bi bi-exclamation-triangle-fill"></i> Requiere atención
-          </span>
-        </div>
-        <div class="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center text-2xl">
-          <i class="bi bi-graph-down-arrow"></i>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Alerta de Error -->
-    <div v-if="error" class="mb-6 p-4 bg-red-50 border border-red-200/80 text-red-700 rounded-2xl flex items-center gap-3 text-sm font-semibold shadow-sm">
-      <i class="bi bi-exclamation-triangle-fill text-lg text-red-500"></i>
-      <span>{{ error }}</span>
-    </div>
-
-    <!-- Tabla de Reportes -->
-    <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
-      <div class="p-6 border-b border-slate-100">
-        <h2 class="text-lg font-black text-slate-800">Reportes Disponibles</h2>
-        <p class="text-slate-500 text-xs font-medium mt-0.5">Selecciona y descarga el documento en PDF</p>
-      </div>
-
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-          <thead>
-            <tr class="bg-slate-100/70 border-b border-slate-200 text-slate-700 text-xs font-black uppercase tracking-wider">
-              <th class="px-6 py-4">Reporte</th>
-              <th class="px-6 py-4">Descripción</th>
-              <th class="px-6 py-4 text-right">Acción</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100">
-            <tr v-for="reporte in reportes" :key="reporte.id" class="hover:bg-slate-50/80 transition-colors">
-              <td class="px-6 py-4 font-bold text-slate-800">
-                <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-xl bg-sky-50 text-sky-700 border border-sky-100 flex items-center justify-center text-sm">
-                    <i class="bi bi-file-earmark-bar-graph"></i>
-                  </div>
-                  <span>{{ reporte.nombre }}</span>
-                </div>
-              </td>
-              <td class="px-6 py-4 text-slate-600 text-sm font-medium">
-                {{ reporte.descripcion }}
-              </td>
-              <td class="px-6 py-4 text-right">
-                <button
-                  @click="generarPDFColumna(reporte.id)"
-                  class="inline-flex items-center justify-center gap-2 bg-slate-100 hover:bg-[#2B3A4A] hover:text-white text-slate-700 font-bold px-4 py-2 rounded-xl text-xs transition cursor-pointer"
-                >
-                  <i class="bi bi-download"></i>
-                  <span>Generar PDF</span>
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import { ref, computed } from 'vue'
+import { getEmpleados, generarReportePDF } from '@/services/reporteService'
 
-const API_BASE = 'http://localhost:8000/api'
+const reportes = [
+  {
+    id: 'ventas',
+    titulo: 'Ventas Generales',
+    descripcion: 'Todas las ventas del periodo con vendedor, productos, pago y vuelto.',
+    icono: 'bi-receipt',
+    estilo: 'bg-emerald-50 text-emerald-600 border-emerald-100'
+  },
+  {
+    id: 'compras',
+    titulo: 'Compras Generales',
+    descripcion: 'Todas las compras a proveedores del periodo con sus productos.',
+    icono: 'bi-cart-check-fill',
+    estilo: 'bg-sky-50 text-sky-600 border-sky-100'
+  },
+  {
+    id: 'empleado',
+    titulo: 'Ventas por Empleado',
+    descripcion: 'Ventas realizadas por un empleado específico en el periodo.',
+    icono: 'bi-person-badge',
+    estilo: 'bg-amber-50 text-amber-600 border-amber-100'
+  }
+]
 
-const periodoSeleccionado = ref('mes')
-const cargandoTarjetas = ref(true)
-const error = ref(null)
+const periodos = [
+  { valor: 'semana', texto: 'Semana' },
+  { valor: 'mes', texto: 'Mes' },
+  { valor: 'anio', texto: 'Año' },
+  { valor: 'rango', texto: 'Rango' }
+]
 
-const tarjetas = ref({
-  ventas_mes: 0,
-  compras_mes: 0,
-  productos_totales: 0,
-  stock_bajo: 0
+const activo = ref(null)
+const periodo = ref('mes')
+const fechaInicio = ref('')
+const fechaFin = ref('')
+const empleadoId = ref(null)
+const empleados = ref([])
+const cargando = ref(false)
+const cargandoEmpleados = ref(false)
+const error = ref('')
+
+const puedeGenerar = computed(() => {
+  if (!activo.value) return false
+  if (activo.value.id === 'empleado' && !empleadoId.value) return false
+  if (periodo.value === 'rango' && (!fechaInicio.value || !fechaFin.value)) return false
+  return true
 })
 
-const reportes = ref([
-  { id: 1, nombre: 'Reporte de Ventas', descripcion: 'Muestra todas las ventas realizadas en el periodo seleccionado.' },
-  { id: 2, nombre: 'Reporte de Compras', descripcion: 'Muestra todas las compras registradas a proveedores en el periodo seleccionado.' }
-])
-
-async function obtenerEstadisticas() {
-  cargandoTarjetas.value = true
-  error.value = null
+const cargarEmpleados = async () => {
+  if (empleados.value.length) return
+  cargandoEmpleados.value = true
   try {
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token')
-    const config = {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json'
-      }
-    }
-    const { data } = await axios.get(`${API_BASE}/reportes/tarjetas?periodo=${periodoSeleccionado.value}`, config)
-    tarjetas.value = data
+    empleados.value = await getEmpleados()
   } catch (e) {
-    console.error(e)
-    if (e.response && e.response.status === 401) {
-      error.value = 'Sesión expirada o no autorizada. Por favor, vuelve a iniciar sesión.'
-    } else {
-      error.value = 'No se pudieron sincronizar los datos de las tarjetas con el servidor.'
-    }
+    error.value = 'No se pudo cargar la lista de empleados.'
   } finally {
-    gatherStatsCompleted()
+    cargandoEmpleados.value = false
   }
 }
 
-function gatherStatsCompleted() {
-  cargandoTarjetas.value = false
+const abrir = (reporte) => {
+  activo.value = reporte
+  error.value = ''
+  periodo.value = 'mes'
+  fechaInicio.value = ''
+  fechaFin.value = ''
+  empleadoId.value = null
+  if (reporte.id === 'empleado') cargarEmpleados()
 }
 
-const generarPDFGeneral = () => {
-  window.open(`http://localhost:8000/api/reportes/general?tipo=general&periodo=${periodoSeleccionado.value}`, '_blank')
+const cerrar = () => {
+  activo.value = null
 }
 
-const generarPDFColumna = (id) => {
-  if (id === 1) {
-    window.open(`http://localhost:8000/api/reportes/general?tipo=ventas&periodo=${periodoSeleccionado.value}`, '_blank')
-  } else if (id === 2) {
-    window.open(`http://localhost:8000/api/reportes/general?tipo=compras&periodo=${periodoSeleccionado.value}`, '_blank')
+const generar = async () => {
+  error.value = ''
+  cargando.value = true
+  try {
+    await generarReportePDF({
+      tipo: activo.value.id,
+      periodo: periodo.value,
+      empleado_id: activo.value.id === 'empleado' ? empleadoId.value : undefined,
+      fecha_inicio: periodo.value === 'rango' ? fechaInicio.value : undefined,
+      fecha_fin: periodo.value === 'rango' ? fechaFin.value : undefined
+    })
+    cerrar()
+  } catch (e) {
+    error.value = e.message
+  } finally {
+    cargando.value = false
   }
 }
-
-onMounted(() => {
-  obtenerEstadisticas()
-})
 </script>

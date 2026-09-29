@@ -2,196 +2,113 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Models\Compra;
+use App\Models\User;
+use App\Models\Venta;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class ReporteController extends Controller
 {
-    private function obtenerDatos(Request $request): array
+    private const PERIODOS = [
+        'semana' => 'Semanal',
+        'mes' => 'Mensual',
+        'anio' => 'Anual',
+        'rango' => 'Personalizado',
+    ];
+
+    public function reporteGeneral(Request $request)
     {
-        $ventasQuery = DB::table('ventas as v')
-            ->select(
-                'v.id',
-                'v.fecha_venta as fecha',
-                'v.cliente',
-                'v.total',
-                DB::raw('(SELECT COALESCE(SUM(cantidad), 0) FROM detalle_ventas WHERE venta_id = v.id) as articulos')
-            )
-            ->orderBy('v.fecha_venta', 'desc');
-
-        if ($request->fecha_inicio) {
-            $ventasQuery->whereDate('v.fecha_venta', '>=', $request->fecha_inicio);
-        }
-        if ($request->fecha_fin) {
-            $ventasQuery->whereDate('v.fecha_venta', '<=', $request->fecha_fin);
-        }
-
-        $ventas = $ventasQuery->get()->map(fn($v) => [
-            'id'        => $v->id,
-            'cliente'   => $v->cliente ?? 'Consumidor final',
-            'fecha'     => Carbon::parse($v->fecha)->format('d/m/Y'),
-            'articulos' => $v->articulos,
-            'total'     => (float) $v->total,
+        $request->validate([
+            'tipo' => 'required|in:ventas,compras,empleado',
+            'periodo' => 'required|in:semana,mes,anio,rango',
+            'empleado_id' => 'required_if:tipo,empleado|nullable|exists:users,id',
+            'fecha_inicio' => 'required_if:periodo,rango|nullable|date',
+            'fecha_fin' => 'required_if:periodo,rango|nullable|date|after_or_equal:fecha_inicio',
         ]);
 
-        // Se eliminó la restricción rígida where('c.estado', 'completada')
-        $comprasQuery = DB::table('compras as c')
-            ->select(
-                'c.id',
-                'c.fecha_compra as fecha',
-                'c.estado',
-                'c.total',
-                DB::raw('(SELECT COALESCE(SUM(cantidad), 0) FROM detalle_compras WHERE compra_id = c.id) as productos')
-            )
-            ->orderBy('c.fecha_compra', 'desc');
+        [$inicio, $fin] = $this->rangoFechas($request);
 
-        if ($request->fecha_inicio) {
-            $comprasQuery->whereDate('c.fecha_compra', '>=', $request->fecha_inicio);
-        }
-        if ($request->fecha_fin) {
-            $comprasQuery->whereDate('c.fecha_compra', '<=', $request->fecha_fin);
-        }
+        $base = [
+            'periodo' => self::PERIODOS[$request->periodo],
+            'inicio' => $inicio,
+            'fin' => $fin,
+        ];
 
-        $compras = $comprasQuery->get()->map(fn($c) => [
-            'id'        => $c->id,
-            'fecha'     => Carbon::parse($c->fecha)->format('d/m/Y'),
-            'productos' => $c->productos,
-            'total'     => (float) $c->total,
-        ]);
-
-        $totalCaja    = $ventas->sum('total');
-        $totalCompras = $compras->sum('total');
-
-        return compact('ventas', 'compras', 'totalCaja', 'totalCompras');
-    }
-
-    public function datosTarjetas(Request $request)
-    {
         try {
-            $filtro = $request->query('periodo', 'mes');
-
-            $queryVentas = DB::table('ventas');
-            // Se eliminó la restricción where('estado', 'completada')
-            $queryCompras = DB::table('compras'); 
-
-            if ($filtro === 'dia') {
-                $queryVentas->whereDate('fecha_venta', Carbon::today());
-                $queryCompras->whereDate('fecha_compra', Carbon::today());
-            } elseif ($filtro === 'semana') {
-                $queryVentas->whereBetween('fecha_venta', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
-                $queryCompras->whereBetween('fecha_compra', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
-            } else {
-                $queryVentas->whereMonth('fecha_venta', Carbon::now()->month)->whereYear('fecha_venta', Carbon::now()->year);
-                $queryCompras->whereMonth('fecha_compra', Carbon::now()->month)->whereYear('fecha_compra', Carbon::now()->year);
-            }
-
-            $ventasSum = $queryVentas->sum('total') ?? 0;
-            $comprasSum = $queryCompras->sum('total') ?? 0;
-            
-            $productosTotales = DB::table('productos')->count() ?? 0;
-            $stockBajo = DB::table('productos')->where('stock', '<=', 5)->count() ?? 0;
-
+            return match ($request->tipo) {
+                'ventas' => $this->pdfVentas($base),
+                'compras' => $this->pdfCompras($base),
+                'empleado' => $this->pdfEmpleado($base, (int) $request->empleado_id),
+            };
+        } catch (\Throwable $e) {
             return response()->json([
-                'ventas_mes' => (float) $ventasSum,
-                'compras_mes' => (float) $comprasSum,
-                'productos_totales' => (int) $productosTotales,
-                'stock_bajo' => (int) $stockBajo
-            ], 200);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Error interno en el servidor',
-                'mensaje' => $e->getMessage()
+                'message' => 'Error al generar el PDF',
+                'detalle' => $e->getMessage(),
             ], 500);
         }
     }
 
-    public function resumenJson(Request $request)
+    private function rangoFechas(Request $request): array
     {
-        $request->validate([
-            'fecha_inicio' => 'nullable|date',
-            'fecha_fin'    => 'nullable|date|after_or_equal:fecha_inicio',
-        ]);
+        $ahora = Carbon::now();
 
-        $datos = $this->obtenerDatos($request);
-
-        return response()->json([
-            'resumen' => [
-                'ingresos_caja' => $datos['totalCaja'],
-                'fiado_total'   => 0,
-                'total_compras' => $datos['totalCompras'],
-                'balance_neto'  => $datos['totalCaja'] - $datos['totalCompras'],
+        return match ($request->periodo) {
+            'semana' => [$ahora->copy()->startOfWeek(), $ahora->copy()->endOfWeek()],
+            'anio' => [$ahora->copy()->startOfYear(), $ahora->copy()->endOfYear()],
+            'rango' => [
+                Carbon::parse($request->fecha_inicio)->startOfDay(),
+                Carbon::parse($request->fecha_fin)->endOfDay(),
             ],
-            'ventas'  => $datos['ventas']->values(),
-            'compras' => $datos['compras']->values(),
-        ]);
+            default => [$ahora->copy()->startOfMonth(), $ahora->copy()->endOfMonth()],
+        };
     }
 
-    public function reporteGeneral(Request $request)
+    private function pdfVentas(array $base)
     {
-        try {
-            $tipo = $request->query('tipo', 'general');
-            $periodo = $request->query('periodo', 'mes');
-            
-            $fechaInicio = Carbon::now()->startOfMonth();
-            $fechaFin = Carbon::now()->endOfMonth();
+        $ventas = Venta::with(['detalles.producto', 'usuario'])
+            ->whereBetween('fecha_venta', [$base['inicio'], $base['fin']])
+            ->orderBy('fecha_venta', 'desc')
+            ->get();
 
-            if ($periodo === 'dia') {
-                $fechaInicio = Carbon::today()->startOfDay();
-                $fechaFin = Carbon::today()->endOfDay();
-            } elseif ($periodo === 'semana') {
-                $fechaInicio = Carbon::now()->startOfWeek();
-                $fechaFin = Carbon::now()->endOfWeek();
-            }
+        $granTotal = $ventas->sum('total');
+        $promedio = $ventas->count() ? $granTotal / $ventas->count() : 0;
 
-            if ($tipo === 'general') {
-                $ventas = DB::table('ventas')
-                    ->whereBetween('fecha_venta', [$fechaInicio, $fechaFin])
-                    ->get();
-                
-                // Se eliminó la restricción where('estado', 'completada')
-                $compras = DB::table('compras')
-                    ->whereBetween('fecha_compra', [$fechaInicio, $fechaFin])
-                    ->get();
+        return Pdf::loadView('reportes.pdf_ventas', $base + compact('ventas', 'granTotal', 'promedio'))
+            ->setPaper('a4', 'landscape')
+            ->stream('reporte_ventas.pdf');
+    }
 
-                $totalVentas = $ventas->sum('total');
-                $totalCompras = $compras->sum('total');
-                $balanceNeto = $totalVentas - $totalCompras;
+    private function pdfCompras(array $base)
+    {
+        $compras = Compra::with(['detalles.producto', 'detalles.proveedor'])
+            ->whereBetween('fecha_compra', [$base['inicio'], $base['fin']])
+            ->orderBy('fecha_compra', 'desc')
+            ->get();
 
-                return view('reportes.pdf_general', [
-                    'tipo' => 'general',
-                    'periodo' => $periodo,
-                    'ventas' => $ventas,
-                    'compras' => $compras,
-                    'totalVentas' => $totalVentas,
-                    'totalCompras' => $totalCompras,
-                    'balanceNeto' => $balanceNeto
-                ]);
-            }
+        $granTotal = $compras->sum('total');
+        $promedio = $compras->count() ? $granTotal / $compras->count() : 0;
 
-            if ($tipo === 'compras') {
-                // Se eliminó la restricción where('estado', 'completada')
-                $datos = DB::table('compras')
-                    ->whereBetween('fecha_compra', [$fechaInicio, $fechaFin])
-                    ->orderBy('fecha_compra', 'desc')
-                    ->get();
-                    
-                $granTotal = $datos->sum('total');
-                return view('reportes.pdf_general', compact('datos', 'periodo', 'granTotal', 'tipo'));
-            }
+        return Pdf::loadView('reportes.pdf_compras', $base + compact('compras', 'granTotal', 'promedio'))
+            ->setPaper('a4', 'landscape')
+            ->stream('reporte_compras.pdf');
+    }
 
-            // Reporte de ventas
-            $datos = DB::table('ventas')
-                ->whereBetween('fecha_venta', [$fechaInicio, $fechaFin])
-                ->orderBy('fecha_venta', 'desc')
-                ->get();
-                
-            $granTotal = $datos->sum('total');
-            return view('reportes.pdf_general', compact('datos', 'periodo', 'granTotal', 'tipo'));
+    private function pdfEmpleado(array $base, int $empleadoId)
+    {
+        $empleado = User::findOrFail($empleadoId);
 
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al procesar reporte', 'detalle' => $e->getMessage()], 500);
-        }
+        $ventas = Venta::with('detalles.producto')
+            ->where('user_id', $empleadoId)
+            ->whereBetween('fecha_venta', [$base['inicio'], $base['fin']])
+            ->orderBy('fecha_venta', 'desc')
+            ->get();
+
+        $granTotal = $ventas->sum('total');
+        $promedio = $ventas->count() ? $granTotal / $ventas->count() : 0;
+
+        return Pdf::loadView('reportes.pdf_ventas_empleado', $base + compact('ventas', 'empleado', 'granTotal', 'promedio'))
+            ->stream('reporte_empleado.pdf');
     }
 }

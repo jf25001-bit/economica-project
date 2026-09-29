@@ -1,57 +1,52 @@
-import axios from 'axios'
+import api from './api'
 
-// La URL apunta a /api/reportes (NO /api/auth/reportes)
-const API_URL = 'http://127.0.0.1:8000/api/reportes'
+export const getEmpleados = async () => {
+  const { data } = await api.get('/usuarios')
+  const lista = Array.isArray(data) ? data : data.data ?? []
 
-// Obtiene los headers con el Token de autenticación
-const getHeaders = () => {
-  const token = localStorage.getItem('token') || sessionStorage.getItem('token')
-  return {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/json'
+  return lista
+    .map((u) => ({
+      id: u.id,
+      nombre: `${u.name ?? ''} ${u.apellido ?? ''}`.trim()
+    }))
+    .sort((a, b) => a.nombre.localeCompare(b.nombre))
+}
+
+const leerError = async (error) => {
+  const data = error.response?.data
+
+  if (data instanceof Blob) {
+    try {
+      const json = JSON.parse(await data.text())
+      const primerError = json.errors ? Object.values(json.errors)[0][0] : null
+      return primerError || json.detalle || json.message || json.error
+    } catch {
+      return 'Error al procesar la respuesta del servidor'
     }
   }
+
+  return data?.message || 'No se pudo generar el reporte'
 }
 
-/**
- * Obtiene las tarjetas/métricas según el período ('dia', 'semana', 'mes')
- */
-export const getTarjetasReporte = async (periodo = 'mes') => {
-  try {
-    const response = await axios.get(
-      `${API_URL}/tarjetas?periodo=${periodo}`, 
-      getHeaders()
-    )
-    return response.data
-  } catch (error) {
-    throw error.response?.data || { message: 'Error al obtener estadísticas del reporte' }
-  }
-}
+export const generarReportePDF = async (params) => {
+  const ventana = window.open('', '_blank')
 
-/**
- * Descarga y abre el PDF generado
- */
-export const descargarPDFReporte = async (tipo = 'general', periodo = 'mes') => {
   try {
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token')
-    
-    // Petición de tipo blob para que Axios pueda recibir el PDF binario con el Token Bearer
-    const response = await axios.get(
-      `${API_URL}/general?tipo=${tipo}&periodo=${periodo}`, 
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        },
-        responseType: 'blob'
-      }
-    )
+    const { data } = await api.get('/reportes/general', {
+      params,
+      responseType: 'blob',
+      headers: { Accept: 'application/json' }
+    })
 
-    // Convierte los datos binarios a una URL descargable y abre el PDF en una pestaña
-    const blob = new Blob([response.data], { type: 'application/pdf' })
-    const url = window.URL.createObjectURL(blob)
-    window.open(url, '_blank')
+    const url = URL.createObjectURL(new Blob([data], { type: 'application/pdf' }))
+
+    if (ventana) {
+      ventana.location.href = url
+    } else {
+      window.location.href = url
+    }
   } catch (error) {
-    throw error.response?.data || { message: 'Error al descargar el PDF' }
+    if (ventana) ventana.close()
+    throw new Error(await leerError(error))
   }
 }

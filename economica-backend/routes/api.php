@@ -51,10 +51,8 @@ Route::middleware('auth:api')->group(function () {
     });
 
     // Reportes
-    Route::prefix('reportes')->group(function () {
+     Route::prefix('reportes')->group(function () {
         Route::get('general', [ReporteController::class, 'reporteGeneral']);
-        Route::get('tarjetas', [ReporteController::class, 'datosTarjetas']);
-        Route::get('resumen', [ReporteController::class, 'resumenJson']);
     });
 
     // Módulos CRUD
