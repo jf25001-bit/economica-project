@@ -1,6 +1,5 @@
 <template>
   <div class="p-6 max-w-7xl mx-auto space-y-6">
-    <!-- Header de la Vista -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
         <h1 class="text-2xl font-black text-slate-800 tracking-tight">Historial de Ventas</h1>
@@ -16,7 +15,6 @@
       </router-link>
     </div>
 
-    <!-- Contenedor Principal -->
     <div 
       class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden isolate relative"
       style="clip-path: inset(0 rounded 1rem);"
@@ -43,7 +41,7 @@
 
           <tbody class="divide-y divide-slate-100 text-sm">
             <tr
-              v-for="venta in ventas"
+              v-for="venta in ventasPaginadas"
               :key="venta.id"
               class="hover:bg-slate-50 transition-colors"
             >
@@ -87,16 +85,36 @@
           </tbody>
         </table>
       </div>
+
+      <div v-if="totalPaginasVentas > 1" class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <span class="text-xs text-slate-500 font-medium">
+          Mostrando página <strong class="text-slate-700">{{ paginaActualVentas }}</strong> de <strong class="text-slate-700">{{ totalPaginasVentas }}</strong>
+        </span>
+        <div class="flex items-center gap-1.5">
+          <button
+            @click="paginaAnterior"
+            :disabled="paginaActualVentas === 1"
+            class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100 transition cursor-pointer"
+          >
+            Anterior
+          </button>
+          <button
+            @click="paginaSiguiente"
+            :disabled="paginaActualVentas === totalPaginasVentas"
+            class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100 transition cursor-pointer"
+          >
+            Siguiente
+          </button>
+        </div>
+      </div>
     </div>
 
-    <!-- Modal de Detalle de Venta -->
     <div
       v-if="mostrarModalDetalle"
       class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto"
       @click.self="cerrarModal"
     >
       <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-3xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-        <!-- Header Modal -->
         <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center text-sky-400">
@@ -117,9 +135,7 @@
           </button>
         </div>
 
-        <!-- Cuerpo Modal -->
         <div class="p-6 space-y-4">
-          <!-- Metadatos de la Venta -->
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
             <div>
               <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Cliente</span>
@@ -147,7 +163,6 @@
             </div>
           </div>
 
-          <!-- Tabla con Scroll Controlado -->
           <div>
             <h4 class="text-xs font-black uppercase tracking-wider text-slate-500 mb-2">
               Productos Comprados
@@ -191,7 +206,6 @@
             </div>
           </div>
 
-          <!-- Total Final -->
           <div class="flex justify-between items-center pt-2 border-t border-slate-100">
             <span class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Total de la Venta</span>
             <span class="text-xl font-black text-slate-900">
@@ -200,7 +214,6 @@
           </div>
         </div>
 
-        <!-- Footer Modal -->
         <div class="px-6 py-3 bg-slate-50 border-t border-slate-100 flex justify-end">
           <button
             @click="cerrarModal"
@@ -215,12 +228,37 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { getVentas } from '@/services/ventaService'
 
 const ventas = ref([])
 const mostrarModalDetalle = ref(false)
 const ventaSeleccionada = ref(null)
+
+const paginaActualVentas = ref(1)
+const porPaginaVentas = ref(10)
+
+const ventasPaginadas = computed(() => {
+  const inicio = (paginaActualVentas.value - 1) * porPaginaVentas.value
+  const fin = inicio + porPaginaVentas.value
+  return ventas.value.slice(inicio, fin)
+})
+
+const totalPaginasVentas = computed(() => {
+  return Math.ceil(ventas.value.length / porPaginaVentas.value) || 1
+})
+
+const paginaSiguiente = () => {
+  if (paginaActualVentas.value < totalPaginasVentas.value) {
+    paginaActualVentas.value++
+  }
+}
+
+const paginaAnterior = () => {
+  if (paginaActualVentas.value > 1) {
+    paginaActualVentas.value--
+  }
+}
 
 const consultarVentas = async () => {
   try {

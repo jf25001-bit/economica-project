@@ -53,7 +53,7 @@
 
           <tbody class="divide-y divide-slate-100">
             <tr
-              v-for="proveedor in proveedoresFiltrados"
+              v-for="proveedor in proveedoresPaginados"
               :key="proveedor.id"
               class="hover:bg-slate-50/80 transition-colors"
             >
@@ -133,6 +133,13 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Paginación -->
+      <Paginacion
+        :current-page="paginaActual"
+        :total-pages="totalPaginas"
+        @update:current-page="paginaActual = $event"
+      />
     </div>
 
     <!-- Modal Formulario Principal -->
@@ -352,8 +359,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import Swal from 'sweetalert2'
+import Paginacion from '@/components/Paginacion.vue'
 import {
   getProveedores,
   getProductos,
@@ -398,6 +406,24 @@ const productosFiltrados = computed(() => {
     return nombreProd.includes(query) || sku.includes(query)
   })
 })
+
+// --- Paginación ---
+const paginaActual = ref(1)
+const porPagina = 8
+
+const totalPaginas = computed(() =>
+  Math.max(1, Math.ceil(proveedoresFiltrados.value.length / porPagina))
+)
+
+const proveedoresPaginados = computed(() => {
+  const inicio = (paginaActual.value - 1) * porPagina
+  return proveedoresFiltrados.value.slice(inicio, inicio + porPagina)
+})
+
+watch(filtroProveedor, () => {
+  paginaActual.value = 1
+})
+// --- Fin Paginación ---
 
 onMounted(() => {
   cargarProveedores()

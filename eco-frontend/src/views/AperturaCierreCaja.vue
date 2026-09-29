@@ -14,6 +14,22 @@
       </div>
     </div>
 
+    <!-- Banner Alerta Caja Cerrada (Mismo fondo #0f172a que las demás tarjetas) -->
+    <div 
+      v-if="!cargandoEstado && !cajaAbierta" 
+      class="bg-[#0f172a] border border-amber-500/40 rounded-2xl p-4 flex items-center gap-4 text-amber-400 shadow-md"
+    >
+      <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+        <i class="bi bi-exclamation-triangle-fill text-xl text-amber-400 animate-pulse"></i>
+      </div>
+      <div>
+        <h4 class="font-bold text-sm text-amber-400">Caja Cerrada</h4>
+        <p class="text-xs text-slate-400 mt-0.5">
+          Debes realizar la apertura ingresando el monto base inicial antes de operar ventas.
+        </p>
+      </div>
+    </div>
+
     <!-- State Loader -->
     <div v-if="cargandoEstado" class="bg-[#0f172a] rounded-2xl border border-slate-800/80 p-16 flex flex-col items-center justify-center text-slate-400">
       <i class="bi bi-arrow-repeat animate-spin text-4xl text-sky-400 mb-3"></i>
@@ -137,10 +153,25 @@
             <p class="text-xs text-slate-400 mt-1">Conteo y confirmación de dinero total en efectivo</p>
           </div>
 
+          <!-- Resumen del turno -->
+          <div class="grid grid-cols-2 gap-4 bg-slate-900/60 border border-slate-800 rounded-xl p-4">
+            <div>
+              <p class="text-[10px] font-black uppercase tracking-wider text-slate-500">Monto Apertura</p>
+              <p class="text-lg font-black text-white mt-1">${{ formatoMonto(cajaInfo?.monto_apertura) }}</p>
+            </div>
+            <div>
+              <p class="text-[10px] font-black uppercase tracking-wider text-slate-500">Ventas del Turno</p>
+              <p class="text-lg font-black text-white mt-1">${{ formatoMonto(cajaInfo?.total_ventas) }}</p>
+            </div>
+          </div>
+
           <div>
             <label class="block text-slate-400 text-[11px] font-black uppercase tracking-wider mb-2">
               MONTO TOTAL EN EFECTIVO
             </label>
+            <p class="text-[11px] text-sky-400 font-bold mb-2">
+              <i class="bi bi-magic"></i> Calculado automáticamente: ${{ formatoMonto(montoEsperado) }} — puedes ajustarlo si el conteo físico difiere.
+            </p>
             <div class="relative">
               <span class="absolute left-4 top-1/2 -translate-y-1/2 text-rose-400 font-bold text-base">$</span>
               <input
@@ -156,6 +187,18 @@
                 USD
               </span>
             </div>
+
+            <!-- Diferencia en vivo -->
+            <p
+              v-if="diferencia !== 0"
+              :class="[
+                'text-xs font-bold mt-2',
+                diferencia > 0 ? 'text-emerald-400' : 'text-rose-400'
+              ]"
+            >
+              <i :class="diferencia > 0 ? 'bi bi-arrow-up-circle' : 'bi bi-arrow-down-circle'"></i>
+              {{ diferencia > 0 ? 'Sobrante' : 'Faltante' }} de ${{ formatoMonto(Math.abs(diferencia)) }} respecto al monto esperado
+            </p>
           </div>
 
           <button
@@ -175,7 +218,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import Swal from 'sweetalert2'
 import { cajaService } from '@/services/cajaService'
 
@@ -193,6 +236,21 @@ const formApertura = ref({
 const formCierre = ref({
   monto_cierre: 0
 })
+
+const montoEsperado = computed(() => {
+  const apertura = parseFloat(cajaInfo.value?.monto_apertura || 0)
+  const ventas = parseFloat(cajaInfo.value?.total_ventas || 0)
+  return apertura + ventas
+})
+
+const diferencia = computed(() => {
+  return parseFloat(formCierre.value.monto_cierre || 0) - montoEsperado.value
+})
+
+const formatoMonto = (valor) => {
+  const num = parseFloat(valor || 0)
+  return num.toFixed(2)
+}
 
 const formatoFecha = (fechaStr) => {
   if (!fechaStr) return 'Hoy'
@@ -219,6 +277,10 @@ const consultarEstado = async () => {
     if (data && data.caja) {
       cajaAbierta.value = true
       cajaInfo.value = data.caja
+
+      const apertura = parseFloat(data.caja.monto_apertura || 0)
+      const ventas = parseFloat(data.caja.total_ventas || 0)
+      formCierre.value.monto_cierre = apertura + ventas
     } else {
       cajaAbierta.value = false
       cajaInfo.value = null
@@ -226,6 +288,17 @@ const consultarEstado = async () => {
       if (data && data.monto_anterior !== undefined) {
         formApertura.value.monto_apertura = parseFloat(data.monto_anterior)
       }
+
+      // Alerta emergente SweetAlert2
+      Swal.fire({
+        title: '¡Caja Cerrada!',
+        text: 'Debes aperturar un turno de caja para habilitar las operaciones en el sistema.',
+        icon: 'warning',
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#0284c7',
+        background: '#0f172a',
+        color: '#fff'
+      })
     }
   } catch (e) {
     console.error("Error al consultar caja:", e)
@@ -237,7 +310,6 @@ const consultarEstado = async () => {
 const ejecutarApertura = async () => {
   procesando.value = true
   try {
-    // 1. Consultar en el historial si existe cualquier caja abierta en el sistema
     const activas = await cajaService.obtenerCajasActivasGlobales()
 
     if (activas && activas.length > 0) {
@@ -256,7 +328,6 @@ const ejecutarApertura = async () => {
       return
     }
 
-    // 2. Extraer usuario guardado en storage
     let userId = 1
     const userStr = localStorage.getItem('user') || localStorage.getItem('usuario')
     if (userStr) {
@@ -268,7 +339,6 @@ const ejecutarApertura = async () => {
       }
     }
 
-    // 3. Proceder a la apertura
     const datosEnvio = {
       ...formApertura.value,
       user_id: userId

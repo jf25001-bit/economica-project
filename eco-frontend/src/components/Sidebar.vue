@@ -5,65 +5,54 @@
       isOpen ? 'w-64' : 'w-20'
     ]"
   >
-    <!-- Logo y Título -->
-    <div
-      :class="[
-        'h-[73px] px-5 flex items-center gap-3.5 transition-all duration-300 border-b border-slate-800/60 shrink-0',
-        isOpen ? 'justify-start' : 'justify-center'
-      ]"
-    >
-      <div
-        class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-emerald-400 p-0.5 shrink-0 shadow-lg shadow-sky-500/20"
-      >
-        <div
-          class="w-full h-full bg-slate-900 rounded-[10px] flex items-center justify-center p-1.5"
+ <!-- Logo -->
+<div
+  class="h-[73px] px-5 flex items-center justify-start transition-all duration-300 border-b border-slate-800/60 shrink-0"
+>
+  <img
+    src="/nuevo logo.svg"
+    alt="Logo La Económica"
+    :class="[
+      'object-contain object-left transition-all duration-300',
+      isOpen ? 'h-10 max-w-[85%]' : 'h-9 w-9'
+    ]"
+  />
+</div>
+
+    <!-- Menú por secciones -->
+    <nav class="flex-1 py-3 px-3 overflow-y-auto custom-scrollbar space-y-4">
+      <div v-for="seccion in menuFiltrado" :key="seccion.titulo">
+        <!-- Título de sección (solo visible con sidebar abierto) -->
+        <p
+          v-if="isOpen"
+          class="px-4 text-[10px] font-extrabold uppercase tracking-widest text-slate-600 mb-1.5 mt-2"
         >
-          <img
-            src="/nuevo logo.svg"
-            alt="Logo"
-            class="w-full h-full object-contain"
-          />
+          {{ seccion.titulo }}
+        </p>
+        <div v-else class="border-t border-slate-800/60 mx-2 my-2"></div>
+
+        <div class="space-y-1">
+          <router-link
+            v-for="item in seccion.items"
+            :key="item.name"
+            :to="item.route"
+            class="no-underline flex items-center gap-3.5 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/60 transition-all duration-200 group font-medium text-sm"
+            active-class="!bg-gradient-to-r !from-sky-500 !to-blue-600 !text-white !font-bold shadow-md shadow-sky-500/20"
+            :title="!isOpen ? item.name : ''"
+          >
+            <i
+              :class="[
+                item.icon,
+                'text-lg group-hover:scale-110 transition-transform shrink-0'
+              ]"
+            ></i>
+
+            <span v-if="isOpen" class="truncate no-underline">
+              {{ item.name }}
+            </span>
+          </router-link>
         </div>
       </div>
-
-      <div v-if="isOpen" class="overflow-hidden whitespace-nowrap">
-        <h1
-          class="font-extrabold text-sm text-white tracking-tight leading-none"
-        >
-          La Económica
-        </h1>
-
-        <span
-          class="text-[10px] text-sky-400 font-bold uppercase tracking-widest block mt-1"
-        >
-          POS System
-        </span>
-      </div>
-    </div>
-
-    <!-- Menú -->
-    <nav
-      class="flex-1 py-3 px-3 space-y-1 overflow-y-auto custom-scrollbar"
-    >
-      <router-link
-        v-for="item in menuFiltrado"
-        :key="item.name"
-        :to="item.route"
-        class="no-underline flex items-center gap-3.5 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/60 transition-all duration-200 group font-medium text-sm"
-        active-class="!bg-gradient-to-r !from-sky-500 !to-blue-600 !text-white !font-bold shadow-md shadow-sky-500/20"
-        :title="!isOpen ? item.name : ''"
-      >
-        <i
-          :class="[
-            item.icon,
-            'text-lg group-hover:scale-110 transition-transform shrink-0'
-          ]"
-        ></i>
-
-        <span v-if="isOpen" class="truncate no-underline">
-          {{ item.name }}
-        </span>
-      </router-link>
     </nav>
 
     <!-- Acciones Inferiores -->
@@ -93,18 +82,43 @@ defineProps({
 const router = useRouter()
 
 const menu = [
-  { name: 'Inicio', route: '/dashboard', icon: 'bi bi-house-door-fill' },
-  { name: 'Apertura / Cierre', route: '/caja', icon: 'bi bi-wallet2' },
-  { name: 'Control de Cajas', route: '/control-cajas', icon: 'bi bi-shield-lock-fill' }, 
-  { name: 'Punto de Venta', route: '/pos', icon: 'bi bi-calculator-fill' },
-  { name: 'Ventas', route: '/ventas', icon: 'bi bi-cash-coin' },
-  { name: 'Categorias', route: '/categorias', icon: 'bi bi-grid-3x3-gap-fill' },
-  { name: 'Productos', route: '/productos', icon: 'bi bi-box-seam-fill' },
-  { name: 'Inventario', route: '/inventario', icon: 'bi bi-archive-fill' },
-  { name: 'Compras', route: '/compras', icon: 'bi bi-basket2-fill' },
-  { name: 'Proveedores', route: '/proveedores', icon: 'bi bi-building' },
-  { name: 'Usuarios', route: '/usuarios', icon: 'bi bi-person-badge-fill' },
-  { name: 'Reportes', route: '/reportes', icon: 'bi bi-bar-chart-line-fill' }
+  {
+    titulo: 'General',
+    items: [
+      { name: 'Inicio', route: '/dashboard', icon: 'bi bi-house-door-fill' }
+    ]
+  },
+  {
+    titulo: 'Operación',
+    items: [
+      { name: 'Apertura / Cierre', route: '/caja', icon: 'bi bi-wallet2' },
+      { name: 'Punto de Venta', route: '/pos', icon: 'bi bi-calculator-fill' },
+      { name: 'Ventas', route: '/ventas', icon: 'bi bi-cash-coin' },
+      { name: 'Control de Cajas', route: '/control-cajas', icon: 'bi bi-shield-lock-fill' }
+    ]
+  },
+  {
+    titulo: 'Catálogo',
+    items: [
+      { name: 'Categorias', route: '/categorias', icon: 'bi bi-grid-3x3-gap-fill' },
+      { name: 'Productos', route: '/productos', icon: 'bi bi-box-seam-fill' },
+      { name: 'Inventario', route: '/inventario', icon: 'bi bi-archive-fill' }
+    ]
+  },
+  {
+    titulo: 'Compras',
+    items: [
+      { name: 'Proveedores', route: '/proveedores', icon: 'bi bi-building' },
+      { name: 'Compras', route: '/compras', icon: 'bi bi-basket2-fill' }
+    ]
+  },
+  {
+    titulo: 'Administración',
+    items: [
+      { name: 'Usuarios', route: '/usuarios', icon: 'bi bi-person-badge-fill' },
+      { name: 'Reportes', route: '/reportes', icon: 'bi bi-bar-chart-line-fill' }
+    ]
+  }
 ]
 
 const usuarioActual = computed(() => {
@@ -117,14 +131,20 @@ const usuarioActual = computed(() => {
 })
 
 const rolActual = computed(() => {
-  return usuarioActual.value?.rol?.nombre || usuarioActual.value?.rol || ''
+  const rawRol = usuarioActual.value?.rol?.nombre || usuarioActual.value?.rol || ''
+  return String(rawRol).trim().toLowerCase()
 })
 
+const rutasCajero = ['/caja', '/pos', '/productos', '/inventario']
+
 const menuFiltrado = computed(() => {
-  if (rolActual.value === 'Cajero') {
-    return menu.filter(item =>
-      ['/caja', '/pos', '/productos', '/inventario'].includes(item.route)
-    )
+  if (rolActual.value === 'cajero') {
+    return menu
+      .map(seccion => ({
+        ...seccion,
+        items: seccion.items.filter(item => rutasCajero.includes(item.route))
+      }))
+      .filter(seccion => seccion.items.length > 0)
   }
   return menu
 })
@@ -147,17 +167,16 @@ const cerrarSesion = async () => {
     if (!confirmacion.isConfirmed) return
 
     const token = localStorage.getItem('token')
+
     await axios.post(
       'http://127.0.0.1:8000/api/auth/logout',
       {},
       { headers: { Authorization: `Bearer ${token}` } }
     )
 
-    localStorage.clear()
-    router.push('/login')
-
   } catch (e) {
-    console.error('Error al cerrar sesión:', e)
+    console.error('Error al cerrar sesión en el servidor:', e)
+  } finally {
     localStorage.clear()
     router.push('/login')
   }

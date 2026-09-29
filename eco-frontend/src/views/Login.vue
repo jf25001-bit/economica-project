@@ -73,7 +73,7 @@
             </div>
           </div>
 
-          <!-- Campo: Contraseña -->
+          <!-- Campo: Contraseña con Ojito -->
           <div>
             <label class="block text-slate-700 text-xs font-extrabold uppercase tracking-wider mb-2">
               Contraseña
@@ -84,10 +84,19 @@
               </span>
               <input
                 v-model="password"
-                type="password"
+                :type="showPassword ? 'text' : 'password'"
                 placeholder="••••••••"
-                class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 placeholder-slate-400 text-base focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium"
+                class="w-full pl-12 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 placeholder-slate-400 text-base focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium"
               />
+              <!-- Botón Ojito -->
+              <button
+                type="button"
+                @click="showPassword = !showPassword"
+                class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none cursor-pointer"
+                title="Mostrar/Ocultar contraseña"
+              >
+                <i :class="showPassword ? 'bi bi-eye-slash-fill text-xl' : 'bi bi-eye-fill text-xl'"></i>
+              </button>
             </div>
           </div>
 
@@ -117,6 +126,7 @@ const router = useRouter()
 
 const name = ref('')
 const password = ref('')
+const showPassword = ref(false) // Controla la visibilidad de la contraseña
 
 const error = ref('')
 const loading = ref(false)

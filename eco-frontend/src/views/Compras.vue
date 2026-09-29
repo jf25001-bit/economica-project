@@ -34,7 +34,7 @@
               <p class="text-sm text-slate-500">Listado general ({{ compras.length }} registros)</p>
             </div>
           </div>
-          <div class="table-card-wrapper border border-slate-200 rounded-xl overflow-hidden flex-1 bg-white">
+          <div class="table-card-wrapper border border-slate-200 rounded-xl overflow-hidden flex-1 bg-white flex flex-col justify-between">
             <div class="overflow-x-auto">
               <table class="w-full text-left border-collapse">
                 <thead class="bg-slate-50 border-b border-slate-200">
@@ -46,7 +46,7 @@
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
-                  <tr v-for="c in compras" :key="c.id" class="hover:bg-slate-50/80 text-sm transition">
+                  <tr v-for="c in comprasPaginadas" :key="c.id" class="hover:bg-slate-50/80 text-sm transition">
                     <td class="px-6 py-4 font-mono font-bold text-slate-900">#{{ c.id }}</td>
                     <td class="px-6 py-4 text-slate-500 text-xs">{{ c.fecha_compra ?? '—' }}</td>
                     <td class="px-6 py-4 font-bold text-slate-900">${{ Number(c.total ?? 0).toFixed(2) }}</td>
@@ -68,6 +68,44 @@
                 </tbody>
               </table>
             </div>
+
+            <!-- CONTROLES DE PAGINACIÓN ACTUALIZADOS -->
+            <div v-if="totalPaginasCompras > 1" class="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-end shrink-0">
+              <div class="flex items-center gap-1.5">
+                <button
+                  @click="paginaActualCompras--"
+                  :disabled="paginaActualCompras === 1"
+                  class="w-9 h-9 rounded-xl border border-slate-200 bg-white text-slate-400 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition cursor-pointer shadow-sm"
+                  title="Anterior"
+                >
+                  <i class="bi bi-chevron-left text-xs"></i>
+                </button>
+
+                <button
+                  v-for="pagina in paginasVisibles"
+                  :key="pagina"
+                  @click="paginaActualCompras = pagina"
+                  :class="[
+                    'w-9 h-9 rounded-xl text-xs font-bold transition cursor-pointer flex items-center justify-center shadow-sm',
+                    paginaActualCompras === pagina
+                      ? 'bg-slate-800 text-white border border-slate-800'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
+                  ]"
+                >
+                  {{ pagina }}
+                </button>
+
+                <button
+                  @click="paginaActualCompras++"
+                  :disabled="paginaActualCompras === totalPaginasCompras"
+                  class="w-9 h-9 rounded-xl border border-slate-200 bg-white text-slate-400 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition cursor-pointer shadow-sm"
+                  title="Siguiente"
+                >
+                  <i class="bi bi-chevron-right text-xs"></i>
+                </button>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -366,6 +404,29 @@ const fechaCompraNueva = ref(new Date().toISOString().split('T')[0])
 
 const modoEdicion = ref(false)
 const compraIdEdicion = ref(null)
+
+// Variables y lógica de Paginación para Compras
+const paginaActualCompras = ref(1)
+const porPaginaCompras = ref(8)
+
+const comprasPaginadas = computed(() => {
+  const inicio = (paginaActualCompras.value - 1) * porPaginaCompras.value
+  const fin = inicio + porPaginaCompras.value
+  return compras.value.slice(inicio, fin)
+})
+
+const totalPaginasCompras = computed(() => {
+  return Math.ceil(compras.value.length / porPaginaCompras.value) || 1
+})
+
+// PÁGINAS VISIBLES PARA EL MAPEO NUMÉRICO
+const paginasVisibles = computed(() => {
+  const paginas = []
+  for (let i = 1; i <= totalPaginasCompras.value; i++) {
+    paginas.push(i)
+  }
+  return paginas
+})
 
 const cargar = async () => {
   try {

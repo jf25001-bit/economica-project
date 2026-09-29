@@ -4,6 +4,8 @@
 
 body {
   font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 16px; /* 👈 AUMENTA EL TAMAÑO BASE DE LA FUENTE EN TODO EL SISTEMA */
+  line-height: 1.5; /* Mejora el espacio entre líneas para que sea fácil de leer */
 }
 
 /* RESETS Y PARCHES DE BORDES REDONDEADOS */
