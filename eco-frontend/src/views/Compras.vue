@@ -1,8 +1,7 @@
 <template>
   <div class="main-interface-container p-4 lg:p-6 font-sans text-slate-800 bg-slate-100 min-h-screen">
     <div class="w-full max-w-5xl mx-auto space-y-6">
-      
-      <!-- NAVBAR SUPERIOR -->
+
       <div class="top-strict-navbar flex items-center justify-between bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
         <div class="flex items-center gap-3">
           <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-white shadow-sm">
@@ -13,10 +12,10 @@
             <p class="text-xs text-slate-500">Control de entradas, recepción de órdenes e inventario</p>
           </div>
         </div>
-        
+
         <div class="top-right-actions flex items-center gap-4">
-          <button 
-            @click="abrirModalCrear"
+          <button
+            @click="iniciarNuevaCompra"
             class="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl shadow-md transition font-semibold text-sm flex items-center gap-2 cursor-pointer active:bg-slate-950"
           >
             <i class="bi bi-plus-lg"></i>
@@ -25,7 +24,6 @@
         </div>
       </div>
 
-      <!-- TABLA PRINCIPAL DE COMPRAS -->
       <div class="content-layout-flex flex flex-col xl:flex-row gap-5 items-start w-full">
         <div class="left-content-panel w-full xl:flex-1 xl:min-w-0 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 min-h-[calc(100vh-13rem)] flex flex-col">
           <div class="section-header-row flex justify-between items-center mb-6">
@@ -34,6 +32,7 @@
               <p class="text-sm text-slate-500">Listado general ({{ compras.length }} registros)</p>
             </div>
           </div>
+
           <div class="table-card-wrapper border border-slate-200 rounded-xl overflow-hidden flex-1 bg-white flex flex-col justify-between">
             <div class="overflow-x-auto">
               <table class="w-full text-left border-collapse">
@@ -51,9 +50,9 @@
                     <td class="px-6 py-4 text-slate-500 text-xs">{{ c.fecha_compra ?? '—' }}</td>
                     <td class="px-6 py-4 font-bold text-slate-900">${{ Number(c.total ?? 0).toFixed(2) }}</td>
                     <td class="px-6 py-4 text-right">
-                      <button 
+                      <button
                         @click="abrirEditar(c)"
-                        class="bg-slate-100 text-slate-700 p-2 rounded-lg hover:bg-slate-900 hover:text-white transition cursor-pointer inline-flex items-center justify-center border border-slate-300" 
+                        class="bg-slate-100 text-slate-700 p-2 rounded-lg hover:bg-slate-900 hover:text-white transition cursor-pointer inline-flex items-center justify-center border border-slate-300"
                         title="Editar Compra"
                       >
                         <i class="bi bi-pencil"></i>
@@ -61,15 +60,12 @@
                     </td>
                   </tr>
                   <tr v-if="compras.length === 0">
-                    <td colspan="4" class="text-center py-20 text-slate-400 italic">
-                      No hay compras registradas.
-                    </td>
+                    <td colspan="4" class="text-center py-20 text-slate-400 italic">No hay compras registradas.</td>
                   </tr>
                 </tbody>
               </table>
             </div>
 
-            <!-- CONTROLES DE PAGINACIÓN ACTUALIZADOS -->
             <div v-if="totalPaginasCompras > 1" class="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-end shrink-0">
               <div class="flex items-center gap-1.5">
                 <button
@@ -105,11 +101,9 @@
                 </button>
               </div>
             </div>
-
           </div>
         </div>
 
-        <!-- WIDGET LATERAL -->
         <div class="right-widgets-panel w-full xl:w-[260px] xl:shrink-0">
           <div class="bg-white rounded-2xl shadow-sm p-4 border border-slate-200">
             <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Resumen</h2>
@@ -122,11 +116,9 @@
       </div>
     </div>
 
-    <!-- MODAL REGISTRAR / EDITAR COMPRA -->
     <div v-if="modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
       <div class="modal-card-box bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-lg w-full max-h-[92vh] flex flex-col overflow-hidden">
-        
-        <!-- ENCABEZADO MODAL -->
+
         <div class="px-5 py-4 flex justify-between items-center border-b border-slate-200 bg-slate-900 text-white shrink-0">
           <div class="flex items-center gap-3">
             <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-white border border-slate-700 shrink-0">
@@ -139,15 +131,16 @@
               <p class="text-xs text-slate-300">Detalla los ítems, precios y datos de lote correspondientes</p>
             </div>
           </div>
-          <button class="w-8 h-8 rounded-lg bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 flex items-center justify-center transition cursor-pointer shrink-0" @click="cerrar">
+          <button
+            class="w-8 h-8 rounded-lg bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 flex items-center justify-center transition cursor-pointer shrink-0"
+            @click="cerrar"
+          >
             <i class="bi bi-x-lg text-xs"></i>
           </button>
         </div>
 
-        <!-- CUERPO DEL MODAL -->
         <div class="modal-body-scroll p-4 sm:p-5 overflow-y-auto overflow-x-hidden flex-1 space-y-5 bg-slate-50/50">
-          
-          <!-- FECHA Y MONTO TOTAL ESTIMADO -->
+
           <div class="form-row-single space-y-3">
             <div class="p-3.5 border border-slate-200 rounded-xl bg-white shadow-sm">
               <label class="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-1.5">Fecha de Compra</label>
@@ -167,13 +160,12 @@
             </div>
           </div>
 
-          <!-- LISTA DE PRODUCTOS -->
           <div class="form-stack-container">
             <label class="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-3">Productos en la Orden</label>
-            
-            <div 
-              v-for="(d, i) in detalles" 
-              :key="i" 
+
+            <div
+              v-for="(d, i) in detalles"
+              :key="i"
               class="producto-card-item p-4 border border-slate-200 rounded-xl bg-white shadow-sm mb-4 space-y-3.5"
             >
               <div class="flex items-center justify-between border-b border-slate-100 pb-2">
@@ -181,7 +173,6 @@
                 <span v-if="d.detalle_id" class="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-mono">ID Registro: #{{ d.detalle_id }}</span>
               </div>
 
-              <!-- SELECCIONAR PRODUCTO -->
               <div class="field-block">
                 <label class="text-xs font-semibold text-slate-600 block mb-1">Producto</label>
                 <button
@@ -196,7 +187,6 @@
                 </button>
               </div>
 
-              <!-- SELECCIONAR PROVEEDOR (RELACIONADO AL PRODUCTO ELEGIDO) -->
               <div class="field-block">
                 <label class="text-xs font-semibold text-slate-600 block mb-1">Proveedor Suministrador</label>
                 <select
@@ -205,9 +195,9 @@
                   class="form-force-input h-10 px-3 border border-slate-300 rounded-lg text-sm bg-white text-slate-800 outline-none focus:border-slate-900 disabled:bg-slate-100 disabled:text-slate-400"
                 >
                   <option value="">-- Seleccionar Proveedor --</option>
-                  <option 
-                    v-for="prov in obtenerProveedoresDelProducto(d.producto_id)" 
-                    :key="prov.id" 
+                  <option
+                    v-for="prov in obtenerProveedoresDelProducto(d.producto_id)"
+                    :key="prov.id"
                     :value="prov.id"
                   >
                     {{ prov.nombre_proveedor || prov.nombre }}
@@ -216,9 +206,15 @@
                 <p v-if="d.producto_id && obtenerProveedoresDelProducto(d.producto_id).length === 0" class="text-[11px] text-amber-600 mt-1">
                   * Este producto no tiene proveedores vinculados aún.
                 </p>
+                <button
+                  type="button"
+                  @click="irAProveedores"
+                  class="mt-1.5 text-[11px] font-bold text-slate-500 hover:text-slate-900 underline underline-offset-2 cursor-pointer"
+                >
+                  ¿No aparece el proveedor? Agregar o vincular proveedor
+                </button>
               </div>
 
-              <!-- CANTIDAD Y UNIDADES POR PAQUETE -->
               <div class="field-grid-2">
                 <div>
                   <label class="text-xs font-semibold text-slate-600 block mb-1">Cant. Paquetes</label>
@@ -242,7 +238,6 @@
                 </div>
               </div>
 
-              <!-- PRECIO PAQUETE -->
               <div class="field-block">
                 <label class="text-xs font-semibold text-slate-600 block mb-1">Precio Paquete ($)</label>
                 <div class="relative w-full">
@@ -258,7 +253,6 @@
                 </div>
               </div>
 
-              <!-- CÓDIGO DE LOTE Y EXPIRACIÓN -->
               <div class="field-grid-2 pt-2 border-t border-slate-100">
                 <div>
                   <label class="text-xs font-semibold text-slate-600 block mb-1">Código de Lote</label>
@@ -283,7 +277,6 @@
                 </div>
               </div>
 
-              <!-- SUBTOTAL Y ELIMINAR (SE OCULTA EN MODO EDICIÓN) -->
               <div class="pt-3 border-t border-slate-200 flex items-center justify-between bg-slate-50 -mx-4 -mb-4 p-3.5 rounded-b-xl">
                 <div>
                   <span class="text-[10px] text-slate-400 font-bold uppercase block tracking-wider">Subtotal Ítem</span>
@@ -292,10 +285,10 @@
                   </span>
                 </div>
 
-                <button 
+                <button
                   v-if="!modoEdicion"
                   type="button"
-                  @click="remove(i)" 
+                  @click="remove(i)"
                   class="h-9 px-3.5 inline-flex items-center justify-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 transition cursor-pointer text-xs font-bold"
                 >
                   <i class="bi bi-trash text-sm"></i>
@@ -306,7 +299,6 @@
             </div>
           </div>
 
-          <!-- BOTÓN AGREGAR OTRO PRODUCTO (AHORA OCULTO EN MODO EDICIÓN) -->
           <button
             v-if="!modoEdicion"
             @click="add"
@@ -317,7 +309,6 @@
           </button>
         </div>
 
-        <!-- FOOTER MODAL -->
         <div class="px-5 py-3.5 bg-white border-t border-slate-200 flex items-center justify-between shrink-0">
           <div class="flex items-center gap-2">
             <span class="text-xs text-slate-500 font-medium">Total Final:</span>
@@ -344,7 +335,6 @@
       </div>
     </div>
 
-    <!-- MODAL SELECTOR DE PRODUCTO -->
     <div v-if="modalProductos" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden">
         <div class="px-5 py-3.5 border-b border-slate-200 flex justify-between items-center bg-slate-900 text-white">
@@ -377,7 +367,18 @@
                 Stock: {{ p.stock ?? 0 }}
               </span>
             </div>
+            <p v-if="productosFiltrados.length === 0" class="text-center py-6 text-xs text-slate-400 italic">
+              No hay productos que coincidan.
+            </p>
           </div>
+          <button
+            type="button"
+            @click="irAProductos"
+            class="mt-3 w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white text-[11px] font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition cursor-pointer"
+          >
+            <i class="bi bi-box-seam"></i>
+            <span>¿No encuentras el producto? Agregar producto</span>
+          </button>
         </div>
       </div>
     </div>
@@ -387,9 +388,14 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { getCompras, createCompra, updateCompra } from '../services/compraService'
 import { getProductos } from '../services/productoService'
 import { getProveedores } from '../services/proveedorService'
+import { avisoConAccion } from '@/utils/avisos'
+
+const route = useRoute()
+const router = useRouter()
 
 const compras = ref([])
 const productos = ref([])
@@ -405,21 +411,18 @@ const fechaCompraNueva = ref(new Date().toISOString().split('T')[0])
 const modoEdicion = ref(false)
 const compraIdEdicion = ref(null)
 
-// Variables y lógica de Paginación para Compras
 const paginaActualCompras = ref(1)
 const porPaginaCompras = ref(8)
 
 const comprasPaginadas = computed(() => {
   const inicio = (paginaActualCompras.value - 1) * porPaginaCompras.value
-  const fin = inicio + porPaginaCompras.value
-  return compras.value.slice(inicio, fin)
+  return compras.value.slice(inicio, inicio + porPaginaCompras.value)
 })
 
 const totalPaginasCompras = computed(() => {
   return Math.ceil(compras.value.length / porPaginaCompras.value) || 1
 })
 
-// PÁGINAS VISIBLES PARA EL MAPEO NUMÉRICO
 const paginasVisibles = computed(() => {
   const paginas = []
   for (let i = 1; i <= totalPaginasCompras.value; i++) {
@@ -458,15 +461,21 @@ const cargarProveedores = async () => {
   }
 }
 
-onMounted(() => {
-  cargar()
-  cargarProductos()
-  cargarProveedores()
+let cargaInicial = null
+
+onMounted(async () => {
+  cargaInicial = Promise.all([cargar(), cargarProductos(), cargarProveedores()])
+  await cargaInicial
+
+  if (route.query.nuevo) {
+    router.replace({ query: {} })
+    iniciarNuevaCompra()
+  }
 })
 
 function obtenerProveedoresDelProducto(productoId) {
   if (!productoId) return []
-  
+
   const prod = productos.value.find(p => String(p.id) === String(productoId))
   if (prod && Array.isArray(prod.proveedores) && prod.proveedores.length > 0) {
     return prod.proveedores
@@ -478,14 +487,56 @@ function obtenerProveedoresDelProducto(productoId) {
   })
 }
 
+const irAProductos = () => {
+  router.push({ path: '/productos', query: { nuevo: 1 } })
+}
+
+const irAProveedores = () => {
+  router.push(
+    proveedores.value.length === 0
+      ? { path: '/proveedores', query: { nuevo: 1 } }
+      : { path: '/proveedores' }
+  )
+}
+
+async function iniciarNuevaCompra() {
+  if (cargaInicial) await cargaInicial
+
+  if (productos.value.length === 0) {
+    const ir = await avisoConAccion({
+      icon: 'warning',
+      title: 'Aún no hay productos',
+      text: 'Para registrar una compra primero necesitas crear al menos un producto.',
+      boton: 'Crear producto'
+    })
+    if (ir) irAProductos()
+    return
+  }
+
+  const hayProductoAfiliado = productos.value.some(p => obtenerProveedoresDelProducto(p.id).length > 0)
+
+  if (!hayProductoAfiliado) {
+    const ir = await avisoConAccion({
+      icon: 'warning',
+      title: 'Ningún producto tiene proveedor',
+      text: 'Afilia al menos un producto a un proveedor para poder registrar compras.',
+      boton: 'Ir a proveedores'
+    })
+    if (ir) router.push({ path: '/proveedores' })
+    return
+  }
+
+  abrirModalCrear()
+}
+
 function abrirModalCrear() {
   modoEdicion.value = false
   compraIdEdicion.value = null
   fechaCompraNueva.value = new Date().toISOString().split('T')[0]
-  detalles.value = [{ 
-    producto_id: '', 
+  detalles.value = [{
+    producto_id: '',
     proveedor_id: '',
-    cantidad: 1, 
+    cantidad: 1,
     unidades_por_paquete: 1,
     precio_compra: 0,
     codigo_lote: '',
@@ -498,7 +549,7 @@ function abrirEditar(compra) {
   modoEdicion.value = true
   compraIdEdicion.value = compra.id
   fechaCompraNueva.value = compra.fecha_compra ? compra.fecha_compra.substring(0, 10) : new Date().toISOString().split('T')[0]
-  
+
   if (compra.detalles && compra.detalles.length > 0) {
     detalles.value = compra.detalles.map(det => {
       const lote = det.lotes && det.lotes.length > 0 ? det.lotes[0] : null
@@ -515,25 +566,25 @@ function abrirEditar(compra) {
       }
     })
   } else {
-    detalles.value = [{ 
-      producto_id: '', 
+    detalles.value = [{
+      producto_id: '',
       proveedor_id: '',
-      cantidad: 1, 
+      cantidad: 1,
       unidades_por_paquete: 1,
       precio_compra: 0,
       codigo_lote: '',
       fecha_expiracion: ''
     }]
   }
-  
+
   modal.value = true
 }
 
 function add() {
-  detalles.value.push({ 
-    producto_id: '', 
+  detalles.value.push({
+    producto_id: '',
     proveedor_id: '',
-    cantidad: 1, 
+    cantidad: 1,
     unidades_por_paquete: 1,
     precio_compra: 0,
     codigo_lote: '',
@@ -550,9 +601,7 @@ function cerrar() {
 }
 
 const totalCompraNueva = computed(() => {
-  return detalles.value.reduce((acc, d) => {
-    return acc + ((d.cantidad || 0) * (d.precio_compra || 0))
-  }, 0).toFixed(2)
+  return detalles.value.reduce((acc, d) => acc + ((d.cantidad || 0) * (d.precio_compra || 0)), 0).toFixed(2)
 })
 
 function abrirSelector(i) {
@@ -560,10 +609,24 @@ function abrirSelector(i) {
   modalProductos.value = true
 }
 
+async function avisarProductoSinProveedor(p) {
+  const ir = await avisoConAccion({
+    icon: 'info',
+    title: 'Producto sin proveedor',
+    text: `"${p.nombre}" no está afiliado a ningún proveedor.`,
+    boton: 'Ir a proveedores'
+  })
+  if (ir) router.push({ path: '/proveedores' })
+}
+
 function seleccionarProducto(p) {
   detalles.value[indexProducto.value].producto_id = p.id
   detalles.value[indexProducto.value].proveedor_id = ''
   modalProductos.value = false
+
+  if (obtenerProveedoresDelProducto(p.id).length === 0) {
+    avisarProductoSinProveedor(p)
+  }
 }
 
 const productosFiltrados = computed(() => {

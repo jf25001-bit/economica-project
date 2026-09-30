@@ -1,15 +1,10 @@
 <template>
   <div class="min-h-screen bg-slate-50/50 p-6 sm:p-8">
 
-    <!-- Encabezado de Sección -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
       <div>
-        <h1 class="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight">
-          Categorías
-        </h1>
-        <p class="text-slate-500 text-sm font-medium mt-1">
-          Gestión de categorías y organización de subcategorías
-        </p>
+        <h1 class="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight">Categorías</h1>
+        <p class="text-slate-500 text-sm font-medium mt-1">Gestión de categorías y organización de subcategorías</p>
       </div>
 
       <button
@@ -21,7 +16,6 @@
       </button>
     </div>
 
-    <!-- Barra de Búsqueda -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-4 mb-6 flex flex-wrap gap-4">
       <div class="relative flex-1 min-w-[240px]">
         <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
@@ -36,7 +30,6 @@
       </div>
     </div>
 
-    <!-- Tabla de Categorías -->
     <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full min-w-[700px] table-fixed">
@@ -49,12 +42,7 @@
           </thead>
 
           <tbody class="divide-y divide-slate-100">
-            <tr
-              v-for="cat in categoriasPaginadas"
-              :key="cat.id"
-              class="hover:bg-slate-50/80 transition-colors"
-            >
-              <!-- Nombre -->
+            <tr v-for="cat in categoriasPaginadas" :key="cat.id" class="hover:bg-slate-50/80 transition-colors">
               <td class="px-6 py-4 font-bold text-slate-800 truncate">
                 <div class="flex items-center gap-2">
                   <i class="bi bi-folder-fill text-slate-400 text-base"></i>
@@ -62,7 +50,6 @@
                 </div>
               </td>
 
-              <!-- Subcategorías -->
               <td class="px-6 py-4">
                 <div class="flex flex-wrap gap-1.5">
                   <span
@@ -79,7 +66,6 @@
                 </div>
               </td>
 
-              <!-- Acciones -->
               <td class="px-6 py-4">
                 <div class="flex items-center justify-end gap-2">
                   <button
@@ -101,7 +87,6 @@
               </td>
             </tr>
 
-            <!-- Estado Vacío -->
             <tr v-if="categoriasFiltradas.length === 0">
               <td colspan="3" class="py-16 text-center text-slate-400">
                 <i class="bi bi-folder-x text-4xl block mb-2 opacity-50"></i>
@@ -112,7 +97,6 @@
         </table>
       </div>
 
-      <!-- Paginación -->
       <Paginacion
         :current-page="paginaActual"
         :total-pages="totalPaginas"
@@ -120,11 +104,9 @@
       />
     </div>
 
-    <!-- Modal Formulario -->
     <div v-if="modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div class="bg-white rounded-3xl w-full max-w-xl flex flex-col overflow-hidden shadow-2xl border border-slate-100">
-        
-        <!-- Modal Header -->
+
         <div class="bg-[#2B3A4A] text-white px-6 py-5 flex justify-between items-center">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-sky-300">
@@ -146,7 +128,6 @@
           </button>
         </div>
 
-        <!-- Modal Body -->
         <div class="p-6 space-y-4">
           <div>
             <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5">
@@ -160,7 +141,6 @@
             />
           </div>
 
-          <!-- Acordeón Desplegable Subcategorías -->
           <div class="border border-slate-200 rounded-xl overflow-hidden">
             <button
               @click="alternarSubcategorias"
@@ -174,7 +154,6 @@
             </button>
 
             <div v-if="mostrarSubcategorias" class="p-4 bg-white space-y-3 border-t border-slate-200">
-              <!-- Subcategorías ya almacenadas -->
               <div v-if="editando && subExistentes.length > 0" class="flex flex-wrap gap-2">
                 <span
                   v-for="(sub, i) in subExistentes"
@@ -182,16 +161,12 @@
                   class="bg-slate-100 text-slate-700 border border-slate-200 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2"
                 >
                   {{ sub.nombre }}
-                  <button
-                    @click="eliminarSubBD(sub.id, i)"
-                    class="text-red-500 hover:text-red-700 cursor-pointer"
-                  >
+                  <button @click="eliminarSubBD(sub.id, i)" class="text-red-500 hover:text-red-700 cursor-pointer">
                     <i class="bi bi-x-circle-fill"></i>
                   </button>
                 </span>
               </div>
 
-              <!-- Input para agregar nuevas subcategorías -->
               <div class="flex gap-2">
                 <input
                   v-model="nuevaSub"
@@ -208,7 +183,6 @@
                 </button>
               </div>
 
-              <!-- Badges de Subcategorías creadas temporalmente -->
               <div v-if="subNuevas.length > 0" class="flex flex-wrap gap-2 pt-1">
                 <span
                   v-for="(sub, i) in subNuevas"
@@ -216,10 +190,7 @@
                   class="bg-sky-50 text-sky-700 border border-sky-200 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2"
                 >
                   {{ sub.nombre }}
-                  <button
-                    @click="subNuevas.splice(i, 1)"
-                    class="text-red-500 hover:text-red-700 cursor-pointer"
-                  >
+                  <button @click="subNuevas.splice(i, 1)" class="text-red-500 hover:text-red-700 cursor-pointer">
                     <i class="bi bi-x-circle-fill"></i>
                   </button>
                 </span>
@@ -228,7 +199,6 @@
           </div>
         </div>
 
-        <!-- Modal Footer -->
         <div class="flex justify-end gap-3 p-5 bg-slate-50 border-t border-slate-100">
           <button
             @click="cerrar"
@@ -255,6 +225,7 @@
 
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import Swal from 'sweetalert2'
 import Paginacion from '@/components/Paginacion.vue'
 import {
@@ -263,11 +234,13 @@ import {
   updateCategoria,
   deleteCategoria
 } from '@/services/categoriaService'
-
 import {
   createSubcategoria,
   deleteSubcategoria
 } from '@/services/subcategoriaService'
+
+const route = useRoute()
+const router = useRouter()
 
 const categorias = ref([])
 const modal = ref(false)
@@ -287,7 +260,6 @@ const categoriasFiltradas = computed(() => {
   )
 })
 
-// --- Paginación ---
 const paginaActual = ref(1)
 const porPagina = 8
 
@@ -303,9 +275,14 @@ const categoriasPaginadas = computed(() => {
 watch(filtro, () => {
   paginaActual.value = 1
 })
-// --- Fin Paginación ---
 
-onMounted(() => cargar())
+onMounted(async () => {
+  await cargar()
+  if (route.query.nuevo) {
+    router.replace({ query: {} })
+    abrirNuevaCategoria()
+  }
+})
 
 async function cargar() {
   categorias.value = await getCategorias()
@@ -373,20 +350,16 @@ async function guardar() {
   try {
     let res
     const subcategoriasPorCrear = [...subNuevas.value]
-    
+
     if (mostrarSubcategorias.value && nuevaSub.value.trim()) {
       subcategoriasPorCrear.push({ nombre: nuevaSub.value.trim() })
       nuevaSub.value = ''
     }
 
     if (editando.value) {
-      res = await updateCategoria(id.value, {
-        nombre: nombre.value.trim()
-      })
+      res = await updateCategoria(id.value, { nombre: nombre.value.trim() })
     } else {
-      res = await createCategoria({
-        nombre: nombre.value.trim()
-      })
+      res = await createCategoria({ nombre: nombre.value.trim() })
     }
 
     const catId = res?.data?.data?.id || res?.data?.id || res?.id || id.value
@@ -407,7 +380,7 @@ async function guardar() {
       if (!actual.subcategorias) {
         actual.subcategorias = []
       }
-      
+
       if (editando.value) {
         actual.subcategorias = [...subExistentes.value, ...creadas]
       } else {

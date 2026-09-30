@@ -1,12 +1,9 @@
 <template>
   <div class="min-h-screen bg-slate-50/50 p-4 sm:p-6 md:p-8 w-full max-w-full overflow-x-hidden box-border">
 
-    <!-- Encabezado de Sección -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8 w-full">
       <div class="min-w-0 flex-1">
-        <h1 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-800 tracking-tight truncate">
-          Proveedores
-        </h1>
+        <h1 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-800 tracking-tight truncate">Proveedores</h1>
         <p class="text-slate-500 text-xs sm:text-sm font-medium mt-1">
           Gestión de proveedores y asignación de catálogo de productos
         </p>
@@ -21,7 +18,6 @@
       </button>
     </div>
 
-    <!-- Barra de Búsqueda -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-3 sm:p-4 mb-6 w-full max-w-full box-border">
       <div class="relative w-full">
         <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
@@ -36,7 +32,6 @@
       </div>
     </div>
 
-    <!-- Tabla de Proveedores -->
     <div class="bg-white rounded-2xl sm:rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden w-full max-w-full">
       <div class="overflow-x-auto w-full">
         <table class="w-full min-w-[650px] table-fixed">
@@ -52,19 +47,14 @@
           </thead>
 
           <tbody class="divide-y divide-slate-100">
-            <tr
-              v-for="proveedor in proveedoresPaginados"
-              :key="proveedor.id"
-              class="hover:bg-slate-50/80 transition-colors"
-            >
-              <!-- ID -->
+            <tr v-for="proveedor in proveedoresPaginados" :key="proveedor.id" class="hover:bg-slate-50/80 transition-colors">
+
               <td class="px-4 py-3 sm:px-6 sm:py-4">
                 <span class="inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
                   #{{ proveedor.id }}
                 </span>
               </td>
 
-              <!-- Nombre -->
               <td class="px-4 py-3 sm:px-6 sm:py-4 font-bold text-slate-800">
                 <div class="flex items-center gap-2 min-w-0">
                   <i class="bi bi-truck text-slate-400 text-base shrink-0"></i>
@@ -72,19 +62,14 @@
                 </div>
               </td>
 
-              <!-- Teléfono -->
               <td class="px-4 py-3 sm:px-6 sm:py-4 text-slate-600 text-sm font-medium whitespace-nowrap">
                 {{ proveedor.telefono }}
               </td>
 
-              <!-- Dirección -->
               <td class="px-4 py-3 sm:px-6 sm:py-4 text-slate-600 text-sm font-medium">
-                <p class="line-clamp-2 break-words" :title="proveedor.direccion">
-                  {{ proveedor.direccion }}
-                </p>
+                <p class="line-clamp-2 break-words" :title="proveedor.direccion">{{ proveedor.direccion }}</p>
               </td>
 
-              <!-- Productos Suministrados -->
               <td class="px-4 py-3 sm:px-6 sm:py-4">
                 <div class="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto pr-1">
                   <span
@@ -101,7 +86,6 @@
                 </div>
               </td>
 
-              <!-- Acciones -->
               <td class="px-4 py-3 sm:px-6 sm:py-4">
                 <div class="flex items-center justify-end gap-1.5 sm:gap-2">
                   <button
@@ -121,9 +105,9 @@
                   </button>
                 </div>
               </td>
+
             </tr>
 
-            <!-- Estado Vacío -->
             <tr v-if="proveedoresFiltrados.length === 0">
               <td colspan="6" class="py-12 sm:py-16 text-center text-slate-400">
                 <i class="bi bi-folder-x text-3xl sm:text-4xl block mb-2 opacity-50"></i>
@@ -134,7 +118,6 @@
         </table>
       </div>
 
-      <!-- Paginación -->
       <Paginacion
         :current-page="paginaActual"
         :total-pages="totalPaginas"
@@ -142,11 +125,9 @@
       />
     </div>
 
-    <!-- Modal Formulario Principal -->
     <div v-if="mostrarModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-40 p-3 sm:p-4 overflow-y-auto">
       <div class="bg-white rounded-2xl sm:rounded-3xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-slate-100 box-border my-auto">
-        
-        <!-- Modal Header -->
+
         <div class="bg-[#2B3A4A] text-white px-5 py-4 sm:px-6 sm:py-5 flex justify-between items-center shrink-0 w-full box-border">
           <div class="flex items-center gap-3 min-w-0 pr-2">
             <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/10 flex items-center justify-center text-sky-300 shrink-0">
@@ -168,14 +149,10 @@
           </button>
         </div>
 
-        <!-- Modal Body -->
         <div class="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1 w-full box-border">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-            <!-- Nombre -->
             <div class="min-w-0 w-full">
-              <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5">
-                Nombre del proveedor
-              </label>
+              <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5">Nombre del proveedor</label>
               <input
                 v-model="nombre"
                 type="text"
@@ -184,11 +161,8 @@
               />
             </div>
 
-            <!-- Teléfono -->
             <div class="min-w-0 w-full">
-              <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5">
-                Teléfono
-              </label>
+              <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5">Teléfono</label>
               <input
                 v-model="telefono"
                 type="text"
@@ -200,11 +174,8 @@
             </div>
           </div>
 
-          <!-- Dirección -->
           <div class="w-full">
-            <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5">
-              Dirección
-            </label>
+            <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5">Dirección</label>
             <textarea
               v-model="direccion"
               rows="2"
@@ -213,11 +184,8 @@
             ></textarea>
           </div>
 
-          <!-- Disparador Modal de Productos -->
           <div class="w-full">
-            <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5">
-              Productos Suministrados
-            </label>
+            <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5">Productos Suministrados</label>
             <button
               type="button"
               @click="abrirBuscadorProductos"
@@ -229,8 +197,8 @@
                 </div>
                 <div class="text-left min-w-0">
                   <p class="text-xs sm:text-sm font-bold text-slate-800 truncate">
-                    {{ productosSeleccionados.length > 0 
-                      ? `${productosSeleccionados.length} producto(s) seleccionado(s)` 
+                    {{ productosSeleccionados.length > 0
+                      ? `${productosSeleccionados.length} producto(s) seleccionado(s)`
                       : 'Seleccionar productos...' }}
                   </p>
                   <p class="text-[11px] sm:text-xs text-slate-400 truncate">Haga clic para abrir y gestionar el catálogo</p>
@@ -241,7 +209,6 @@
           </div>
         </div>
 
-        <!-- Modal Footer -->
         <div class="flex justify-end gap-2 sm:gap-3 p-4 sm:p-5 bg-slate-50 border-t border-slate-100 shrink-0 w-full box-border">
           <button
             @click="cerrarModal"
@@ -263,20 +230,16 @@
       </div>
     </div>
 
-    <!-- MODAL SECUNDARIO: Buscador de Productos -->
     <div v-if="mostrarBuscadorProductos" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto">
       <div class="bg-white rounded-2xl sm:rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-slate-100 box-border my-auto">
-        
-        <!-- Header Buscador -->
+
         <div class="bg-[#2B3A4A] text-white px-5 py-4 sm:px-6 sm:py-5 flex justify-between items-center shrink-0 w-full box-border">
           <div class="flex items-center gap-3 min-w-0 pr-2">
             <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/10 flex items-center justify-center text-sky-300 shrink-0">
               <i class="bi bi-boxes text-lg sm:text-xl"></i>
             </div>
             <div class="min-w-0">
-              <h3 class="text-base sm:text-lg font-extrabold leading-none truncate">
-                Asignar Productos
-              </h3>
+              <h3 class="text-base sm:text-lg font-extrabold leading-none truncate">Asignar Productos</h3>
               <p class="text-sky-200/80 text-[11px] sm:text-xs mt-1 truncate">Marque los productos suministrados por este proveedor</p>
             </div>
           </div>
@@ -290,9 +253,7 @@
           </button>
         </div>
 
-        <!-- Cuerpo del Buscador -->
         <div class="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1 w-full box-border">
-          <!-- Input Búsqueda -->
           <div class="relative w-full">
             <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
               <i class="bi bi-search text-base"></i>
@@ -305,7 +266,6 @@
             />
           </div>
 
-          <!-- Contenedor de Checkboxes -->
           <div class="max-h-[280px] sm:max-h-[320px] overflow-y-auto border border-slate-200 rounded-2xl p-2 sm:p-3 bg-slate-50/50 w-full box-border">
             <div v-if="productosFiltrados.length > 0" class="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
               <label
@@ -335,9 +295,17 @@
               <p class="text-xs italic">No se encontraron productos coincidentes</p>
             </div>
           </div>
+
+          <button
+            type="button"
+            @click="irAProductos"
+            class="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-800 text-[11px] font-bold transition cursor-pointer"
+          >
+            <i class="bi bi-box-seam"></i>
+            <span>¿No encuentras el producto? Agregar producto</span>
+          </button>
         </div>
 
-        <!-- Footer Buscador -->
         <div class="flex justify-between items-center p-4 sm:p-5 bg-slate-50 border-t border-slate-100 shrink-0 w-full box-border">
           <span class="text-xs font-bold text-slate-500">
             Seleccionados: <span class="text-[#2B3A4A] text-xs sm:text-sm font-extrabold">{{ productosSeleccionados.length }}</span>
@@ -360,6 +328,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import Swal from 'sweetalert2'
 import Paginacion from '@/components/Paginacion.vue'
 import {
@@ -369,6 +338,10 @@ import {
   updateProveedor,
   deleteProveedor
 } from '../services/proveedorService'
+import { avisoConAccion } from '@/utils/avisos'
+
+const route = useRoute()
+const router = useRouter()
 
 const mostrarModal = ref(false)
 const mostrarBuscadorProductos = ref(false)
@@ -407,7 +380,6 @@ const productosFiltrados = computed(() => {
   })
 })
 
-// --- Paginación ---
 const paginaActual = ref(1)
 const porPagina = 8
 
@@ -423,11 +395,17 @@ const proveedoresPaginados = computed(() => {
 watch(filtroProveedor, () => {
   paginaActual.value = 1
 })
-// --- Fin Paginación ---
 
-onMounted(() => {
-  cargarProveedores()
-  cargarProductos()
+let cargaInicial = null
+
+onMounted(async () => {
+  cargaInicial = Promise.all([cargarProveedores(), cargarProductos()])
+  await cargaInicial
+
+  if (route.query.nuevo) {
+    router.replace({ query: {} })
+    abrirNuevoProveedor()
+  }
 })
 
 const cargarProductos = async () => {
@@ -454,7 +432,24 @@ const cargarProveedores = async () => {
   }
 }
 
-function abrirBuscadorProductos() {
+const irAProductos = () => {
+  router.push({ path: '/productos', query: { nuevo: 1 } })
+}
+
+async function abrirBuscadorProductos() {
+  if (cargaInicial) await cargaInicial
+
+  if (catalogoProductos.value.length === 0) {
+    const ir = await avisoConAccion({
+      icon: 'warning',
+      title: 'Aún no hay productos',
+      text: 'Para afiliar productos a un proveedor primero necesitas registrarlos.',
+      boton: 'Crear producto'
+    })
+    if (ir) irAProductos()
+    return
+  }
+
   filtroProducto.value = ''
   mostrarBuscadorProductos.value = true
 }
@@ -477,62 +472,32 @@ async function guardarProveedor() {
   if (guardando.value) return
 
   if (!nombre.value.trim()) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Campo requerido',
-      text: 'Ingrese el nombre del proveedor',
-      confirmButtonColor: '#2B3A4A'
-    })
+    Swal.fire({ icon: 'warning', title: 'Campo requerido', text: 'Ingrese el nombre del proveedor', confirmButtonColor: '#2B3A4A' })
     return
   }
 
   if (nombre.value.trim().length < 3) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Nombre inválido',
-      text: 'El nombre debe tener al menos 3 caracteres',
-      confirmButtonColor: '#2B3A4A'
-    })
+    Swal.fire({ icon: 'warning', title: 'Nombre inválido', text: 'El nombre debe tener al menos 3 caracteres', confirmButtonColor: '#2B3A4A' })
     return
   }
 
   if (!telefono.value.trim()) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Campo requerido',
-      text: 'Ingrese el teléfono',
-      confirmButtonColor: '#2B3A4A'
-    })
+    Swal.fire({ icon: 'warning', title: 'Campo requerido', text: 'Ingrese el teléfono', confirmButtonColor: '#2B3A4A' })
     return
   }
 
   if (!/^\d+$/.test(telefono.value)) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Teléfono inválido',
-      text: 'El teléfono solo debe contener números',
-      confirmButtonColor: '#2B3A4A'
-    })
+    Swal.fire({ icon: 'warning', title: 'Teléfono inválido', text: 'El teléfono solo debe contener números', confirmButtonColor: '#2B3A4A' })
     return
   }
 
   if (telefono.value.length !== 8) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Teléfono inválido',
-      text: 'El teléfono debe tener 8 dígitos',
-      confirmButtonColor: '#2B3A4A'
-    })
+    Swal.fire({ icon: 'warning', title: 'Teléfono inválido', text: 'El teléfono debe tener 8 dígitos', confirmButtonColor: '#2B3A4A' })
     return
   }
 
   if (!direccion.value.trim()) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Campo requerido',
-      text: 'Ingrese la dirección',
-      confirmButtonColor: '#2B3A4A'
-    })
+    Swal.fire({ icon: 'warning', title: 'Campo requerido', text: 'Ingrese la dirección', confirmButtonColor: '#2B3A4A' })
     return
   }
 
@@ -548,20 +513,10 @@ async function guardarProveedor() {
   try {
     if (editandoId.value) {
       await updateProveedor(editandoId.value, data)
-      Swal.fire({
-        icon: 'success',
-        title: 'Proveedor actualizado',
-        timer: 1500,
-        showConfirmButton: false
-      })
+      Swal.fire({ icon: 'success', title: 'Proveedor actualizado', timer: 1500, showConfirmButton: false })
     } else {
       await createProveedor(data)
-      Swal.fire({
-        icon: 'success',
-        title: 'Proveedor agregado correctamente',
-        timer: 1500,
-        showConfirmButton: false
-      })
+      Swal.fire({ icon: 'success', title: 'Proveedor agregado correctamente', timer: 1500, showConfirmButton: false })
     }
 
     await cargarProveedores()
@@ -585,12 +540,10 @@ function editarProveedor(proveedor) {
   nombre.value = proveedor.nombre_proveedor
   telefono.value = proveedor.telefono
   direccion.value = proveedor.direccion
-  
-  if (proveedor.productos && Array.isArray(proveedor.productos)) {
-    productosSeleccionados.value = proveedor.productos.map(p => p.id)
-  } else {
-    productosSeleccionados.value = []
-  }
+
+  productosSeleccionados.value = Array.isArray(proveedor.productos)
+    ? proveedor.productos.map(p => p.id)
+    : []
 
   filtroProducto.value = ''
 }
@@ -612,21 +565,10 @@ async function eliminarProveedor(id) {
   try {
     await deleteProveedor(id)
     await cargarProveedores()
-
-    Swal.fire({
-      icon: 'success',
-      title: 'Proveedor eliminado',
-      timer: 1500,
-      showConfirmButton: false
-    })
+    Swal.fire({ icon: 'success', title: 'Proveedor eliminado', timer: 1500, showConfirmButton: false })
   } catch (error) {
     console.error(error)
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'No se pudo eliminar el proveedor',
-      confirmButtonColor: '#2B3A4A'
-    })
+    Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo eliminar el proveedor', confirmButtonColor: '#2B3A4A' })
   }
 }
 

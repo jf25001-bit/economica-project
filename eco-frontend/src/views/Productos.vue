@@ -1,20 +1,11 @@
 <template>
-  <div
-    class="main-interface-container box-border w-full max-w-full overflow-x-hidden p-3 sm:p-4 lg:p-6 bg-[#f8fafc] min-h-screen"
-  >
+  <div class="main-interface-container box-border w-full max-w-full overflow-x-hidden p-3 sm:p-4 lg:p-6 bg-[#f8fafc] min-h-screen">
 
-    <!-- BARRA SUPERIOR -->
-    <div
-      class="top-strict-navbar w-full box-border bg-white rounded-2xl shadow-sm p-4 border border-gray-100 mb-6"
-    >
-      <div
-        class="flex flex-col sm:flex-row items-center justify-between gap-4 w-full"
-      >
+    <div class="top-strict-navbar w-full box-border bg-white rounded-2xl shadow-sm p-4 border border-gray-100 mb-6">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 w-full">
 
-        <!-- Búsqueda -->
         <div class="search-wrapper relative flex items-center w-full sm:max-w-md">
           <i class="bi bi-search search-icon absolute left-4 text-gray-400"></i>
-
           <input
             v-model="buscar"
             type="text"
@@ -23,11 +14,7 @@
           />
         </div>
 
-        <!-- Botón Nuevo Producto -->
-        <div
-          v-if="!esCajero"
-          class="top-right-actions flex items-center w-full sm:w-auto shrink-0"
-        >
+        <div v-if="!esCajero" class="top-right-actions flex items-center w-full sm:w-auto shrink-0">
           <button
             class="w-full sm:w-auto bg-[#1a233a] hover:bg-[#111827] text-white px-5 py-2.5 rounded-xl shadow-sm transition-all font-medium text-sm flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer"
             @click="abrirModalForm"
@@ -40,30 +27,17 @@
       </div>
     </div>
 
-    <!-- CONTENEDOR PRINCIPAL -->
     <div class="flex flex-col xl:flex-row gap-5 w-full max-w-full min-w-0">
 
-      <!-- PANEL IZQUIERDO -->
-      <div
-        class="left-content-panel flex-1 min-w-0 w-full bg-white rounded-2xl shadow-sm p-4 sm:p-6 border border-gray-100 overflow-hidden"
-      >
+      <div class="left-content-panel flex-1 min-w-0 w-full bg-white rounded-2xl shadow-sm p-4 sm:p-6 border border-gray-100 overflow-hidden">
 
-        <div
-          class="section-header-row flex flex-col 2xl:flex-row 2xl:justify-between 2xl:items-center gap-4 mb-6"
-        >
+        <div class="section-header-row flex flex-col 2xl:flex-row 2xl:justify-between 2xl:items-center gap-4 mb-6">
 
           <div class="title-block">
-            <h1 class="text-xl sm:text-2xl font-bold text-[#1e293b]">
-              Gestión de Productos
-            </h1>
-
-            <p class="text-xs font-medium text-gray-400 mt-1">
-              Vista General y Listado
-              ({{ total }} productos encontrados)
-            </p>
+            <h1 class="text-xl sm:text-2xl font-bold text-[#1e293b]">Gestión de Productos</h1>
+            <p class="text-xs font-medium text-gray-400 mt-1">Vista General y Listado ({{ total }} productos encontrados)</p>
           </div>
 
-          <!-- FILTROS -->
           <div class="filter-controls-left flex flex-wrap gap-2.5 2xl:justify-end">
 
             <select
@@ -71,14 +45,7 @@
               class="px-3 py-2 border border-gray-200 rounded-xl text-xs bg-gray-50 text-gray-600 outline-none focus:ring-2 focus:ring-blue-600 cursor-pointer"
             >
               <option value="">Todas las categorías</option>
-
-              <option
-                v-for="cat in categorias"
-                :key="cat.id"
-                :value="cat.id"
-              >
-                {{ cat.nombre }}
-              </option>
+              <option v-for="cat in categorias" :key="cat.id" :value="cat.id">{{ cat.nombre }}</option>
             </select>
 
             <select
@@ -96,229 +63,92 @@
             >
               <option value="recientes">Recientes</option>
               <option value="nombre">Nombre</option>
-
-              <!-- El cajero no necesita ordenar por precio -->
-              <option v-if="!esCajero" value="precio">
-                Precio
-              </option>
+              <option v-if="!esCajero" value="precio">Precio</option>
             </select>
 
           </div>
         </div>
 
-        <!-- TABLA -->
-        <div
-          class="table-card-wrapper border border-gray-100 rounded-2xl overflow-hidden w-full"
-        >
-
+        <div class="table-card-wrapper border border-gray-100 rounded-2xl overflow-hidden w-full">
           <div class="overflow-x-auto w-full">
-
-            <table
-              class="w-full min-w-[700px] text-left border-collapse table-fixed"
-            >
+            <table class="w-full min-w-[700px] text-left border-collapse table-fixed">
 
               <thead class="bg-[#f8fafc] border-b border-gray-100">
-
-                <tr
-                  class="text-[#64748b] text-[11px] font-bold uppercase tracking-wider"
-                >
-
-                  <th class="px-4 py-3.5 whitespace-nowrap w-28">
-                    SKU / CÓDIGO
-                  </th>
-
-                  <th class="px-4 py-3.5 whitespace-nowrap w-16">
-                    IMAGEN
-                  </th>
-
-                  <th class="px-4 py-3.5 min-w-[140px]">
-                    PRODUCTO
-                  </th>
-
-                  <th class="px-4 py-3.5 min-w-[140px]">
-                    CATEGORÍA / SUBCATEGORÍA
-                  </th>
-
-                  <th class="px-4 py-3.5 whitespace-nowrap w-32">
-                    ESTADO
-                  </th>
-
-                  <th class="px-4 py-3.5 whitespace-nowrap w-32">
-                    STOCK / UNIDAD
-                  </th>
-
-                  <!-- PRECIO SOLO ADMIN -->
-                  <th
-                    v-if="!esCajero"
-                    class="px-4 py-3.5 whitespace-nowrap w-28"
-                  >
-                    PRECIO VENTA
-                  </th>
-
-                  <!-- ACCIONES SOLO ADMIN -->
-                  <th
-                    v-if="!esCajero"
-                    class="px-4 py-3.5 text-center whitespace-nowrap w-24"
-                  >
-                    ACCIONES
-                  </th>
-
+                <tr class="text-[#64748b] text-[11px] font-bold uppercase tracking-wider">
+                  <th class="px-4 py-3.5 whitespace-nowrap w-28">SKU / CÓDIGO</th>
+                  <th class="px-4 py-3.5 whitespace-nowrap w-16">IMAGEN</th>
+                  <th class="px-4 py-3.5 min-w-[140px]">PRODUCTO</th>
+                  <th class="px-4 py-3.5 min-w-[140px]">CATEGORÍA / SUBCATEGORÍA</th>
+                  <th class="px-4 py-3.5 whitespace-nowrap w-32">ESTADO</th>
+                  <th class="px-4 py-3.5 whitespace-nowrap w-32">STOCK / UNIDAD</th>
+                  <th v-if="!esCajero" class="px-4 py-3.5 whitespace-nowrap w-28">PRECIO VENTA</th>
+                  <th v-if="!esCajero" class="px-4 py-3.5 text-center whitespace-nowrap w-24">ACCIONES</th>
                 </tr>
-
               </thead>
 
               <tbody class="divide-y divide-gray-100">
 
-                <tr
-                  v-for="producto in productosPaginados"
-                  :key="producto.id"
-                  class="hover:bg-slate-50/60 text-sm transition-colors"
-                >
+                <tr v-for="producto in productosPaginados" :key="producto.id" class="hover:bg-slate-50/60 text-sm transition-colors">
 
-                  <!-- SKU -->
-                  <td
-                    class="px-4 py-3.5 font-mono text-xs text-gray-500 truncate"
-                  >
+                  <td class="px-4 py-3.5 font-mono text-xs text-gray-500 truncate">
                     {{ producto.codigo_barras || 'Sin SKU' }}
                   </td>
 
-                  <!-- IMAGEN -->
                   <td class="px-4 py-3.5">
-
                     <img
-                      v-if="
-                        producto.imagenes &&
-                        producto.imagenes.length
-                      "
-                      :src="
-                        obtenerUrlImagen(
-                          producto.imagenes[0].ruta
-                        )
-                      "
+                      v-if="producto.imagenes && producto.imagenes.length"
+                      :src="obtenerUrlImagen(producto.imagenes[0].ruta)"
                       alt="Producto"
                       class="w-9 h-9 object-cover rounded-lg border border-gray-200 shadow-xs"
                     />
-
                     <div
                       v-else
                       class="w-9 h-9 border border-dashed border-gray-300 rounded-lg flex items-center justify-center text-[9px] text-gray-400 bg-gray-50 shrink-0"
                     >
                       Sin foto
                     </div>
-
                   </td>
 
-                  <!-- PRODUCTO -->
-                  <td
-                    class="px-4 py-3.5 font-semibold text-[#1e293b] break-words text-xs sm:text-sm"
-                  >
+                  <td class="px-4 py-3.5 font-semibold text-[#1e293b] break-words text-xs sm:text-sm">
                     {{ producto.nombre }}
                   </td>
 
-                  <!-- CATEGORIA -->
                   <td class="px-4 py-3.5 break-words">
-
                     <div class="flex flex-col justify-center">
-
-                      <span
-                        class="font-medium text-gray-700 text-xs"
-                      >
-                        {{
-                          producto.subcategoria?.categoria?.nombre ||
-                          'General'
-                        }}
+                      <span class="font-medium text-gray-700 text-xs">
+                        {{ producto.subcategoria?.categoria?.nombre || 'General' }}
                       </span>
-
-                      <span
-                        class="text-[11px] text-gray-400 mt-0.5"
-                      >
-                        {{
-                          producto.subcategoria?.nombre ||
-                          'Sin subcategoría'
-                        }}
+                      <span class="text-[11px] text-gray-400 mt-0.5">
+                        {{ producto.subcategoria?.nombre || 'Sin subcategoría' }}
                       </span>
-
                     </div>
-
                   </td>
 
-                  <!-- ESTADO -->
                   <td class="px-4 py-3.5 whitespace-nowrap">
-
                     <span
                       class="rounded-full px-2.5 py-1 text-[11px] font-semibold inline-flex items-center gap-1.5"
-                      :class="
-                        Number(producto.stock) <=
-                        (Number(producto.stock_minimo) || 5)
-                          ? 'bg-amber-50 text-amber-600'
-                          : 'bg-emerald-50 text-emerald-600'
-                      "
+                      :class="bajoStock(producto) ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'"
                     >
-
-                      <span
-                        class="w-1.5 h-1.5 rounded-full"
-                        :class="
-                          Number(producto.stock) <=
-                          (Number(producto.stock_minimo) || 5)
-                            ? 'bg-amber-500'
-                            : 'bg-emerald-500'
-                        "
-                      ></span>
-
-                      {{
-                        Number(producto.stock) <=
-                        (Number(producto.stock_minimo) || 5)
-                          ? 'Bajo Stock'
-                          : 'Disponible'
-                      }}
-
+                      <span class="w-1.5 h-1.5 rounded-full" :class="bajoStock(producto) ? 'bg-amber-500' : 'bg-emerald-500'"></span>
+                      {{ bajoStock(producto) ? 'Bajo Stock' : 'Disponible' }}
                     </span>
-
                   </td>
 
-                  <!-- STOCK -->
                   <td class="px-4 py-3.5 whitespace-nowrap">
-
-                    <span
-                      :class="
-                        Number(producto.stock) <=
-                        (Number(producto.stock_minimo) || 5)
-                          ? 'text-amber-600 font-bold'
-                          : 'text-gray-700 font-medium'
-                      "
-                    >
+                    <span :class="bajoStock(producto) ? 'text-amber-600 font-bold' : 'text-gray-700 font-medium'">
                       {{ producto.stock }}
                     </span>
-
                     <span class="text-xs text-gray-400 ml-1">
-                      ({{
-                        producto.unidad_medida?.nombre ||
-                        producto.unidad_medida_id ||
-                        'pza'
-                      }})
+                      ({{ producto.unidad_medida?.nombre || producto.unidad_medida_id || 'pza' }})
                     </span>
-
                   </td>
 
-                  <!-- PRECIO SOLO ADMIN -->
-                  <td
-                    v-if="!esCajero"
-                    class="px-4 py-3.5 font-bold text-[#0f172a] whitespace-nowrap"
-                  >
+                  <td v-if="!esCajero" class="px-4 py-3.5 font-bold text-[#0f172a] whitespace-nowrap">
                     ${{ producto.precio_venta }}
                   </td>
 
-                  <!-- ACCIONES SOLO ADMIN -->
-                  <td
-                    v-if="!esCajero"
-                    class="px-4 py-3.5 text-center whitespace-nowrap"
-                  >
-
-                    <div
-                      class="flex gap-1.5 justify-center items-center"
-                    >
-
-                      <!-- EDITAR -->
+                  <td v-if="!esCajero" class="px-4 py-3.5 text-center whitespace-nowrap">
+                    <div class="flex gap-1.5 justify-center items-center">
                       <button
                         class="p-1.5 text-gray-600 hover:text-blue-600 rounded-lg border border-gray-200 hover:bg-white shadow-xs transition cursor-pointer"
                         @click="editarProducto(producto)"
@@ -326,8 +156,6 @@
                       >
                         <i class="bi bi-pencil"></i>
                       </button>
-
-                      <!-- ELIMINAR -->
                       <button
                         class="p-1.5 text-red-500 hover:text-red-700 rounded-lg border border-gray-200 hover:bg-white shadow-xs transition cursor-pointer"
                         @click="eliminarProducto(producto.id)"
@@ -335,41 +163,25 @@
                       >
                         <i class="bi bi-trash"></i>
                       </button>
-
                     </div>
-
                   </td>
 
                 </tr>
 
-                <!-- SIN RESULTADOS -->
                 <tr v-if="productosFiltrados.length === 0">
-
-                  <td
-                    :colspan="esCajero ? 6 : 8"
-                    class="text-center py-8 text-gray-400 italic text-xs"
-                  >
+                  <td :colspan="esCajero ? 6 : 8" class="text-center py-8 text-gray-400 italic text-xs">
                     No se encontraron productos con los filtros seleccionados.
                   </td>
-
                 </tr>
 
               </tbody>
-
             </table>
-
           </div>
-
         </div>
 
-        <!-- PAGINACIÓN -->
-        <div
-          v-if="productosFiltrados.length > 0"
-          class="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4"
-        >
+        <div v-if="productosFiltrados.length > 0" class="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4">
 
           <div class="flex items-center gap-3 text-xs text-gray-500">
-
             <span>
               Mostrando
               <b class="text-gray-700">{{ desde }}</b>–<b class="text-gray-700">{{ hasta }}</b>
@@ -381,19 +193,11 @@
               v-model.number="porPagina"
               class="px-2 py-1.5 border border-gray-200 rounded-lg text-xs bg-gray-50 text-gray-600 outline-none focus:ring-2 focus:ring-blue-600 cursor-pointer"
             >
-              <option
-                v-for="n in opcionesPorPagina"
-                :key="n"
-                :value="n"
-              >
-                {{ n }} por página
-              </option>
+              <option v-for="n in opcionesPorPagina" :key="n" :value="n">{{ n }} por página</option>
             </select>
-
           </div>
 
           <div class="flex items-center gap-1">
-
             <button
               type="button"
               class="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
@@ -403,32 +207,17 @@
               <i class="bi bi-chevron-left text-xs"></i>
             </button>
 
-            <template
-              v-for="(p, i) in paginasVisibles"
-              :key="i"
-            >
-
-              <span
-                v-if="p === '...'"
-                class="w-8 h-8 flex items-center justify-center text-xs text-gray-400"
-              >
-                …
-              </span>
-
+            <template v-for="(p, i) in paginasVisibles" :key="i">
+              <span v-if="p === '...'" class="w-8 h-8 flex items-center justify-center text-xs text-gray-400">…</span>
               <button
                 v-else
                 type="button"
                 class="w-8 h-8 flex items-center justify-center rounded-lg border text-xs font-medium transition cursor-pointer"
-                :class="
-                  p === paginaActual
-                    ? 'bg-[#1a233a] text-white border-[#1a233a]'
-                    : 'border-gray-200 text-gray-600 hover:bg-gray-50'
-                "
+                :class="p === paginaActual ? 'bg-[#1a233a] text-white border-[#1a233a]' : 'border-gray-200 text-gray-600 hover:bg-gray-50'"
                 @click="irAPagina(p)"
               >
                 {{ p }}
               </button>
-
             </template>
 
             <button
@@ -439,125 +228,53 @@
             >
               <i class="bi bi-chevron-right text-xs"></i>
             </button>
-
           </div>
 
         </div>
 
       </div>
 
-      <!-- PANEL DERECHO -->
-      <div
-        class="right-widgets-panel w-full xl:w-[260px] shrink-0 flex flex-col gap-4"
-      >
+      <div class="right-widgets-panel w-full xl:w-[260px] shrink-0 flex flex-col gap-4">
+        <div class="inventory-card-widget bg-white rounded-2xl shadow-sm p-4 border border-gray-100 h-fit">
 
-        <div
-          class="inventory-card-widget bg-white rounded-2xl shadow-sm p-4 border border-gray-100 h-fit"
-        >
+          <h2 class="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-3">Resumen de Inventario</h2>
 
-          <h2
-            class="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-3"
-          >
-            Resumen de Inventario
-          </h2>
-
-          <div
-            class="widget-metric-row flex justify-between items-center p-3 bg-slate-50 rounded-xl mb-2"
-          >
+          <div class="widget-metric-row flex justify-between items-center p-3 bg-slate-50 rounded-xl mb-2">
             <div>
-
-              <span
-                class="block text-xs text-gray-500 font-medium"
-              >
-                Total ítems
-              </span>
-
-              <span
-                class="text-xl font-bold text-slate-800"
-              >
-                {{ resumen.total }}
-              </span>
-
+              <span class="block text-xs text-gray-500 font-medium">Total ítems</span>
+              <span class="text-xl font-bold text-slate-800">{{ resumen.total }}</span>
             </div>
           </div>
 
-          <div
-            class="widget-metric-row flex justify-between items-center p-3 bg-emerald-50/60 rounded-xl mb-2"
-          >
-
+          <div class="widget-metric-row flex justify-between items-center p-3 bg-emerald-50/60 rounded-xl mb-2">
             <div>
-
-              <span
-                class="block text-xs text-emerald-600 font-medium"
-              >
-                Disponibles
-              </span>
-
-              <span
-                class="text-xl font-bold text-emerald-700"
-              >
-                {{ resumen.disponibles }}
-              </span>
-
+              <span class="block text-xs text-emerald-600 font-medium">Disponibles</span>
+              <span class="text-xl font-bold text-emerald-700">{{ resumen.disponibles }}</span>
             </div>
-
           </div>
 
-          <div
-            class="widget-metric-row flex justify-between items-center p-3 bg-amber-50/60 rounded-xl"
-          >
-
+          <div class="widget-metric-row flex justify-between items-center p-3 bg-amber-50/60 rounded-xl">
             <div>
-
-              <span
-                class="block text-xs text-amber-600 font-medium"
-              >
-                Bajo Stock
-              </span>
-
-              <span
-                class="text-xl font-bold text-amber-700"
-              >
-                {{ resumen.bajo_stock }}
-              </span>
-
+              <span class="block text-xs text-amber-600 font-medium">Bajo Stock</span>
+              <span class="text-xl font-bold text-amber-700">{{ resumen.bajo_stock }}</span>
             </div>
-
           </div>
 
         </div>
-
       </div>
 
     </div>
-
-    <!-- ========================================================= -->
-    <!-- MODAL REGISTRO / EDICIÓN                                  -->
-    <!-- SOLO ADMINISTRADOR                                        -->
-    <!-- ========================================================= -->
 
     <div
       v-if="mostrarModal && !esCajero"
       class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto"
     >
+      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-100 flex flex-col my-auto box-border">
 
-      <div
-        class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-100 flex flex-col my-auto box-border"
-      >
-
-        <!-- CABECERA -->
-        <div
-          class="h-14 px-5 flex justify-between items-center bg-[#1a233a] shrink-0"
-        >
-
+        <div class="h-14 px-5 flex justify-between items-center bg-[#1a233a] shrink-0">
           <h3 class="font-bold text-white text-sm sm:text-base">
-            {{
-              esEditando
-                ? 'Modificar Producto Existente'
-                : 'Agregar Nuevo Producto'
-            }}
+            {{ esEditando ? 'Modificar Producto Existente' : 'Agregar Nuevo Producto' }}
           </h3>
-
           <button
             type="button"
             class="w-7 h-7 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center transition cursor-pointer"
@@ -565,41 +282,17 @@
           >
             <i class="bi bi-x-lg text-xs"></i>
           </button>
-
         </div>
 
-        <!-- FORMULARIO -->
-        <form
-          @submit.prevent="guardarProducto"
-          class="p-5 flex flex-col gap-3.5 max-h-[80vh] overflow-y-auto text-xs w-full box-border"
-        >
+        <form @submit.prevent="guardarProducto" class="p-5 flex flex-col gap-3.5 max-h-[80vh] overflow-y-auto text-xs w-full box-border">
 
-          <!-- IMAGEN -->
           <div>
-
-            <label
-              class="block font-semibold text-gray-700 mb-1"
-            >
-              Imagen del Producto
-            </label>
-
+            <label class="block font-semibold text-gray-700 mb-1">Imagen del Producto</label>
             <div class="flex items-center gap-3">
 
-              <div
-                class="relative w-14 h-14 rounded-xl overflow-hidden bg-gray-50 flex items-center justify-center shrink-0 border border-gray-200"
-              >
-
-                <img
-                  v-if="imagenPreview"
-                  :src="imagenPreview"
-                  alt="Preview"
-                  class="w-full h-full object-cover"
-                />
-
-                <i
-                  v-else
-                  class="bi bi-image text-gray-300 text-lg"
-                ></i>
+              <div class="relative w-14 h-14 rounded-xl overflow-hidden bg-gray-50 flex items-center justify-center shrink-0 border border-gray-200">
+                <img v-if="imagenPreview" :src="imagenPreview" alt="Preview" class="w-full h-full object-cover" />
+                <i v-else class="bi bi-image text-gray-300 text-lg"></i>
 
                 <button
                   v-if="imagenPreview"
@@ -610,50 +303,21 @@
                 >
                   <i class="bi bi-x text-xs"></i>
                 </button>
-
               </div>
 
               <div class="flex-1 min-w-0">
-
-                <label
-                  class="box-border w-full h-[56px] flex flex-col items-center justify-center px-3 bg-gray-50 text-gray-500 rounded-xl border border-gray-200 border-dashed cursor-pointer hover:bg-gray-100 transition text-center"
-                >
-
-                  <i
-                    class="bi bi-cloud-upload text-sm text-blue-600 mb-0.5"
-                  ></i>
-
-                  <span
-                    class="text-[10px] font-medium truncate w-full"
-                  >
-                    Seleccionar imagen archivo
-                  </span>
-
-                  <input
-                    type="file"
-                    ref="fileInput"
-                    accept="image/*"
-                    class="hidden"
-                    @change="manejarCambioImagen"
-                  />
-
+                <label class="box-border w-full h-[56px] flex flex-col items-center justify-center px-3 bg-gray-50 text-gray-500 rounded-xl border border-gray-200 border-dashed cursor-pointer hover:bg-gray-100 transition text-center">
+                  <i class="bi bi-cloud-upload text-sm text-blue-600 mb-0.5"></i>
+                  <span class="text-[10px] font-medium truncate w-full">Seleccionar imagen archivo</span>
+                  <input type="file" ref="fileInput" accept="image/*" class="hidden" @change="manejarCambioImagen" />
                 </label>
-
               </div>
 
             </div>
-
           </div>
 
-          <!-- NOMBRE -->
           <div class="w-full min-w-0">
-
-            <label
-              class="block font-semibold text-gray-700 mb-1"
-            >
-              Nombre del Producto
-            </label>
-
+            <label class="block font-semibold text-gray-700 mb-1">Nombre del Producto</label>
             <input
               type="text"
               v-model="nuevoProducto.nombre"
@@ -661,18 +325,10 @@
               placeholder="Ej. MacBook Pro M3"
               class="w-full h-9 px-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none box-border"
             />
-
           </div>
 
-          <!-- CÓDIGO -->
           <div class="w-full min-w-0">
-
-            <label
-              class="block font-semibold text-gray-700 mb-1"
-            >
-              Código de Barras / SKU
-            </label>
-
+            <label class="block font-semibold text-gray-700 mb-1">Código de Barras / SKU</label>
             <input
               type="text"
               v-model="nuevoProducto.codigo_barras"
@@ -680,81 +336,38 @@
               placeholder="Ej. 7501055300075"
               class="w-full h-9 px-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none box-border"
             />
-
           </div>
 
-          <!-- CATEGORIA Y UNIDAD -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
 
             <div class="min-w-0 w-full">
-
-              <label
-                class="block font-semibold text-gray-700 mb-1"
-              >
-                Categoría
-              </label>
-
+              <label class="block font-semibold text-gray-700 mb-1">Categoría</label>
               <button
                 type="button"
                 @click="abrirBuscador('subcategoria')"
                 class="w-full h-9 flex justify-between items-center px-3 border border-gray-200 rounded-xl text-left bg-gray-50 hover:bg-gray-100 transition truncate text-gray-700 cursor-pointer box-border"
               >
-
-                <span class="truncate">
-                  {{
-                    nombreSubcategoriaSeleccionada ||
-                    'Seleccionar...'
-                  }}
-                </span>
-
-                <i
-                  class="bi bi-search text-gray-400 ml-1 shrink-0"
-                ></i>
-
+                <span class="truncate">{{ nombreSubcategoriaSeleccionada || 'Seleccionar...' }}</span>
+                <i class="bi bi-search text-gray-400 ml-1 shrink-0"></i>
               </button>
-
             </div>
 
             <div class="min-w-0 w-full">
-
-              <label
-                class="block font-semibold text-gray-700 mb-1"
-              >
-                Unidad de Medida
-              </label>
-
+              <label class="block font-semibold text-gray-700 mb-1">Unidad de Medida</label>
               <button
                 type="button"
                 @click="abrirBuscador('unidad_medida')"
                 class="w-full h-9 flex justify-between items-center px-3 border border-gray-200 rounded-xl text-left bg-gray-50 hover:bg-gray-100 transition truncate text-gray-700 cursor-pointer box-border"
               >
-
-                <span class="truncate">
-                  {{
-                    nombreUnidadMedidaSeleccionada ||
-                    'Seleccionar...'
-                  }}
-                </span>
-
-                <i
-                  class="bi bi-search text-gray-400 ml-1 shrink-0"
-                ></i>
-
+                <span class="truncate">{{ nombreUnidadMedidaSeleccionada || 'Seleccionar...' }}</span>
+                <i class="bi bi-search text-gray-400 ml-1 shrink-0"></i>
               </button>
-
             </div>
 
           </div>
 
-          <!-- PRECIO -->
           <div class="w-full min-w-0">
-
-            <label
-              class="block font-semibold text-gray-700 mb-1"
-            >
-              Precio Venta ($)
-            </label>
-
+            <label class="block font-semibold text-gray-700 mb-1">Precio Venta ($)</label>
             <input
               type="number"
               step="0.01"
@@ -763,16 +376,9 @@
               placeholder="0.00"
               class="w-full h-9 px-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none box-border"
             />
-
           </div>
 
-          
-
-          <!-- BOTONES -->
-          <div
-            class="flex justify-end gap-2 mt-2 pt-3 border-t border-gray-100 shrink-0"
-          >
-
+          <div class="flex justify-end gap-2 mt-2 pt-3 border-t border-gray-100 shrink-0">
             <button
               type="button"
               class="h-9 px-4 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 font-medium transition cursor-pointer"
@@ -787,145 +393,75 @@
               class="h-9 px-4 bg-[#1a233a] text-white rounded-xl hover:bg-[#111827] font-medium flex items-center gap-2 transition disabled:opacity-50 cursor-pointer"
               :disabled="guardando"
             >
-
               <span
                 v-if="guardando"
                 class="animate-spin inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full"
               ></span>
-
-              {{
-                guardando
-                  ? 'Procesando...'
-                  : (
-                      esEditando
-                        ? 'Actualizar Producto'
-                        : 'Guardar Producto'
-                    )
-              }}
-
+              {{ guardando ? 'Procesando...' : (esEditando ? 'Actualizar Producto' : 'Guardar Producto') }}
             </button>
-
           </div>
 
         </form>
 
       </div>
-
     </div>
-
-    <!-- ========================================================= -->
-    <!-- MODAL BUSCADOR SECUNDARIO                                -->
-    <!-- ========================================================= -->
 
     <div
       v-if="mostrarBuscador && !esCajero"
       class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4"
     >
+      <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden border border-gray-100 flex flex-col my-auto box-border">
 
-      <div
-        class="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden border border-gray-100 flex flex-col my-auto box-border"
-      >
-
-        <div
-          class="px-4 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0"
-        >
-
+        <div class="px-4 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
           <h4 class="font-bold text-gray-800 text-xs sm:text-sm">
-            Buscar
-            {{
-              tipoBuscador === 'subcategoria'
-                ? 'Categoría'
-                : 'Unidad de Medida'
-            }}
+            Buscar {{ tipoBuscador === 'subcategoria' ? 'Categoría' : 'Unidad de Medida' }}
           </h4>
-
-          <button
-            type="button"
-            class="text-gray-400 hover:text-gray-600 cursor-pointer"
-            @click="cerrarBuscador"
-          >
+          <button type="button" class="text-gray-400 hover:text-gray-600 cursor-pointer" @click="cerrarBuscador">
             <i class="bi bi-x-lg"></i>
           </button>
-
         </div>
 
-        <div
-          class="p-4 flex flex-col gap-3 max-h-[75vh] overflow-y-auto"
-        >
+        <div class="p-4 flex flex-col gap-3 max-h-[75vh] overflow-y-auto">
 
-          <div
-            class="relative flex items-center w-full"
-          >
-
-            <i
-              class="bi bi-search absolute left-3 text-gray-400 text-xs"
-            ></i>
-
+          <div class="relative flex items-center w-full">
+            <i class="bi bi-search absolute left-3 text-gray-400 text-xs"></i>
             <input
               v-model="filtroBuscadorInterno"
               type="text"
               placeholder="Filtrar por nombre..."
               class="w-full pl-8 pr-3 py-1.5 border border-gray-200 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 bg-gray-50 box-border"
             />
-
           </div>
 
-          <!-- CATEGORIAS -->
           <div
             v-if="tipoBuscador === 'subcategoria'"
             class="max-h-[220px] overflow-y-auto border border-gray-100 rounded-xl bg-gray-50 flex flex-col divide-y divide-gray-100"
           >
 
-            <div
-              v-for="cat in categoriasFiltradasBuscador"
-              :key="cat.id"
-              class="bg-white"
-            >
+            <div v-for="cat in categoriasFiltradasBuscador" :key="cat.id" class="bg-white">
 
               <button
                 type="button"
-                @click="
-                  cat.subcategoriasFiltradas.length === 0
-                    ? seleccionarCategoriaBuscador(cat)
-                    : alternarCategoriaBuscador(cat.id)
-                "
+                @click="cat.subcategoriasFiltradas.length === 0 ? seleccionarCategoriaBuscador(cat) : alternarCategoriaBuscador(cat.id)"
                 class="w-full text-left px-3 py-2 text-xs text-gray-800 hover:text-blue-600 hover:bg-blue-50/50 font-bold transition flex justify-between items-center cursor-pointer"
               >
-
                 <span class="truncate">
-
-                  <i
-                    class="bi bi-folder-fill mr-1.5 text-blue-600"
-                  ></i>
-
+                  <i class="bi bi-folder-fill mr-1.5 text-blue-600"></i>
                   {{ cat.nombre }}
-
                 </span>
 
                 <i
                   v-if="cat.subcategoriasFiltradas.length > 0"
-                  :class="
-                    categoriaBuscadorAbierta === cat.id
-                      ? 'bi bi-chevron-up'
-                      : 'bi bi-chevron-down'
-                  "
+                  :class="categoriaBuscadorAbierta === cat.id ? 'bi bi-chevron-up' : 'bi bi-chevron-down'"
                   class="text-blue-600 ml-1"
                 ></i>
 
-                <span
-                  v-else
-                  class="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-bold shrink-0"
-                >
+                <span v-else class="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-bold shrink-0">
                   Usar categoría
                 </span>
-
               </button>
 
-              <div
-                v-if="categoriaBuscadorAbierta === cat.id"
-                class="bg-gray-50 border-t border-gray-100"
-              >
-
+              <div v-if="categoriaBuscadorAbierta === cat.id" class="bg-gray-50 border-t border-gray-100">
                 <button
                   type="button"
                   v-for="sub in cat.subcategoriasFiltradas"
@@ -933,45 +469,39 @@
                   @click="seleccionarItemBuscador(sub)"
                   class="w-full text-left pl-8 pr-3 py-2 text-xs text-gray-600 hover:bg-white hover:text-blue-600 font-medium transition flex justify-between items-center cursor-pointer"
                 >
-
-                  <span class="truncate">
-                    {{ sub.nombre }}
-                  </span>
-
-                  <span
-                    class="text-[9px] bg-gray-200/60 text-gray-500 px-1.5 py-0.5 rounded font-mono shrink-0 ml-1"
-                  >
+                  <span class="truncate">{{ sub.nombre }}</span>
+                  <span class="text-[9px] bg-gray-200/60 text-gray-500 px-1.5 py-0.5 rounded font-mono shrink-0 ml-1">
                     ID: {{ sub.id }}
                   </span>
-
                 </button>
 
-                <div
-                  v-if="cat.subcategoriasFiltradas.length === 0"
-                  class="pl-8 pr-3 py-2 text-xs text-gray-400 italic"
-                >
+                <div v-if="cat.subcategoriasFiltradas.length === 0" class="pl-8 pr-3 py-2 text-xs text-gray-400 italic">
                   Sin subcategorías.
                 </div>
-
               </div>
 
             </div>
 
-            <div
-              v-if="categoriasFiltradasBuscador.length === 0"
-              class="text-center py-6 text-xs text-gray-400 italic"
-            >
+            <div v-if="categoriasFiltradasBuscador.length === 0" class="text-center py-6 text-xs text-gray-400 italic">
               No hay coincidencias.
             </div>
 
           </div>
 
-          <!-- UNIDADES -->
+          <button
+            v-if="tipoBuscador === 'subcategoria'"
+            type="button"
+            @click="irACategorias"
+            class="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700 text-[11px] font-bold transition cursor-pointer"
+          >
+            <i class="bi bi-folder-plus"></i>
+            <span>¿No encuentras la categoría? Crear una nueva</span>
+          </button>
+
           <div
             v-else
             class="max-h-[200px] overflow-y-auto border border-gray-100 rounded-xl bg-gray-50 flex flex-col divide-y divide-gray-100"
           >
-
             <button
               type="button"
               v-for="item in listaFiltradaBuscador"
@@ -979,32 +509,20 @@
               @click="seleccionarItemBuscador(item)"
               class="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-white hover:text-blue-600 font-medium transition flex justify-between items-center cursor-pointer"
             >
-
-              <span class="truncate">
-                {{ item.nombre }}
-              </span>
-
-              <span
-                class="text-[9px] bg-gray-200/60 text-gray-500 px-1.5 py-0.5 rounded font-mono shrink-0 ml-1"
-              >
+              <span class="truncate">{{ item.nombre }}</span>
+              <span class="text-[9px] bg-gray-200/60 text-gray-500 px-1.5 py-0.5 rounded font-mono shrink-0 ml-1">
                 ID: {{ item.id }}
               </span>
-
             </button>
 
-            <div
-              v-if="listaFiltradaBuscador.length === 0"
-              class="text-center py-6 text-xs text-gray-400 italic"
-            >
+            <div v-if="listaFiltradaBuscador.length === 0" class="text-center py-6 text-xs text-gray-400 italic">
               No hay coincidencias.
             </div>
-
           </div>
 
         </div>
 
       </div>
-
     </div>
 
   </div>
@@ -1012,7 +530,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-
+import { useRoute, useRouter } from 'vue-router'
 import {
   getProductos,
   getAuxiliares,
@@ -1020,107 +538,48 @@ import {
   subirImagenAPI,
   eliminarProductoAPI
 } from '@/services/productoService'
+import { avisoConAccion } from '@/utils/avisos'
 
-
-/* =========================================================
-   USUARIO ACTUAL
-   ========================================================= */
+const route = useRoute()
+const router = useRouter()
 
 const usuarioActual = computed(() => {
   try {
     const usuario = localStorage.getItem('user')
-
-    if (!usuario) {
-      return null
-    }
-
-    return JSON.parse(usuario)
-
+    return usuario ? JSON.parse(usuario) : null
   } catch (error) {
-
-    console.error(
-      'Error leyendo usuario:',
-      error
-    )
-
+    console.error('Error leyendo usuario:', error)
     return null
   }
 })
 
-
-/* =========================================================
-   ROL
-   ========================================================= */
-
-const rolActual = computed(() => {
-  return usuarioActual.value?.rol?.nombre || ''
-})
-
-
-/* =========================================================
-   VERIFICAR SI ES CAJERO
-   ========================================================= */
-
-const esCajero = computed(() => {
-  return rolActual.value === 'Cajero'
-})
-
-
-/* =========================================================
-   DATOS
-   ========================================================= */
+const esCajero = computed(() => (usuarioActual.value?.rol?.nombre || '') === 'Cajero')
 
 const productos = ref([])
 const categorias = ref([])
 const subcategorias = ref([])
 const unidadesMedida = ref([])
 
-
-/* =========================================================
-   MODAL
-   ========================================================= */
-
 const mostrarModal = ref(false)
 const esEditando = ref(false)
 const productoIdSeleccionado = ref(null)
 const guardando = ref(false)
 
-
-/* =========================================================
-   IMAGEN
-   ========================================================= */
-
 const fileInput = ref(null)
 const imagenSeleccionada = ref(null)
 const imagenPreview = ref(null)
-
-
-/* =========================================================
-   BUSCADOR
-   ========================================================= */
 
 const mostrarBuscador = ref(false)
 const tipoBuscador = ref('')
 const filtroBuscadorInterno = ref('')
 const categoriaBuscadorAbierta = ref(null)
-
 const nombreSubcategoriaSeleccionada = ref('')
 const nombreUnidadMedidaSeleccionada = ref('')
-
-
-/* =========================================================
-   FILTROS
-   ========================================================= */
 
 const buscar = ref('')
 const filtroCategoria = ref('')
 const filtroEstado = ref('')
 const filtroOrdenar = ref('recientes')
-
-
-/* =========================================================
-   MODELO
-   ========================================================= */
 
 const modeloProductoLimpio = () => ({
   codigo_barras: '',
@@ -1133,951 +592,379 @@ const modeloProductoLimpio = () => ({
   precio_venta: 0
 })
 
+const nuevoProducto = ref(modeloProductoLimpio())
 
-const nuevoProducto = ref(
-  modeloProductoLimpio()
-)
-
-
-/* =========================================================
-   PRODUCTOS FILTRADOS
-   ========================================================= */
+const bajoStock = (p) => Number(p.stock) <= (Number(p.stock_minimo) || 5)
 
 const productosFiltrados = computed(() => {
-
   let resultado = [...productos.value]
 
-  /* BUSQUEDA */
-
   if (buscar.value.trim()) {
-
-    const query =
-      buscar.value
-        .toLowerCase()
-        .trim()
-
+    const query = buscar.value.toLowerCase().trim()
     resultado = resultado.filter(p =>
-      (p.nombre || '')
-        .toLowerCase()
-        .includes(query) ||
-
-      (p.codigo_barras || '')
-        .toLowerCase()
-        .includes(query)
+      (p.nombre || '').toLowerCase().includes(query) ||
+      (p.codigo_barras || '').toLowerCase().includes(query)
     )
   }
-
-
-  /* CATEGORIA */
 
   if (filtroCategoria.value) {
-
     resultado = resultado.filter(p => {
-
-      const idCat =
-        p.subcategoria?.categoria?.id ||
-        p.subcategoria?.categoria_id ||
-        p.categoria_id
-
-      return String(idCat) ===
-        String(filtroCategoria.value)
+      const idCat = p.subcategoria?.categoria?.id || p.subcategoria?.categoria_id || p.categoria_id
+      return String(idCat) === String(filtroCategoria.value)
     })
   }
 
-
-  /* ESTADO */
-
-  if (filtroEstado.value) {
-
-    resultado = resultado.filter(p => {
-
-      const limiteMinimo =
-        Number(p.stock_minimo) || 5
-
-      const esBajoStock =
-        Number(p.stock) <= limiteMinimo
-
-      if (
-        filtroEstado.value ===
-        'bajo_stock'
-      ) {
-        return esBajoStock
-      }
-
-      if (
-        filtroEstado.value ===
-        'disponible'
-      ) {
-        return !esBajoStock
-      }
-
-      return true
-    })
+  if (filtroEstado.value === 'bajo_stock') {
+    resultado = resultado.filter(p => bajoStock(p))
+  } else if (filtroEstado.value === 'disponible') {
+    resultado = resultado.filter(p => !bajoStock(p))
   }
 
-
-  /* ORDEN */
-
-  if (
-    filtroOrdenar.value ===
-    'nombre'
-  ) {
-
-    resultado.sort((a, b) =>
-      (a.nombre || '')
-        .localeCompare(
-          b.nombre || ''
-        )
-    )
-
-  } else if (
-    filtroOrdenar.value ===
-    'precio'
-  ) {
-
-    resultado.sort((a, b) =>
-      Number(a.precio_venta) -
-      Number(b.precio_venta)
-    )
-
-  } else if (
-    filtroOrdenar.value ===
-    'recientes'
-  ) {
-
-    resultado.sort((a, b) =>
-      Number(b.id) -
-      Number(a.id)
-    )
+  if (filtroOrdenar.value === 'nombre') {
+    resultado.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''))
+  } else if (filtroOrdenar.value === 'precio') {
+    resultado.sort((a, b) => Number(a.precio_venta) - Number(b.precio_venta))
+  } else if (filtroOrdenar.value === 'recientes') {
+    resultado.sort((a, b) => Number(b.id) - Number(a.id))
   }
 
   return resultado
 })
 
-
-/* =========================================================
-   TOTAL
-   ========================================================= */
-
-const total = computed(() => {
-  return productosFiltrados.value.length
-})
-
-
-/* =========================================================
-   PAGINACIÓN
-   ========================================================= */
+const total = computed(() => productosFiltrados.value.length)
 
 const paginaActual = ref(1)
 const porPagina = ref(10)
 const opcionesPorPagina = [5, 10, 20, 50]
 
 const totalPaginas = computed(() =>
-  Math.max(
-    1,
-    Math.ceil(
-      productosFiltrados.value.length /
-      porPagina.value
-    )
-  )
+  Math.max(1, Math.ceil(productosFiltrados.value.length / porPagina.value))
 )
 
 const productosPaginados = computed(() => {
-
-  const inicio =
-    (paginaActual.value - 1) *
-    porPagina.value
-
-  return productosFiltrados.value.slice(
-    inicio,
-    inicio + porPagina.value
-  )
+  const inicio = (paginaActual.value - 1) * porPagina.value
+  return productosFiltrados.value.slice(inicio, inicio + porPagina.value)
 })
 
 const desde = computed(() =>
-  productosFiltrados.value.length === 0
-    ? 0
-    : (paginaActual.value - 1) *
-      porPagina.value + 1
+  productosFiltrados.value.length === 0 ? 0 : (paginaActual.value - 1) * porPagina.value + 1
 )
 
 const hasta = computed(() =>
-  Math.min(
-    paginaActual.value * porPagina.value,
-    productosFiltrados.value.length
-  )
+  Math.min(paginaActual.value * porPagina.value, productosFiltrados.value.length)
 )
 
 const paginasVisibles = computed(() => {
-
   const totalP = totalPaginas.value
   const actual = paginaActual.value
 
   if (totalP <= 7) {
-    return Array.from(
-      { length: totalP },
-      (_, i) => i + 1
-    )
+    return Array.from({ length: totalP }, (_, i) => i + 1)
   }
 
   const paginas = [1]
-
   const inicio = Math.max(2, actual - 1)
   const fin = Math.min(totalP - 1, actual + 1)
 
-  if (inicio > 2) {
-    paginas.push('...')
-  }
-
-  for (let i = inicio; i <= fin; i++) {
-    paginas.push(i)
-  }
-
-  if (fin < totalP - 1) {
-    paginas.push('...')
-  }
+  if (inicio > 2) paginas.push('...')
+  for (let i = inicio; i <= fin; i++) paginas.push(i)
+  if (fin < totalP - 1) paginas.push('...')
 
   paginas.push(totalP)
-
   return paginas
 })
 
 const irAPagina = (n) => {
-
   if (n >= 1 && n <= totalPaginas.value) {
     paginaActual.value = n
   }
 }
 
-/* Al cambiar filtros o tamaño de página, volver a la página 1 */
-
-watch(
-  [
-    buscar,
-    filtroCategoria,
-    filtroEstado,
-    filtroOrdenar,
-    porPagina
-  ],
-  () => {
-    paginaActual.value = 1
-  }
-)
-
-/* Si eliminas el último producto de la última página, retroceder */
+watch([buscar, filtroCategoria, filtroEstado, filtroOrdenar, porPagina], () => {
+  paginaActual.value = 1
+})
 
 watch(totalPaginas, (n) => {
-
   if (paginaActual.value > n) {
     paginaActual.value = n
   }
 })
 
-
-/* =========================================================
-   RESUMEN
-   ========================================================= */
-
 const resumen = computed(() => {
-
-  const listaCompleta =
-    productos.value
-
+  const lista = productos.value
   return {
-
-    total:
-      listaCompleta.length,
-
-    disponibles:
-      listaCompleta.filter(
-        p =>
-          Number(p.stock) >
-          (Number(p.stock_minimo) || 5)
-      ).length,
-
-    bajo_stock:
-      listaCompleta.filter(
-        p =>
-          Number(p.stock) <=
-          (Number(p.stock_minimo) || 5)
-      ).length
+    total: lista.length,
+    disponibles: lista.filter(p => !bajoStock(p)).length,
+    bajo_stock: lista.filter(p => bajoStock(p)).length
   }
 })
 
-
-/* =========================================================
-   URL IMAGEN
-   ========================================================= */
-
 const obtenerUrlImagen = (ruta) => {
-
-  if (!ruta) {
-    return ''
-  }
-
-  const rutaLimpia =
-    ruta.startsWith('/')
-      ? ruta.substring(1)
-      : ruta
-
+  if (!ruta) return ''
+  const rutaLimpia = ruta.startsWith('/') ? ruta.substring(1) : ruta
   return `http://127.0.0.1:8000/storage/${rutaLimpia}`
 }
 
-
-/* =========================================================
-   CAMBIO IMAGEN
-   ========================================================= */
-
 const manejarCambioImagen = (e) => {
-
-  const file =
-    e.target.files[0]
-
+  const file = e.target.files[0]
   if (file) {
-
-    imagenSeleccionada.value =
-      file
-
-    imagenPreview.value =
-      URL.createObjectURL(file)
+    imagenSeleccionada.value = file
+    imagenPreview.value = URL.createObjectURL(file)
   }
 }
 
-
-/* =========================================================
-   REMOVER IMAGEN
-   ========================================================= */
-
 const removerImagen = () => {
-
-  imagenSeleccionada.value =
-    null
-
-  imagenPreview.value =
-    null
-
+  imagenSeleccionada.value = null
+  imagenPreview.value = null
   if (fileInput.value) {
     fileInput.value.value = ''
   }
 }
 
+const listaFiltradaBuscador = computed(() => {
+  const query = filtroBuscadorInterno.value.toLowerCase().trim()
 
-/* =========================================================
-   BUSCADOR UNIDADES
-   ========================================================= */
-
-const listaFiltradaBuscador =
-  computed(() => {
-
-    const query =
-      filtroBuscadorInterno.value
-        .toLowerCase()
-        .trim()
-
-    if (
-      tipoBuscador.value ===
-      'unidad_medida'
-    ) {
-
-      return unidadesMedida.value.filter(
-        um =>
-          (um.nombre || '')
-            .toLowerCase()
-            .includes(query)
-      )
-    }
-
-    return []
-  })
-
-
-/* =========================================================
-   BUSCADOR CATEGORIAS
-   ========================================================= */
-
-const categoriasFiltradasBuscador =
-  computed(() => {
-
-    const query =
-      filtroBuscadorInterno.value
-        .toLowerCase()
-        .trim()
-
-    return categorias.value
-
-      .map(cat => {
-
-        const subcategoriasCategoria =
-          Array.isArray(
-            cat.subcategorias
-          )
-            ? cat.subcategorias
-            : subcategorias.value.filter(
-                sub =>
-                  String(
-                    sub.categoria_id
-                  ) === String(cat.id)
-              )
-
-        const categoriaCoincide =
-          (cat.nombre || '')
-            .toLowerCase()
-            .includes(query)
-
-        const subcategoriasFiltradas =
-          query &&
-          !categoriaCoincide
-
-            ? subcategoriasCategoria.filter(
-                sub =>
-                  (sub.nombre || '')
-                    .toLowerCase()
-                    .includes(query)
-              )
-
-            : subcategoriasCategoria
-
-        return {
-          ...cat,
-          subcategoriasFiltradas
-        }
-      })
-
-      .filter(cat => {
-
-        if (!query) {
-          return true
-        }
-
-        return (
-          (cat.nombre || '')
-            .toLowerCase()
-            .includes(query) ||
-
-          cat.subcategoriasFiltradas
-            .length > 0
-        )
-      })
-  })
-
-
-/* =========================================================
-   ABRIR BUSCADOR
-   ========================================================= */
-
-const abrirBuscador = (tipo) => {
-
-  /* Seguridad adicional */
-
-  if (esCajero.value) {
-    return
+  if (tipoBuscador.value === 'unidad_medida') {
+    return unidadesMedida.value.filter(um => (um.nombre || '').toLowerCase().includes(query))
   }
 
-  tipoBuscador.value =
-    tipo
-
-  filtroBuscadorInterno.value =
-    ''
-
-  categoriaBuscadorAbierta.value =
-    null
-
-  mostrarBuscador.value =
-    true
-}
-
-
-/* =========================================================
-   CERRAR BUSCADOR
-   ========================================================= */
-
-const cerrarBuscador = () => {
-
-  mostrarBuscador.value =
-    false
-
-  tipoBuscador.value =
-    ''
-
-  categoriaBuscadorAbierta.value =
-    null
-}
-
-
-/* =========================================================
-   ALTERNAR CATEGORIA
-   ========================================================= */
-
-const alternarCategoriaBuscador =
-  (categoriaId) => {
-
-    categoriaBuscadorAbierta.value =
-      categoriaBuscadorAbierta.value ===
-      categoriaId
-        ? null
-        : categoriaId
-  }
-
-
-/* =========================================================
-   SELECCIONAR CATEGORIA
-   ========================================================= */
-
-const seleccionarCategoriaBuscador =
-  (categoria) => {
-
-    if (esCajero.value) {
-      return
-    }
-
-    nuevoProducto.value.categoria_id =
-      categoria.id
-
-    nuevoProducto.value.sub_categoria_id =
-      ''
-
-    nombreSubcategoriaSeleccionada.value =
-      categoria.nombre
-
-    cerrarBuscador()
-  }
-
-
-/* =========================================================
-   SELECCIONAR ITEM
-   ========================================================= */
-
-const seleccionarItemBuscador =
-  (item) => {
-
-    if (esCajero.value) {
-      return
-    }
-
-    if (
-      tipoBuscador.value ===
-      'subcategoria'
-    ) {
-
-      nuevoProducto.value.categoria_id =
-        item.categoria_id ||
-        item.categoria?.id ||
-        ''
-
-      nuevoProducto.value.sub_categoria_id =
-        item.id
-
-      nombreSubcategoriaSeleccionada.value =
-        item.nombre
-
-    } else if (
-      tipoBuscador.value ===
-      'unidad_medida'
-    ) {
-
-      nuevoProducto.value.unidad_medida_id =
-        item.id
-
-      nombreUnidadMedidaSeleccionada.value =
-        item.nombre
-    }
-
-    cerrarBuscador()
-  }
-
-
-/* =========================================================
-   CARGAR AUXILIARES
-   ========================================================= */
-
-const cargarAuxiliaresFormulario =
-  async () => {
-
-    try {
-
-      const [
-        resCat,
-        resSub,
-        resUnidades
-      ] =
-        await getAuxiliares()
-
-      categorias.value =
-        resCat.data.data ||
-        resCat.data
-
-      subcategorias.value =
-        resSub.data.data ||
-        resSub.data
-
-      unidadesMedida.value =
-        resUnidades.data.data ||
-        resUnidades.data
-
-    } catch (err) {
-
-      console.error(
-        'Error cargando catálogos:',
-        err
-      )
-    }
-  }
-
-
-/* =========================================================
-   CARGAR PRODUCTOS
-   ========================================================= */
-
-const cargarProductos =
-  async () => {
-
-    try {
-
-      const res =
-        await getProductos()
-
-      productos.value =
-        res.data.data ||
-        res.data
-
-    } catch (error) {
-
-      console.error(
-        'Error cargando productos:',
-        error
-      )
-    }
-  }
-
-
-/* =========================================================
-   GUARDAR PRODUCTO
-   ========================================================= */
-
-const guardarProducto =
-  async () => {
-
-    /* BLOQUEO PARA CAJERO */
-
-    if (esCajero.value) {
-
-      alert(
-        'No tienes permiso para agregar productos.'
-      )
-
-      return
-    }
-
-    if (guardando.value) {
-      return
-    }
-
-    if (
-      (!nuevoProducto.value.sub_categoria_id &&
-        !nuevoProducto.value.categoria_id) ||
-      !nuevoProducto.value.unidad_medida_id
-    ) {
-
-      alert(
-        'Por favor selecciona Categoría y Unidad de Medida válidos.'
-      )
-
-      return
-    }
-
-    guardando.value =
-      true
-
-    try {
-
-      const res =
-        await guardarProductoAPI(
-          nuevoProducto.value,
-          esEditando.value
-            ? productoIdSeleccionado.value
-            : null
-        )
-
-
-      /* IMAGEN */
-
-      if (
-        imagenSeleccionada.value
-      ) {
-
-        const productoId =
-          esEditando.value
-            ? productoIdSeleccionado.value
-            : (
-                res.data.data?.id ||
-                res.data.id
-              )
-
-        if (productoId) {
-
-          const formDataImagen =
-            new FormData()
-
-          formDataImagen.append(
-            'imagen',
-            imagenSeleccionada.value
-          )
-
-          formDataImagen.append(
-            'producto_id',
-            productoId
-          )
-
-          await subirImagenAPI(
-            formDataImagen
-          )
-        }
-      }
-
-
-      cerrarModal()
-
-      await cargarProductos()
-
-    } catch (error) {
-
-      console.error(
-        'Error al guardar:',
-        error
-      )
-
-      alert(
-        'Ocurrió un error al procesar la solicitud.'
-      )
-
-    } finally {
-
-      guardando.value =
-        false
-    }
-  }
-
-
-/* =========================================================
-   ELIMINAR PRODUCTO
-   ========================================================= */
-
-const eliminarProducto =
-  async (id) => {
-
-    /* BLOQUEO PARA CAJERO */
-
-    if (esCajero.value) {
-
-      alert(
-        'No tienes permiso para eliminar productos.'
-      )
-
-      return
-    }
-
-    if (
-      !confirm(
-        '¿Estás seguro de eliminar este producto?'
-      )
-    ) {
-      return
-    }
-
-    try {
-
-      await eliminarProductoAPI(id)
-
-      await cargarProductos()
-
-    } catch (error) {
-
-      console.error(
-        'Error al eliminar:',
-        error
-      )
-    }
-  }
-
-
-/* =========================================================
-   ABRIR MODAL
-   ========================================================= */
-
-const abrirModalForm = () => {
-
-  /* BLOQUEO PARA CAJERO */
-
-  if (esCajero.value) {
-    return
-  }
-
-  esEditando.value =
-    false
-
-  nombreSubcategoriaSeleccionada.value =
-    ''
-
-  nombreUnidadMedidaSeleccionada.value =
-    ''
-
-  removerImagen()
-
-  mostrarModal.value =
-    true
-}
-
-
-/* =========================================================
-   CERRAR MODAL
-   ========================================================= */
-
-const cerrarModal = () => {
-
-  mostrarModal.value =
-    false
-
-  esEditando.value =
-    false
-
-  productoIdSeleccionado.value =
-    null
-
-  nombreSubcategoriaSeleccionada.value =
-    ''
-
-  nombreUnidadMedidaSeleccionada.value =
-    ''
-
-  removerImagen()
-
-  nuevoProducto.value =
-    modeloProductoLimpio()
-}
-
-
-/* =========================================================
-   EDITAR PRODUCTO
-   ========================================================= */
-
-const editarProducto =
-  (producto) => {
-
-    /* BLOQUEO PARA CAJERO */
-
-    if (esCajero.value) {
-      return
-    }
-
-    esEditando.value =
-      true
-
-    productoIdSeleccionado.value =
-      producto.id
-
-
-    nombreSubcategoriaSeleccionada.value =
-      producto.subcategoria?.nombre ||
-      (
-        producto.sub_categoria_id
-          ? 'ID: ' +
-            producto.sub_categoria_id
-          : ''
-      )
-
-
-    nombreUnidadMedidaSeleccionada.value =
-      producto.unidad_medida?.nombre ||
-      (
-        producto.unidad_medida_id
-          ? 'ID: ' +
-            producto.unidad_medida_id
-          : ''
-      )
-
-
-    nuevoProducto.value = {
-
-      codigo_barras:
-        producto.codigo_barras ||
-        '',
-
-      nombre:
-        producto.nombre ||
-        '',
-
-      categoria_id:
-        producto.subcategoria?.categoria?.id ||
-        producto.categoria_id ||
-        '',
-
-      sub_categoria_id:
-        producto.sub_categoria_id ||
-        '',
-
-      unidad_medida_id:
-        producto.unidad_medida_id ||
-        '',
-
-      stock:
-        producto.stock ||
-        0,
-
-      stock_minimo:
-        producto.stock_minimo ||
-        5,
-
-      precio_venta:
-        producto.precio_venta ||
-        0
-    }
-
-
-    if (
-      producto.imagenes &&
-      producto.imagenes.length
-    ) {
-
-      imagenPreview.value =
-        obtenerUrlImagen(
-          producto.imagenes[0].ruta
-        )
-
-    } else {
-
-      imagenPreview.value =
-        null
-    }
-
-
-    imagenSeleccionada.value =
-      null
-
-    mostrarModal.value =
-      true
-  }
-
-
-/* =========================================================
-   INICIO
-   ========================================================= */
-
-onMounted(() => {
-
-  cargarProductos()
-
-  cargarAuxiliaresFormulario()
-
+  return []
 })
 
+const categoriasFiltradasBuscador = computed(() => {
+  const query = filtroBuscadorInterno.value.toLowerCase().trim()
+
+  return categorias.value
+    .map(cat => {
+      const subcategoriasCategoria = Array.isArray(cat.subcategorias)
+        ? cat.subcategorias
+        : subcategorias.value.filter(sub => String(sub.categoria_id) === String(cat.id))
+
+      const categoriaCoincide = (cat.nombre || '').toLowerCase().includes(query)
+
+      const subcategoriasFiltradas = query && !categoriaCoincide
+        ? subcategoriasCategoria.filter(sub => (sub.nombre || '').toLowerCase().includes(query))
+        : subcategoriasCategoria
+
+      return { ...cat, subcategoriasFiltradas }
+    })
+    .filter(cat => {
+      if (!query) return true
+      return (cat.nombre || '').toLowerCase().includes(query) || cat.subcategoriasFiltradas.length > 0
+    })
+})
+
+const abrirBuscador = (tipo) => {
+  if (esCajero.value) return
+  tipoBuscador.value = tipo
+  filtroBuscadorInterno.value = ''
+  categoriaBuscadorAbierta.value = null
+  mostrarBuscador.value = true
+}
+
+const cerrarBuscador = () => {
+  mostrarBuscador.value = false
+  tipoBuscador.value = ''
+  categoriaBuscadorAbierta.value = null
+}
+
+const alternarCategoriaBuscador = (categoriaId) => {
+  categoriaBuscadorAbierta.value = categoriaBuscadorAbierta.value === categoriaId ? null : categoriaId
+}
+
+const seleccionarCategoriaBuscador = (categoria) => {
+  if (esCajero.value) return
+  nuevoProducto.value.categoria_id = categoria.id
+  nuevoProducto.value.sub_categoria_id = ''
+  nombreSubcategoriaSeleccionada.value = categoria.nombre
+  cerrarBuscador()
+}
+
+const seleccionarItemBuscador = (item) => {
+  if (esCajero.value) return
+
+  if (tipoBuscador.value === 'subcategoria') {
+    nuevoProducto.value.categoria_id = item.categoria_id || item.categoria?.id || ''
+    nuevoProducto.value.sub_categoria_id = item.id
+    nombreSubcategoriaSeleccionada.value = item.nombre
+  } else if (tipoBuscador.value === 'unidad_medida') {
+    nuevoProducto.value.unidad_medida_id = item.id
+    nombreUnidadMedidaSeleccionada.value = item.nombre
+  }
+
+  cerrarBuscador()
+}
+
+const cargarAuxiliaresFormulario = async () => {
+  try {
+    const [resCat, resSub, resUnidades] = await getAuxiliares()
+    categorias.value = resCat.data.data || resCat.data
+    subcategorias.value = resSub.data.data || resSub.data
+    unidadesMedida.value = resUnidades.data.data || resUnidades.data
+  } catch (err) {
+    console.error('Error cargando catálogos:', err)
+  }
+}
+
+const cargarProductos = async () => {
+  try {
+    const res = await getProductos()
+    productos.value = res.data.data || res.data
+  } catch (error) {
+    console.error('Error cargando productos:', error)
+  }
+}
+
+const guardarProducto = async () => {
+  if (esCajero.value) {
+    alert('No tienes permiso para agregar productos.')
+    return
+  }
+
+  if (guardando.value) return
+
+  if (
+    (!nuevoProducto.value.sub_categoria_id && !nuevoProducto.value.categoria_id) ||
+    !nuevoProducto.value.unidad_medida_id
+  ) {
+    alert('Por favor selecciona Categoría y Unidad de Medida válidos.')
+    return
+  }
+
+  guardando.value = true
+
+  try {
+    const res = await guardarProductoAPI(
+      nuevoProducto.value,
+      esEditando.value ? productoIdSeleccionado.value : null
+    )
+
+    if (imagenSeleccionada.value) {
+      const productoId = esEditando.value
+        ? productoIdSeleccionado.value
+        : (res.data.data?.id || res.data.id)
+
+      if (productoId) {
+        const formDataImagen = new FormData()
+        formDataImagen.append('imagen', imagenSeleccionada.value)
+        formDataImagen.append('producto_id', productoId)
+        await subirImagenAPI(formDataImagen)
+      }
+    }
+
+    cerrarModal()
+    await cargarProductos()
+  } catch (error) {
+    console.error('Error al guardar:', error)
+    alert('Ocurrió un error al procesar la solicitud.')
+  } finally {
+    guardando.value = false
+  }
+}
+
+const eliminarProducto = async (id) => {
+  if (esCajero.value) {
+    alert('No tienes permiso para eliminar productos.')
+    return
+  }
+
+  if (!confirm('¿Estás seguro de eliminar este producto?')) return
+
+  try {
+    await eliminarProductoAPI(id)
+    await cargarProductos()
+  } catch (error) {
+    console.error('Error al eliminar:', error)
+  }
+}
+
+let cargaAuxiliares = null
+
+const irACategorias = () => {
+  router.push({ path: '/categorias', query: { nuevo: 1 } })
+}
+
+const abrirModalForm = async () => {
+  if (esCajero.value) return
+
+  if (cargaAuxiliares) await cargaAuxiliares
+
+  if (!categorias.value?.length) {
+    const ir = await avisoConAccion({
+      icon: 'warning',
+      title: 'Aún no hay categorías',
+      text: 'Para registrar un producto primero necesitas crear una categoría.',
+      boton: 'Crear categoría'
+    })
+    if (ir) irACategorias()
+    return
+  }
+
+  esEditando.value = false
+  nombreSubcategoriaSeleccionada.value = ''
+  nombreUnidadMedidaSeleccionada.value = ''
+  removerImagen()
+  mostrarModal.value = true
+}
+
+const cerrarModal = () => {
+  mostrarModal.value = false
+  esEditando.value = false
+  productoIdSeleccionado.value = null
+  nombreSubcategoriaSeleccionada.value = ''
+  nombreUnidadMedidaSeleccionada.value = ''
+  removerImagen()
+  nuevoProducto.value = modeloProductoLimpio()
+}
+
+const editarProducto = (producto) => {
+  if (esCajero.value) return
+
+  esEditando.value = true
+  productoIdSeleccionado.value = producto.id
+
+  nombreSubcategoriaSeleccionada.value =
+    producto.subcategoria?.nombre ||
+    (producto.sub_categoria_id ? 'ID: ' + producto.sub_categoria_id : '')
+
+  nombreUnidadMedidaSeleccionada.value =
+    producto.unidad_medida?.nombre ||
+    (producto.unidad_medida_id ? 'ID: ' + producto.unidad_medida_id : '')
+
+  nuevoProducto.value = {
+    codigo_barras: producto.codigo_barras || '',
+    nombre: producto.nombre || '',
+    categoria_id: producto.subcategoria?.categoria?.id || producto.categoria_id || '',
+    sub_categoria_id: producto.sub_categoria_id || '',
+    unidad_medida_id: producto.unidad_medida_id || '',
+    stock: producto.stock || 0,
+    stock_minimo: producto.stock_minimo || 5,
+    precio_venta: producto.precio_venta || 0
+  }
+
+  imagenPreview.value = producto.imagenes && producto.imagenes.length
+    ? obtenerUrlImagen(producto.imagenes[0].ruta)
+    : null
+
+  imagenSeleccionada.value = null
+  mostrarModal.value = true
+}
+
+onMounted(async () => {
+  cargarProductos()
+  cargaAuxiliares = cargarAuxiliaresFormulario()
+  await cargaAuxiliares
+
+  if (route.query.nuevo) {
+    router.replace({ query: {} })
+    abrirModalForm()
+  }
+})
 </script>
 
-
 <style scoped>
-
 .main-interface-container {
   font-family: 'Inter', sans-serif;
   width: 100%;
 }
-
 </style>
