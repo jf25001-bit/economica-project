@@ -524,7 +524,7 @@ const confirmarYRegistrarVenta = async () => {
       text: mensajeError,
       confirmButtonColor: '#0f172a'
     })
-  } font-medium {
+  } finally {
     guardandoVenta.value = false
     enfocarEscaner()
   }
