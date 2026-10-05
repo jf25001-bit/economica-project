@@ -63,7 +63,45 @@
                     {{ item.lotes.length }}
                   </span>
                 </td>
-                <td class="px-4 py-3 sm:px-6 sm:py-4 text-center whitespace-nowrap text-sm">{{ item.minimo }}</td>
+                <td class="px-4 py-3 sm:px-6 sm:py-4 text-center whitespace-nowrap text-sm">
+  <div v-if="editandoId === item.id" class="flex items-center justify-center gap-1">
+    <input
+      v-model.number="minimoTemp"
+      type="number"
+      min="0"
+      class="w-16 rounded-lg border border-gray-300 px-2 py-1 text-center text-sm focus:outline-none focus:ring-2 focus:ring-[#5B80B0]"
+      @keyup.enter="guardarMinimo(item)"
+      @keyup.esc="cancelarEdicion"
+    />
+    <button
+      type="button"
+      class="text-green-600 hover:text-green-700 cursor-pointer"
+      :disabled="guardandoMinimo"
+      @click="guardarMinimo(item)"
+    >
+      <i class="bi bi-check-lg"></i>
+    </button>
+    <button
+      type="button"
+      class="text-gray-400 hover:text-gray-600 cursor-pointer"
+      @click="cancelarEdicion"
+    >
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <div v-else class="flex items-center justify-center gap-2">
+    <span>{{ item.minimo }}</span>
+    <button
+      type="button"
+      class="text-gray-400 hover:text-[#5B80B0] cursor-pointer"
+      title="Editar stock mínimo"
+      @click="iniciarEdicion(item)"
+    >
+      <i class="bi bi-pencil-square"></i>
+    </button>
+  </div>
+</td>
 
                 <td class="px-4 py-3 sm:px-6 sm:py-4 text-center whitespace-nowrap">
                   <span
@@ -237,6 +275,44 @@ const busqueda = ref('')
 const cargando = ref(false)
 const error = ref('')
 const productoSeleccionado = ref(null)
+const editandoId = ref(null)
+const minimoTemp = ref(0)
+const guardandoMinimo = ref(false)
+
+const iniciarEdicion = (item) => {
+  editandoId.value = item.id
+  minimoTemp.value = item.minimo
+}
+
+const cancelarEdicion = () => {
+  editandoId.value = null
+}
+
+const guardarMinimo = async (item) => {
+  const valor = Number(minimoTemp.value)
+
+  if (!Number.isInteger(valor) || valor < 0) {
+    error.value = 'El stock mínimo debe ser un número entero mayor o igual a 0.'
+    return
+  }
+
+  guardandoMinimo.value = true
+  error.value = ''
+
+  try {
+    await api.patch(`/productos/${item.id}/stock-minimo`, { stock_minimo: valor })
+
+    const producto = productos.value.find(p => p.id === item.id)
+    if (producto) producto.stock_minimo = valor
+
+    editandoId.value = null
+  } catch (err) {
+    console.error('Error actualizando stock mínimo:', err)
+    error.value = err.response?.data?.message || 'No se pudo actualizar el stock mínimo.'
+  } finally {
+    guardandoMinimo.value = false
+  }
+}
 
 const lotesPorProducto = computed(() => {
   return lotes.value.reduce((grupos, lote) => {

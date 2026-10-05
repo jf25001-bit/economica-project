@@ -7,7 +7,7 @@
         <div class="search-wrapper relative flex items-center w-full sm:max-w-md">
           <i class="bi bi-search search-icon absolute left-4 text-gray-400"></i>
           <input
-            v-model="buscar"
+            v-model="buscar"  
             type="text"
             placeholder="Buscar producto por nombre o SKU..."
             class="search-input-field w-full pl-12 pr-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm bg-gray-50/50 box-border"
@@ -71,8 +71,8 @@
 
         <div class="table-card-wrapper border border-gray-100 rounded-2xl overflow-hidden w-full">
           <div class="overflow-x-auto w-full">
-            <table class="w-full min-w-[700px] text-left border-collapse table-fixed">
-
+            <table class="w-full min-w-[980px] text-left border-collapse">
+  
               <thead class="bg-[#f8fafc] border-b border-gray-100">
                 <tr class="text-[#64748b] text-[11px] font-bold uppercase tracking-wider">
                   <th class="px-4 py-3.5 whitespace-nowrap w-28">SKU / CÓDIGO</th>
@@ -878,9 +878,45 @@ const eliminarProducto = async (id) => {
   }
 }
 
+const CLAVE_BORRADOR = 'borrador_producto'
+
+const guardarBorrador = () => {
+  try {
+    sessionStorage.setItem(CLAVE_BORRADOR, JSON.stringify({
+      producto: nuevoProducto.value,
+      nombreSubcategoria: nombreSubcategoriaSeleccionada.value,
+      nombreUnidadMedida: nombreUnidadMedidaSeleccionada.value
+    }))
+  } catch (error) {
+    console.error('No se pudo guardar el borrador:', error)
+  }
+}
+
+const restaurarBorrador = () => {
+  const raw = sessionStorage.getItem(CLAVE_BORRADOR)
+  if (!raw) return false
+
+  try {
+    const borrador = JSON.parse(raw)
+    nuevoProducto.value = { ...modeloProductoLimpio(), ...borrador.producto }
+    nombreSubcategoriaSeleccionada.value = borrador.nombreSubcategoria || ''
+    nombreUnidadMedidaSeleccionada.value = borrador.nombreUnidadMedida || ''
+    esEditando.value = false
+    mostrarModal.value = true
+    return true
+  } catch (error) {
+    console.error('No se pudo restaurar el borrador:', error)
+    return false
+  } finally {
+    sessionStorage.removeItem(CLAVE_BORRADOR)
+  }
+}
 let cargaAuxiliares = null
 
 const irACategorias = () => {
+  if (mostrarModal.value && !esEditando.value) {
+    guardarBorrador()
+  }
   router.push({ path: '/categorias', query: { nuevo: 1 } })
 }
 
@@ -908,6 +944,7 @@ const abrirModalForm = async () => {
 }
 
 const cerrarModal = () => {
+  sessionStorage.removeItem(CLAVE_BORRADOR)
   mostrarModal.value = false
   esEditando.value = false
   productoIdSeleccionado.value = null
@@ -955,9 +992,11 @@ onMounted(async () => {
   cargaAuxiliares = cargarAuxiliaresFormulario()
   await cargaAuxiliares
 
+  const restaurado = restaurarBorrador()
+
   if (route.query.nuevo) {
     router.replace({ query: {} })
-    abrirModalForm()
+    if (!restaurado) abrirModalForm()
   }
 })
 </script>

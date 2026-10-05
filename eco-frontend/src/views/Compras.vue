@@ -178,7 +178,8 @@
                 <button
                   type="button"
                   @click="abrirSelector(i)"
-                  class="form-force-button h-10 flex items-center justify-between px-3 rounded-lg border border-slate-300 bg-white hover:border-slate-900 text-slate-800 text-left cursor-pointer shadow-sm transition"
+                  :disabled="modoEdicion"
+                  class="form-force-button h-10 flex items-center justify-between px-3 rounded-lg border border-slate-300 bg-white hover:border-slate-900 text-slate-800 text-left cursor-pointer shadow-sm transition disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed disabled:hover:border-slate-300"
                 >
                   <span class="truncate text-sm font-medium">
                     {{ getProductoNombre(d.producto_id) || 'Seleccionar producto...' }}
@@ -208,7 +209,7 @@
                 </p>
                 <button
                   type="button"
-                  @click="irAProveedores"
+                  @click="irAProveedores(i)"
                   class="mt-1.5 text-[11px] font-bold text-slate-500 hover:text-slate-900 underline underline-offset-2 cursor-pointer"
                 >
                   ¿No aparece el proveedor? Agregar o vincular proveedor
@@ -222,7 +223,9 @@
                     v-model.number="d.cantidad"
                     type="number"
                     min="1"
+                    step="1"
                     placeholder="1"
+                    @keydown="soloEnteros"
                     class="form-force-input h-10 px-3 border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 outline-none focus:border-slate-900"
                   />
                 </div>
@@ -232,7 +235,9 @@
                     v-model.number="d.unidades_por_paquete"
                     type="number"
                     min="1"
+                    step="1"
                     placeholder="1"
+                    @keydown="soloEnteros"
                     class="form-force-input h-10 px-3 border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 outline-none focus:border-slate-900"
                   />
                 </div>
@@ -246,7 +251,7 @@
                     v-model.number="d.precio_compra"
                     type="number"
                     step="0.01"
-                    min="0"
+                    min="0.01"
                     placeholder="0.00"
                     class="form-force-input h-10 pl-7 pr-3 border border-slate-300 rounded-lg text-sm font-bold text-slate-900 outline-none focus:border-slate-900"
                   />
@@ -461,15 +466,53 @@ const cargarProveedores = async () => {
   }
 }
 
+// ---------- Borrador de la compra (se conserva al ir a crear proveedor/producto) ----------
+const CLAVE_BORRADOR = 'borrador_compra'
+
+const guardarBorrador = () => {
+  try {
+    sessionStorage.setItem(CLAVE_BORRADOR, JSON.stringify({
+      fecha: fechaCompraNueva.value,
+      detalles: detalles.value
+    }))
+  } catch (error) {
+    console.error('No se pudo guardar el borrador:', error)
+  }
+}
+
+const restaurarBorrador = () => {
+  const raw = sessionStorage.getItem(CLAVE_BORRADOR)
+  if (!raw) return false
+
+  try {
+    const borrador = JSON.parse(raw)
+    if (!Array.isArray(borrador.detalles) || borrador.detalles.length === 0) return false
+
+    modoEdicion.value = false
+    compraIdEdicion.value = null
+    fechaCompraNueva.value = borrador.fecha || new Date().toISOString().split('T')[0]
+    detalles.value = borrador.detalles
+    modal.value = true
+    return true
+  } catch (error) {
+    console.error('No se pudo restaurar el borrador:', error)
+    return false
+  } finally {
+    sessionStorage.removeItem(CLAVE_BORRADOR)
+  }
+}
+
 let cargaInicial = null
 
 onMounted(async () => {
   cargaInicial = Promise.all([cargar(), cargarProductos(), cargarProveedores()])
   await cargaInicial
 
+  const restaurado = restaurarBorrador()
+
   if (route.query.nuevo) {
     router.replace({ query: {} })
-    iniciarNuevaCompra()
+    if (!restaurado) iniciarNuevaCompra()
   }
 })
 
@@ -488,15 +531,18 @@ function obtenerProveedoresDelProducto(productoId) {
 }
 
 const irAProductos = () => {
+  if (modal.value && !modoEdicion.value) guardarBorrador()
   router.push({ path: '/productos', query: { nuevo: 1 } })
 }
 
-const irAProveedores = () => {
-  router.push(
-    proveedores.value.length === 0
-      ? { path: '/proveedores', query: { nuevo: 1 } }
-      : { path: '/proveedores' }
-  )
+const irAProveedores = (i) => {
+  if (modal.value && !modoEdicion.value) guardarBorrador()
+
+  const productoId = detalles.value[i]?.producto_id
+  router.push({
+    path: '/proveedores',
+    query: { nuevo: 1, ...(productoId ? { producto: productoId } : {}) }
+  })
 }
 
 async function iniciarNuevaCompra() {
@@ -597,6 +643,7 @@ function remove(i) {
 }
 
 function cerrar() {
+  sessionStorage.removeItem(CLAVE_BORRADOR)
   modal.value = false
 }
 
@@ -605,6 +652,7 @@ const totalCompraNueva = computed(() => {
 })
 
 function abrirSelector(i) {
+  if (modoEdicion.value) return
   indexProducto.value = i
   modalProductos.value = true
 }
@@ -641,16 +689,31 @@ function getProductoNombre(id) {
   return prod ? prod.nombre : ''
 }
 
+// Bloquea teclas que generan decimales o signos en los campos de cantidad
+const soloEnteros = (e) => {
+  if (['.', ',', 'e', 'E', '+', '-'].includes(e.key)) e.preventDefault()
+}
+
 async function guardar() {
   if (detalles.value.length === 0) {
     return alert('Debes agregar al menos un producto')
   }
 
-  const incompleto = detalles.value.some(
-    d => !d.producto_id || !d.proveedor_id || !d.cantidad || d.precio_compra === null || d.precio_compra < 0
-  )
-  if (incompleto) {
-    return alert('Por favor selecciona un producto, su proveedor, asigna la cantidad y un precio válido.')
+  for (const [i, d] of detalles.value.entries()) {
+    const n = i + 1
+
+    if (!d.producto_id || !d.proveedor_id) {
+      return alert(`Ítem #${n}: selecciona el producto y su proveedor.`)
+    }
+    if (!Number.isInteger(Number(d.cantidad)) || Number(d.cantidad) < 1) {
+      return alert(`Ítem #${n}: la cantidad de paquetes debe ser un número entero de 1 en adelante (no se permiten fracciones como 1.5).`)
+    }
+    if (!Number.isInteger(Number(d.unidades_por_paquete)) || Number(d.unidades_por_paquete) < 1) {
+      return alert(`Ítem #${n}: las unidades por paquete deben ser un número entero de 1 en adelante.`)
+    }
+    if (!(Number(d.precio_compra) > 0)) {
+      return alert(`Ítem #${n}: el precio del paquete debe ser mayor a 0.`)
+    }
   }
 
   cargando.value = true

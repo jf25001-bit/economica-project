@@ -403,8 +403,13 @@ onMounted(async () => {
   await cargaInicial
 
   if (route.query.nuevo) {
+    const productoPreseleccionado = route.query.producto
     router.replace({ query: {} })
     abrirNuevoProveedor()
+
+    if (productoPreseleccionado) {
+      productosSeleccionados.value = [Number(productoPreseleccionado)]
+    }
   }
 })
 
