@@ -121,6 +121,7 @@
       </div>
     </div>
 
+    <!-- MODAL PRINCIPAL COMPRA -->
     <div v-if="modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
       <div class="modal-card-box bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-lg w-full max-h-[92vh] flex flex-col overflow-hidden">
 
@@ -183,7 +184,8 @@
                 <button
                   type="button"
                   @click="abrirSelector(i)"
-                  class="form-force-button w-full h-10 flex items-center justify-between px-3 rounded-lg border border-slate-300 bg-white hover:border-slate-900 text-slate-800 text-left cursor-pointer shadow-sm transition"
+                  :disabled="modoEdicion"
+                  class="form-force-button w-full h-10 flex items-center justify-between px-3 rounded-lg border border-slate-300 bg-white hover:border-slate-900 text-slate-800 text-left cursor-pointer shadow-sm transition disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed disabled:hover:border-slate-300"
                 >
                   <span class="truncate text-sm font-medium">
                     {{ getProductoNombre(d.producto_id) || 'Seleccionar producto...' }}
@@ -213,7 +215,7 @@
                 </p>
                 <button
                   type="button"
-                  @click="irAProveedores"
+                  @click="irAProveedores(i)"
                   class="mt-1.5 text-[11px] font-bold text-slate-500 hover:text-slate-900 underline underline-offset-2 cursor-pointer"
                 >
                   ¿No aparece el proveedor? Agregar o vincular proveedor
@@ -230,7 +232,7 @@
                     step="1"
                     min="1"
                     placeholder="1"
-                    @keydown="bloquearDecimales"
+                    @keydown="manejarEnteros"
                     class="form-force-input w-full h-10 px-3 border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 outline-none focus:border-slate-900"
                   />
                 </div>
@@ -242,7 +244,7 @@
                     step="1"
                     min="1"
                     placeholder="1"
-                    @keydown="bloquearDecimales"
+                    @keydown="manejarEnteros"
                     class="form-force-input w-full h-10 px-3 border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 outline-none focus:border-slate-900"
                   />
                 </div>
@@ -346,6 +348,7 @@
       </div>
     </div>
 
+    <!-- MODAL CATÁLOGO DE PRODUCTOS -->
     <div v-if="modalProductos" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden">
         <div class="px-5 py-3.5 border-b border-slate-200 flex justify-between items-center bg-slate-900 text-white">
@@ -486,15 +489,53 @@ const cargarProveedores = async () => {
   }
 }
 
+// ---------- Borrador de la compra (se conserva al ir a crear proveedor/producto) ----------
+const CLAVE_BORRADOR = 'borrador_compra'
+
+const guardarBorrador = () => {
+  try {
+    sessionStorage.setItem(CLAVE_BORRADOR, JSON.stringify({
+      fecha: fechaCompraNueva.value,
+      detalles: detalles.value
+    }))
+  } catch (error) {
+    console.error('No se pudo guardar el borrador:', error)
+  }
+}
+
+const restaurarBorrador = () => {
+  const raw = sessionStorage.getItem(CLAVE_BORRADOR)
+  if (!raw) return false
+
+  try {
+    const borrador = JSON.parse(raw)
+    if (!Array.isArray(borrador.detalles) || borrador.detalles.length === 0) return false
+
+    modoEdicion.value = false
+    compraIdEdicion.value = null
+    fechaCompraNueva.value = borrador.fecha || new Date().toISOString().split('T')[0]
+    detalles.value = borrador.detalles
+    modal.value = true
+    return true
+  } catch (error) {
+    console.error('No se pudo restaurar el borrador:', error)
+    return false
+  } finally {
+    sessionStorage.removeItem(CLAVE_BORRADOR)
+  }
+}
+
 let cargaInicial = null
 
 onMounted(async () => {
   cargaInicial = Promise.all([cargar(), cargarProductos(), cargarProveedores()])
   await cargaInicial
 
+  const restaurado = restaurarBorrador()
+
   if (route.query.nuevo) {
     router.replace({ query: {} })
-    iniciarNuevaCompra()
+    if (!restaurado) iniciarNuevaCompra()
   }
 })
 
@@ -513,15 +554,18 @@ function obtenerProveedoresDelProducto(productoId) {
 }
 
 const irAProductos = () => {
+  if (modal.value && !modoEdicion.value) guardarBorrador()
   router.push({ path: '/productos', query: { nuevo: 1 } })
 }
 
-const irAProveedores = () => {
-  router.push(
-    proveedores.value.length === 0
-      ? { path: '/proveedores', query: { nuevo: 1 } }
-      : { path: '/proveedores' }
-  )
+const irAProveedores = (i) => {
+  if (modal.value && !modoEdicion.value) guardarBorrador()
+
+  const productoId = detalles.value[i]?.producto_id
+  router.push({
+    path: '/proveedores',
+    query: { nuevo: 1, ...(productoId ? { producto: productoId } : {}) }
+  })
 }
 
 async function iniciarNuevaCompra() {
@@ -554,7 +598,8 @@ async function iniciarNuevaCompra() {
   abrirModalCrear()
 }
 
-const bloquearDecimales = (e) => {
+// Bloquea caracteres no deseados en campos enteros
+const manejarEnteros = (e) => {
   if (['.', ',', 'e', 'E', '+', '-'].includes(e.key)) {
     e.preventDefault()
   }
@@ -615,6 +660,7 @@ function abrirEditar(compra) {
 }
 
 function cerrar() {
+  sessionStorage.removeItem(CLAVE_BORRADOR)
   modal.value = false
 }
 
@@ -637,6 +683,7 @@ function remove(index) {
 }
 
 function abrirSelector(i) {
+  if (modoEdicion.value) return
   indexProducto.value = i
   busqueda.value = ''
   modalProductos.value = true
@@ -675,11 +722,21 @@ async function guardar() {
     return
   }
 
-  const incompleto = detalles.value.some(
-    d => !d.producto_id || !d.proveedor_id || !d.cantidad || d.precio_compra === null || d.precio_compra < 0
-  )
-  if (incompleto) {
-    return alert('Por favor selecciona un producto, su proveedor, asigna la cantidad y un precio válido.')
+  for (const [i, d] of detalles.value.entries()) {
+    const n = i + 1
+
+    if (!d.producto_id || !d.proveedor_id) {
+      return alert(`Ítem #${n}: selecciona el producto y su proveedor.`)
+    }
+    if (!Number.isInteger(Number(d.cantidad)) || Number(d.cantidad) < 1) {
+      return alert(`Ítem #${n}: la cantidad de paquetes debe ser un número entero de 1 en adelante (no se permiten fracciones como 1.5).`)
+    }
+    if (!Number.isInteger(Number(d.unidades_por_paquete)) || Number(d.unidades_por_paquete) < 1) {
+      return alert(`Ítem #${n}: las unidades por paquete deben ser un número entero de 1 en adelante.`)
+    }
+    if (!(Number(d.precio_compra) > 0)) {
+      return alert(`Ítem #${n}: el precio del paquete debe ser mayor a 0.`)
+    }
   }
 
   cargando.value = true

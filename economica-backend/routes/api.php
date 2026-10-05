@@ -62,6 +62,7 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('roles', RolController::class);
     Route::apiResource('categorias', CategoriaController::class);
     Route::apiResource('subcategorias', SubCategoriaController::class);
+    Route::patch('productos/{id}/stock-minimo', [ProductoController::class, 'actualizarStockMinimo']);
     Route::apiResource('productos', ProductoController::class);
     Route::apiResource('proveedores', ProveedorController::class);
     Route::apiResource('detallecompras', DetalleCompraController::class);

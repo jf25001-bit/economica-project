@@ -153,6 +153,35 @@ class ProductoController extends Controller
             ], 200);
         });
     }
+    public function actualizarStockMinimo(Request $request, $id)
+    {
+        $producto = Producto::find($id);
+
+        if (!$producto) {
+            return response()->json([
+                'message' => 'Producto no encontrado'
+            ], 404);
+        }
+
+        if ($this->esCajero()) {
+            return response()->json([
+                'message' => 'Los usuarios con rol Cajero no tienen permiso para modificar el stock mínimo.'
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'stock_minimo' => 'required|integer|min:0',
+        ]);
+
+        $producto->stock_minimo = $validated['stock_minimo'];
+        $producto->save();
+
+        return response()->json([
+            'message' => 'Stock mínimo actualizado con éxito',
+            'data' => $producto
+        ], 200);
+    }
+
 
     public function destroy($id)
     {
