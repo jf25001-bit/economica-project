@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-slate-50/50 p-4 sm:p-6 md:p-8 w-full max-w-full overflow-x-hidden box-border">
-    
+
     <!-- Encabezado de Sección -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8 w-full">
       <div class="min-w-0 flex-1">
@@ -63,7 +63,7 @@
               <th class="px-4 py-3 sm:px-6 sm:py-4 text-left">Teléfono</th>
               <th class="px-4 py-3 sm:px-6 sm:py-4 text-left">Rol</th>
               <th class="px-4 py-3 sm:px-6 sm:py-4 text-center w-28 sm:w-32">Estado</th>
-              <th class="px-4 py-3 sm:px-6 sm:py-4 text-right w-36 sm:w-40">Acciones</th>
+              <th class="px-4 py-3 sm:px-6 sm:py-4 text-right w-24 sm:w-28">Acciones</th>
             </tr>
           </thead>
 
@@ -71,7 +71,12 @@
             <tr
               v-for="u in usuariosPaginados"
               :key="u.id"
-              class="hover:bg-slate-50/80 transition-colors"
+              class="transition-colors"
+              :class="[
+                esYo(u) 
+                  ? 'bg-indigo-50/70 hover:bg-indigo-50/90 border-l-4 border-l-indigo-500 border-b-2 border-b-indigo-200/80 shadow-sm' 
+                  : 'hover:bg-slate-50/80'
+              ]"
             >
               <!-- ID -->
               <td class="px-4 py-3 sm:px-6 sm:py-4 font-bold text-slate-800 truncate">
@@ -81,6 +86,12 @@
               <!-- Nombre y Apellido -->
               <td class="px-4 py-3 sm:px-6 sm:py-4 font-bold text-slate-800 truncate">
                 {{ u.name }} {{ u.apellido }}
+                <span
+                  v-if="esYo(u)"
+                  class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700 border border-indigo-300/80 align-middle shadow-2xs"
+                >
+                  Tú
+                </span>
               </td>
 
               <!-- Email -->
@@ -124,18 +135,12 @@
 
                   <button
                     @click="toggleEstado(u)"
-                    class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white transition cursor-pointer shrink-0"
-                    :title="u.activo ? 'Desactivar' : 'Activar'"
+                    :disabled="protegido(u)"
+                    class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl transition cursor-pointer shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
+                    :class="u.activo ? 'bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white'"
+                    :title="protegido(u) ? 'No se puede cambiar el estado de un administrador ni el propio' : (u.activo ? 'Desactivar' : 'Activar')"
                   >
                     <i class="bi bi-power text-xs sm:text-sm"></i>
-                  </button>
-
-                  <button
-                    @click="abrirEliminar(u)"
-                    class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-red-50 text-red-600 hover:bg-red-500 hover:text-white transition cursor-pointer shrink-0"
-                    title="Eliminar Usuario"
-                  >
-                    <i class="bi bi-trash-fill text-xs sm:text-sm"></i>
                   </button>
                 </div>
               </td>
@@ -163,7 +168,7 @@
     <!-- Modal Formulario -->
     <div v-if="modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto">
       <div class="bg-white rounded-2xl sm:rounded-3xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-slate-100 box-border my-auto">
-        
+
         <!-- Modal Header -->
         <div class="bg-[#2B3A4A] text-white px-5 py-4 sm:px-6 sm:py-5 flex justify-between items-center shrink-0 w-full box-border">
           <div class="flex items-center gap-3 min-w-0 pr-2">
@@ -188,63 +193,40 @@
 
         <!-- Modal Body -->
         <div class="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1 w-full box-border">
-          <!-- Campo Nombre -->
-          <div class="min-w-0 w-full">
-            <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5">Nombre</label>
-            <input
-              v-model="form.name"
-              type="text"
-              placeholder="Ej. Juan"
-              class="w-full max-w-full px-3.5 py-2.5 sm:px-4 sm:py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium box-border"
-            />
-            <p v-if="errores.name" class="text-red-500 text-xs font-semibold mt-1 break-words">{{ errores.name }}</p>
-          </div>
 
-          <!-- Campo Apellido -->
-          <div class="min-w-0 w-full">
-            <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5">Apellido</label>
+          <!-- Campos de texto -->
+          <div v-for="campo in camposForm" :key="campo.key" class="min-w-0 w-full">
+            <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5">{{ campo.label }}</label>
             <input
-              v-model="form.apellido"
-              type="text"
-              placeholder="Ej. Pérez"
+              v-model="form[campo.key]"
+              :type="campo.type"
+              :placeholder="campo.placeholder"
+              @input="campo.filtro && filtrarCampo(campo.key, campo.filtro)"
               class="w-full max-w-full px-3.5 py-2.5 sm:px-4 sm:py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium box-border"
             />
-            <p v-if="errores.apellido" class="text-red-500 text-xs font-semibold mt-1 break-words">{{ errores.apellido }}</p>
-          </div>
-
-          <!-- Campo Email -->
-          <div class="min-w-0 w-full">
-            <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5">Correo Electrónico</label>
-            <input
-              v-model="form.email"
-              type="email"
-              placeholder="correo@ejemplo.com"
-              class="w-full max-w-full px-3.5 py-2.5 sm:px-4 sm:py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium box-border"
-            />
-            <p v-if="errores.email" class="text-red-500 text-xs font-semibold mt-1 break-words">{{ errores.email }}</p>
-          </div>
-
-          <!-- Campo Teléfono -->
-          <div class="min-w-0 w-full">
-            <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5">Teléfono</label>
-            <input
-              v-model="form.telefono"
-              type="text"
-              placeholder="Ej. 7000-0000"
-              class="w-full max-w-full px-3.5 py-2.5 sm:px-4 sm:py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium box-border"
-            />
-            <p v-if="errores.telefono" class="text-red-500 text-xs font-semibold mt-1 break-words">{{ errores.telefono }}</p>
+            <p v-if="errores[campo.key]" class="text-red-500 text-xs font-semibold mt-1 break-words">{{ errores[campo.key] }}</p>
           </div>
 
           <!-- Campo Contraseña -->
           <div class="min-w-0 w-full">
             <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5">Contraseña</label>
-            <input
-              v-model="form.password"
-              type="password"
-              :placeholder="editando ? 'Dejar en blanco para conservar actual' : '••••••••'"
-              class="w-full max-w-full px-3.5 py-2.5 sm:px-4 sm:py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium box-border"
-            />
+            <div class="relative w-full">
+              <input
+                v-model="form.password"
+                :type="(!editando && mostrarPassword) ? 'text' : 'password'"
+                :placeholder="editando ? 'Dejar en blanco para conservar actual' : '••••••••'"
+                class="w-full max-w-full px-3.5 py-2.5 sm:px-4 sm:py-3 pr-11 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium box-border"
+              />
+              <button
+                v-if="!editando"
+                type="button"
+                @click="mostrarPassword = !mostrarPassword"
+                class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                :title="mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              >
+                <i class="bi text-sm" :class="mostrarPassword ? 'bi-eye-slash-fill' : 'bi-eye-fill'"></i>
+              </button>
+            </div>
             <p v-if="errores.password" class="text-red-500 text-xs font-semibold mt-1 break-words">{{ errores.password }}</p>
           </div>
 
@@ -271,8 +253,8 @@
 
         <!-- Modal Footer -->
         <div class="flex justify-end gap-2 sm:gap-3 p-4 sm:p-5 bg-slate-50 border-t border-slate-100 shrink-0 w-full box-border">
-          <button 
-            @click="cerrar" 
+          <button
+            @click="cerrar"
             class="px-4 py-2 sm:px-5 sm:py-2.5 border border-slate-200 text-slate-600 rounded-xl font-bold text-xs sm:text-sm hover:bg-slate-100 transition cursor-pointer"
           >
             Cancelar
@@ -297,16 +279,28 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import Swal from 'sweetalert2'
 import Paginacion from '@/components/Paginacion.vue'
-import { getUsuarios, createUsuario, updateUsuario, deleteUsuario } from '@/services/usuarioService'
+import { getUsuarios, createUsuario, updateUsuario } from '@/services/usuarioService'
 import { getRoles } from '@/services/rolService'
+import { getMe } from '@/services/authService'
+
+const ROL_ADMIN_KEYWORD = 'admin'
 
 const usuarios = ref([])
 const roles = ref([])
+const currentUser = ref(null)
 const search = ref('')
 const filtroRol = ref('')
 const modal = ref(false)
 const editando = ref(false)
 const loading = ref(false)
+const mostrarPassword = ref(false)
+
+const camposForm = [
+  { key: 'name', label: 'Nombre', placeholder: 'Ej. Juan', type: 'text', filtro: 'letras' },
+  { key: 'apellido', label: 'Apellido', placeholder: 'Ej. Pérez', type: 'text', filtro: 'letras' },
+  { key: 'email', label: 'Correo Electrónico', placeholder: 'correo@ejemplo.com', type: 'email', filtro: null },
+  { key: 'telefono', label: 'Teléfono', placeholder: 'Ej. 70000000', type: 'text', filtro: 'numeros' }
+]
 
 const formVacio = () => ({
   id: null,
@@ -327,12 +321,38 @@ const cargar = async () => {
   roles.value = await getRoles()
 }
 
-onMounted(cargar)
+const cargarMe = async () => {
+  try {
+    const data = await getMe()
+    currentUser.value = data?.user ?? data
+  } catch {
+    currentUser.value = null
+  }
+}
+
+onMounted(() => {
+  cargar()
+  cargarMe()
+})
+
+const filtrarCampo = (key, tipo) => {
+  if (tipo === 'letras') {
+    form.value[key] = form.value[key].replace(/[^a-zA-ZÀ-ÿ\s]/g, '')
+  } else if (tipo === 'numeros') {
+    form.value[key] = form.value[key].replace(/[^0-9]/g, '')
+  }
+}
+
+const esYo = (u) => currentUser.value && Number(u.id) === Number(currentUser.value.id)
+const esAdmin = (u) => u.rol?.nombre?.toLowerCase().includes(ROL_ADMIN_KEYWORD)
+
+// Protege al usuario logueado y a cualquier administrador de ser desactivados
+const protegido = (u) => esYo(u) || esAdmin(u)
 
 const usuariosFiltrados = computed(() => {
   const query = search.value.toLowerCase().trim()
 
-  return usuarios.value.filter(u => {
+  const lista = usuarios.value.filter(u => {
     const matchId = u.id.toString().includes(query)
     const matchName = u.name ? u.name.toLowerCase().includes(query) : false
     const matchApellido = u.apellido ? u.apellido.toLowerCase().includes(query) : false
@@ -344,9 +364,14 @@ const usuariosFiltrados = computed(() => {
 
     return matchQuery && matchRol
   })
+
+  return [...lista].sort((a, b) => {
+    if (esYo(a)) return -1
+    if (esYo(b)) return 1
+    return 0
+  })
 })
 
-// --- Paginación ---
 const paginaActual = ref(1)
 const porPagina = 8
 
@@ -362,13 +387,13 @@ const usuariosPaginados = computed(() => {
 watch([search, filtroRol], () => {
   paginaActual.value = 1
 })
-// --- Fin Paginación ---
 
 const abrirModal = () => {
   modal.value = true
   editando.value = false
   form.value = formVacio()
   errores.value = {}
+  mostrarPassword.value = false
 }
 
 const cerrar = () => {
@@ -399,7 +424,7 @@ const validar = () => {
     ok = false
   }
 
-  if (editando.value && form.value.password && form.value.password.length < 8) {
+  if (editando.value && form.value.password && form.value.password.length > 0 && form.value.password.length < 8) {
     errores.value.password = 'La contraseña debe tener mínimo 8 caracteres'
     ok = false
   }
@@ -418,11 +443,24 @@ const guardar = async () => {
   loading.value = true
 
   try {
+    const payload = {
+      name: form.value.name,
+      apellido: form.value.apellido,
+      email: form.value.email,
+      telefono: form.value.telefono || null,
+      rol_id: form.value.rol_id,
+      activo: Boolean(form.value.activo)
+    }
+
+    if (form.value.password) {
+      payload.password = form.value.password
+    }
+
     if (editando.value) {
-      await updateUsuario(form.value.id, form.value)
+      await updateUsuario(form.value.id, payload)
       await Swal.fire({ icon: 'success', title: 'Usuario actualizado', timer: 1500, showConfirmButton: false })
     } else {
-      await createUsuario(form.value)
+      await createUsuario(payload)
       await Swal.fire({ icon: 'success', title: 'Usuario creado correctamente', timer: 1500, showConfirmButton: false })
     }
 
@@ -448,38 +486,38 @@ const editar = (u) => {
   }
   editando.value = true
   errores.value = {}
+  mostrarPassword.value = false
   modal.value = true
 }
 
-const abrirEliminar = async (u) => {
-  const result = await Swal.fire({
-    title: '¿Eliminar usuario?',
-    text: 'Esta acción no se puede deshacer',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#2B3A4A',
-    cancelButtonColor: '#ef4444',
-    confirmButtonText: 'Sí, eliminar',
-    cancelButtonText: 'Cancelar'
-  })
-
-  if (!result.isConfirmed) return
+const toggleEstado = async (u) => {
+  if (protegido(u)) return
 
   try {
-    await deleteUsuario(u.id)
-    await cargar()
-    await Swal.fire({ icon: 'success', title: 'Usuario eliminado', timer: 1500, showConfirmButton: false })
-  } catch (error) {
-    Swal.fire('Error', 'No se pudo eliminar el usuario', 'error')
-  }
-}
+    const nuevoEstado = !u.activo
 
-const toggleEstado = async (u) => {
-  await updateUsuario(u.id, {
-    ...u,
-    activo: !u.activo,
-    password: ''
-  })
-  cargar()
+    const payload = {
+      name: u.name,
+      apellido: u.apellido,
+      email: u.email,
+      telefono: u.telefono || null,
+      rol_id: u.rol_id,
+      activo: nuevoEstado
+    }
+
+    await updateUsuario(u.id, payload)
+
+    const mensaje = nuevoEstado ? 'Usuario activado' : 'Usuario desactivado'
+    Swal.fire({
+      icon: 'success',
+      title: mensaje,
+      timer: 1200,
+      showConfirmButton: false
+    })
+
+    await cargar()
+  } catch (error) {
+    Swal.fire('Error', error.response?.data?.message || 'No se pudo cambiar el estado del usuario', 'error')
+  }
 }
 </script>

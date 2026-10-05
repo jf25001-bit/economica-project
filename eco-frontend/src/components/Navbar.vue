@@ -50,8 +50,12 @@ onMounted(() => {
     if (rawUser) {
       const user = JSON.parse(rawUser)
 
-      // Obtener Nombre
-      usuarioNombre.value = user.nombre || user.name || user.username || 'Usuario'
+      // Obtener Nombre y Apellido
+      const nombre = user.nombre || user.name || user.username || ''
+      const apellido = user.apellido || user.lastname || ''
+      
+      const nombreCompleto = `${nombre} ${apellido}`.trim()
+      usuarioNombre.value = nombreCompleto || 'Usuario'
 
       // Extraer el texto del Rol
       if (typeof user.rol === 'object' && user.rol !== null) {
@@ -73,4 +77,4 @@ header {
   margin-top: 0 !important;
   top: 0 !important;
 }
-</style>  
+</style>
