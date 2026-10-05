@@ -6,26 +6,40 @@ use App\Models\Venta;
 use App\Models\DetalleVenta;
 use App\Models\Producto;
 use App\Models\Lote;
+use App\Models\Caja;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class VentaController extends Controller
 {
     public function index()
     {
-        $ventas = Venta::with(['detalles.producto'])->get();
+        $ventas = Venta::with(['detalles.producto', 'usuario'])->get();
 
         return response()->json($ventas, 200);
     }
 
     public function store(Request $request)
     {
+        // No se puede vender si no hay una caja abierta
+        $caja = Caja::where('estado', 'abierta')->first();
+
+        if (!$caja) {
+            return response()->json([
+                'message' => 'No se pueden realizar ventas: la caja está cerrada.'
+            ], 403);
+        }
+
         $request->validate([
             'productos' => 'required|array|min:1',
             'productos.*.producto_id' => 'required|exists:productos,id',
             'productos.*.cantidad' => 'required|integer|min:1',
         ]);
+
+        // Usuario que emite la venta
+        $userId = Auth::id() ?? auth('api')->id() ?? $request->input('user_id');
 
         DB::beginTransaction();
 
@@ -34,7 +48,8 @@ class VentaController extends Controller
             $venta = Venta::create([
                 'fecha_venta' => now()->toDateString(),
                 'cliente' => $request->input('cliente', 'Consumidor Final'),
-                'total' => 0
+                'total' => 0,
+                'user_id' => $userId
             ]);
 
             $totalVenta = 0;
@@ -107,11 +122,14 @@ class VentaController extends Controller
                 'total' => $totalVenta
             ]);
 
+            // Sumar la venta al total de la caja abierta
+            $caja->increment('total_ventas', $totalVenta);
+
             DB::commit();
 
             return response()->json([
                 'message' => 'Venta procesada con éxito',
-                'data' => $venta->load('detalles.producto')
+                'data' => $venta->load('detalles.producto', 'usuario')
             ], 201);
 
         } catch (\Exception $e) {
@@ -127,7 +145,7 @@ class VentaController extends Controller
 
     public function show($id)
     {
-        $venta = Venta::with(['detalles.producto'])->find($id);
+        $venta = Venta::with(['detalles.producto', 'usuario'])->find($id);
 
         if (!$venta) {
             return response()->json([

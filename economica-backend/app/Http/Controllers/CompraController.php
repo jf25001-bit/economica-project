@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Compra;
@@ -34,10 +35,15 @@ class CompraController extends Controller
             'detalles' => 'required|array|min:1',
             'detalles.*.producto_id' => 'required|exists:productos,id',
             'detalles.*.cantidad' => 'required|integer|min:1', 
-            'detalles.*.unidades_por_paquete' => 'nullable|integer|min:1', 
+            'detalles.*.unidades_por_paquete' => 'required|integer|min:1', 
             'detalles.*.precio_compra' => 'required|numeric|min:0', 
             'detalles.*.codigo_lote' => 'nullable|string|max:100',
             'detalles.*.fecha_expiracion' => 'nullable|date'
+        ], [
+            'detalles.*.cantidad.integer' => 'La cantidad de paquetes debe ser un número entero (no se permiten medios paquetes).',
+            'detalles.*.cantidad.min' => 'La cantidad mínima de paquetes a comprar es 1.',
+            'detalles.*.unidades_por_paquete.integer' => 'Las unidades por paquete deben ser un número entero.',
+            'detalles.*.unidades_por_paquete.min' => 'Las unidades por paquete deben ser al menos 1.'
         ]);
 
         DB::beginTransaction();
@@ -52,9 +58,7 @@ class CompraController extends Controller
             foreach ($request->detalles as $item) {
                 $producto = Producto::findOrFail($item['producto_id']);
                 $paquetesComprados = (int) $item['cantidad'];
-                $unidadesPorPaquete = isset($item['unidades_por_paquete']) && $item['unidades_por_paquete'] > 0 
-                    ? (int) $item['unidades_por_paquete'] 
-                    : 1;
+                $unidadesPorPaquete = (int) $item['unidades_por_paquete'];
 
                 $unidadesTotales = $paquetesComprados * $unidadesPorPaquete;
                 $precioPaquete = (float) $item['precio_compra'];
@@ -117,6 +121,11 @@ class CompraController extends Controller
             'detalles.*.precio_compra' => 'required|numeric|min:0',
             'detalles.*.codigo_lote' => 'nullable|string|max:100',
             'detalles.*.fecha_expiracion' => 'nullable|date'
+        ], [
+            'detalles.*.cantidad.integer' => 'La cantidad de paquetes debe ser un número entero (no se permiten medios paquetes).',
+            'detalles.*.cantidad.min' => 'La cantidad mínima de paquetes a comprar es 1.',
+            'detalles.*.unidades_por_paquete.integer' => 'Las unidades por paquete deben ser un número entero.',
+            'detalles.*.unidades_por_paquete.min' => 'Las unidades por paquete deben ser al menos 1.'
         ]);
 
         return DB::transaction(function () use ($request, $id) {

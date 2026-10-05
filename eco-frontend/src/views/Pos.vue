@@ -23,6 +23,18 @@
       </div>
     </div>
 
+    <!-- Aviso: caja cerrada -->
+    <div
+      v-if="!cajaAbierta"
+      class="flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-2xl"
+    >
+      <i class="bi bi-exclamation-triangle-fill text-xl"></i>
+      <div>
+        <p class="font-bold text-sm">La caja está cerrada</p>
+        <p class="text-xs">No se pueden realizar ventas hasta que el administrador abra la caja.</p>
+      </div>
+    </div>
+
     <!-- Grid principal -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
       
@@ -37,9 +49,10 @@
             </label>
             <input
               v-model="nombreCliente"
+              :disabled="!cajaAbierta"
               type="text"
               placeholder="Consumidor Final"
-              class="w-full max-w-full box-border px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:bg-white focus:border-slate-800 focus:ring-2 focus:ring-slate-800/10 text-sm text-slate-800 font-medium transition-all"
+              class="w-full max-w-full box-border px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:bg-white focus:border-slate-800 focus:ring-2 focus:ring-slate-800/10 text-sm text-slate-800 font-medium transition-all disabled:opacity-50"
             />
           </div>
 
@@ -52,10 +65,11 @@
               <input
                 ref="inputCodigoBarras"
                 v-model="codigoInput"
+                :disabled="!cajaAbierta"
                 @keyup.enter="agregarPorCodigo"
                 type="text"
                 placeholder="Escanee el producto aquí..."
-                class="w-full max-w-full box-border pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:bg-white focus:border-slate-800 focus:ring-2 focus:ring-slate-800/10 text-base font-mono text-slate-800 transition-all"
+                class="w-full max-w-full box-border pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:bg-white focus:border-slate-800 focus:ring-2 focus:ring-slate-800/10 text-base font-mono text-slate-800 transition-all disabled:opacity-50"
               />
               <i class="bi bi-qr-code-scan absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 text-xl"></i>
             </div>
@@ -68,8 +82,9 @@
             </label>
             <select
               v-model="productoManualSeleccionado"
+              :disabled="!cajaAbierta"
               @change="agregarPorSeleccionManual"
-              class="w-full max-w-full box-border px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:bg-white focus:border-slate-800 focus:ring-2 focus:ring-slate-800/10 text-sm text-slate-800 font-medium transition-all"
+              class="w-full max-w-full box-border px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:bg-white focus:border-slate-800 focus:ring-2 focus:ring-slate-800/10 text-sm text-slate-800 font-medium transition-all disabled:opacity-50"
             >
               <option value="">-- Buscar por catálogo --</option>
               <option 
@@ -152,7 +167,7 @@
 
           <button
             @click="abrirModalCobro"
-            :disabled="carrito.length === 0"
+            :disabled="carrito.length === 0 || !cajaAbierta"
             class="bg-slate-900 hover:bg-slate-800 active:bg-slate-950 disabled:opacity-50 text-white w-full py-4 rounded-xl font-bold text-base shadow-sm flex items-center justify-center gap-3 transition-all cursor-pointer"
           >
             <i class="bi bi-cash-stack text-xl"></i>
@@ -255,6 +270,7 @@
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import axios from 'axios'
 import Swal from 'sweetalert2'
+import { cajaService } from '@/services/cajaService'
 
 const productosCatalogo = ref([])
 const guardandoVenta = ref(false)
@@ -267,6 +283,7 @@ const productoManualSeleccionado = ref('')
 const efectivoRecibido = ref(0)
 const carrito = ref([])
 const mostrarModalCobro = ref(false)
+const cajaAbierta = ref(false)
 
 const cargarCatalogo = async () => {
   try {
@@ -274,6 +291,16 @@ const cargarCatalogo = async () => {
     productosCatalogo.value = res.data.data || res.data || []
   } catch (error) {
     console.error('Error cargando catálogo:', error)
+  }
+}
+
+// Revisa si hay una caja abierta en el sistema
+const cargarEstadoCaja = async () => {
+  try {
+    const res = await cajaService.obtenerEstado()
+    cajaAbierta.value = !!(res && res.caja)
+  } catch (error) {
+    cajaAbierta.value = false
   }
 }
 
@@ -291,8 +318,25 @@ const cambioCalculado = computed(() => {
   return (Number(efectivoRecibido.value) || 0) - totalCalculado.value
 })
 
-const abrirModalCobro = () => {
+const avisarCajaCerrada = () => {
+  Swal.fire({
+    icon: 'warning',
+    title: 'Caja cerrada',
+    text: 'No se pueden realizar ventas porque la caja está cerrada.',
+    confirmButtonColor: '#0f172a'
+  })
+}
+
+const abrirModalCobro = async () => {
   if (carrito.value.length === 0) return
+
+  // Volvemos a revisar la caja justo antes de cobrar
+  await cargarEstadoCaja()
+  if (!cajaAbierta.value) {
+    avisarCajaCerrada()
+    return
+  }
+
   efectivoRecibido.value = null
   mostrarModalCobro.value = true
   
@@ -319,6 +363,8 @@ const manejarTeclasGlobales = (e) => {
 }
 
 const agregarPorCodigo = () => {
+  if (!cajaAbierta.value) return
+
   const cod = codigoInput.value.trim()
   if (!cod) return
 
@@ -340,6 +386,7 @@ const agregarPorCodigo = () => {
 }
 
 const agregarPorSeleccionManual = () => {
+  if (!cajaAbierta.value) return
   if (!productoManualSeleccionado.value) return
   const producto = productosCatalogo.value.find(p => p.id === Number(productoManualSeleccionado.value))
   if (producto) inyectarProducto(producto)
@@ -417,6 +464,11 @@ const resetearVenta = () => {
 const confirmarYRegistrarVenta = async () => {
   if (carrito.value.length === 0) return
 
+  if (!cajaAbierta.value) {
+    avisarCajaCerrada()
+    return
+  }
+
   if (efectivoRecibido.value < totalCalculado.value) {
     Swal.fire({
       icon: 'warning',
@@ -441,7 +493,11 @@ const confirmarYRegistrarVenta = async () => {
   }
 
   try {
-    await axios.post('http://127.0.0.1:8000/api/ventas', datosVenta)
+    const token = localStorage.getItem('token')
+
+    await axios.post('http://127.0.0.1:8000/api/ventas', datosVenta, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
     
     mostrarModalCobro.value = false
 
@@ -457,6 +513,13 @@ const confirmarYRegistrarVenta = async () => {
     await cargarCatalogo() 
   } catch (error) {
     console.error(error)
+
+    // Si el servidor dice que la caja está cerrada, bloqueamos la pantalla
+    if (error.response?.status === 403) {
+      cajaAbierta.value = false
+      mostrarModalCobro.value = false
+    }
+
     const mensajeError = error.response?.data?.error || error.response?.data?.message || 'Error al procesar'
     Swal.fire({
       icon: 'error',
@@ -472,6 +535,7 @@ const confirmarYRegistrarVenta = async () => {
 
 onMounted(() => {
   cargarCatalogo()
+  cargarEstadoCaja()
   enfocarEscaner()
   window.addEventListener('keydown', manejarTeclasGlobales)
 })

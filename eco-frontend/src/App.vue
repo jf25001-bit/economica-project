@@ -5,11 +5,18 @@
     <!-- Sidebar -->
     <Sidebar :isOpen="sidebarOpen" />
 
+    <!-- Fondo oscuro en celular: al tocarlo se cierra el sidebar -->
+    <div
+      v-if="sidebarOpen"
+      @click="sidebarOpen = false"
+      class="fixed inset-0 bg-black/50 z-[35] md:hidden"
+    ></div>
+
     <!-- Contenido principal -->
     <div
       :class="[
         'min-h-screen flex flex-col bg-slate-50 transition-all duration-300 m-0 p-0',
-        sidebarOpen ? 'md:ml-60 ml-0' : 'md:ml-20 ml-0'
+        sidebarOpen ? 'md:ml-64 ml-0' : 'ml-0'
       ]"
     >
       <!-- Navbar -->
@@ -24,17 +31,27 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import Sidebar from './components/Sidebar.vue'
 import Navbar from './components/Navbar.vue'
 
 const route = useRoute()
-const sidebarOpen = ref(true)
+
+// En celular arranca cerrado, en computador arranca abierto
+const sidebarOpen = ref(window.innerWidth >= 768)
 
 const toggleSidebar = () => {
   sidebarOpen.value = !sidebarOpen.value
 }
+
+// En celular, al cambiar de página se cierra el sidebar
+watch(
+  () => route.path,
+  () => {
+    if (window.innerWidth < 768) sidebarOpen.value = false
+  }
+)
 </script>
 
 <style>

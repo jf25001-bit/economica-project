@@ -33,10 +33,13 @@ class DetalleCompraController extends Controller
         try {
 
             $validated = $request->validate([
-                'cantidad' => 'required|integer',
-                'precio_compra' => 'required|numeric',
+                'cantidad' => 'required|integer|min:1',
+                'precio_compra' => 'required|numeric|min:0',
                 'compra_id' => 'required|exists:compras,id',
                 'producto_id' => 'required|exists:productos,id'
+            ], [
+                'cantidad.integer' => 'La cantidad debe ser un número entero (no se permiten medios paquetes).',
+                'cantidad.min' => 'La cantidad mínima es 1.'
             ]);
 
             $detalle = DetalleCompra::create($validated);
@@ -59,18 +62,18 @@ class DetalleCompraController extends Controller
      */
     public function show($id)
     {
-          try {
+        try {
 
-        $detalle = DetalleCompra::findOrFail($id);
+            $detalle = DetalleCompra::findOrFail($id);
 
-        return response()->json($detalle);
+            return response()->json($detalle);
 
-    } catch (ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
 
-        return response()->json([
-            'message' => 'Detalle de compra no encontrado'
-        ], 404);
-    }
+            return response()->json([
+                'message' => 'Detalle de compra no encontrado'
+            ], 404);
+        }
     }
 
     /**
@@ -84,33 +87,9 @@ class DetalleCompraController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    // NO SE OCUPARIA ESTE METODO PORQ NO SE PUEDE ACTUALIZAR UNA COMPRA
-
     public function update(Request $request, DetalleCompra $detalleCompra)
     {
-        // try {
-
-        //     $validated = $request->validate([
-        //         'cantidad' => 'required|integer',
-        //         'precio_compra' => 'required|numeric',
-        //         'compra_id' => 'required|exists:compras,id',
-        //         'producto_id' => 'required|exists:productos,id'
-        //     ]);
-
-        //     $detalleCompra->update($validated);
-
-        //     return response()->json([
-        //         'message' => 'Detalle de compra actualizado',
-        //         'data' => $detalleCompra
-        //     ]);
-
-        // } catch (ValidationException $e) {
-
-        //     return response()->json([
-        //         'errors' => $e->errors()
-        //     ], 422);
-        // }
-
+        //
     }
 
     /**
@@ -118,10 +97,10 @@ class DetalleCompraController extends Controller
      */
     public function destroy($id)
     {
-       $detalleCompra = DetalleCompra::findOrFail($id);
+        $detalleCompra = DetalleCompra::findOrFail($id);
 
-    $detalleCompra->delete();
-    
-    return response()->json(['message' => 'Detalle eliminado']);
-}
+        $detalleCompra->delete();
+
+        return response()->json(['message' => 'Detalle eliminado']);
+    }
 }

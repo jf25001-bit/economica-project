@@ -1,8 +1,5 @@
 <template>
-  <div v-if="totalPages > 1" class="flex items-center justify-between px-4 py-3 sm:px-6 border-t border-slate-100 bg-white flex-wrap gap-3">
-    <p class="text-xs text-slate-500 font-medium">
-      Página <span class="font-bold text-slate-700">{{ currentPage }}</span> de <span class="font-bold text-slate-700">{{ totalPages }}</span>
-    </p>
+  <div v-if="totalPages > 1" class="flex items-center justify-end px-4 py-3 sm:px-6 border-t border-slate-100 bg-white">
     <div class="flex items-center gap-1.5">
       <button
         @click="$emit('update:currentPage', currentPage - 1)"
