@@ -1,5 +1,5 @@
 <template>
-  <header class="bg-gradient-to-r from-[#0b121e] via-[#0e1626] to-[#111c30] text-white h-[73px] w-full sticky top-0 z-30 shadow-xl border-b border-slate-800 px-6 flex items-center justify-between m-0 p-0">
+  <header class="bg-gradient-to-r from-[#0b121e] via-[#0e1626] to-[#111c30] text-white h-[73px] w-full sticky top-0 z-30 shadow-xl border-b border-slate-800 px-3 sm:px-6 flex items-center justify-between m-0 p-0">
     
     <!-- Lado Izquierdo: Botón Sidebar + Sucursal -->
     <div class="flex items-center gap-4">
@@ -18,11 +18,11 @@
 
     <!-- Lado Derecho: Usuario -->
     <div class="flex items-center gap-3 sm:gap-4">
-      <div class="flex items-center gap-3 bg-[#0b121e]/80 border border-slate-800 px-4 py-2 rounded-2xl shadow-inner">
+      <div class="flex items-center gap-3 bg-[#0b121e]/80 border border-slate-800 px-2 sm:px-4 py-2 rounded-2xl shadow-inner">
         <div class="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-sm border border-sky-500/30">
           <i class="bi bi-person-fill"></i>
         </div>
-        <div class="flex flex-col text-left">
+        <div class="hidden sm:flex flex-col text-left">
           <span class="text-xs font-bold text-slate-100 capitalize leading-tight">
             {{ usuarioNombre }}
           </span>

@@ -6,8 +6,10 @@ use App\Models\Venta;
 use App\Models\DetalleVenta;
 use App\Models\Producto;
 use App\Models\Lote;
+use App\Models\Caja;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class VentaController extends Controller
@@ -21,6 +23,15 @@ class VentaController extends Controller
 
     public function store(Request $request)
     {
+        // No se puede vender si no hay una caja abierta
+        $caja = Caja::where('estado', 'abierta')->first();
+
+        if (!$caja) {
+            return response()->json([
+                'message' => 'No se pueden realizar ventas: la caja está cerrada.'
+            ], 403);
+        }
+
         $request->validate([
             'fecha_venta' => 'nullable|date',
             'dinero_recibido' => 'required|numeric|min:0',
@@ -29,17 +40,20 @@ class VentaController extends Controller
             'productos.*.cantidad' => 'required|integer|min:1',
         ]);
 
+        // Usuario que emite la venta
+        $userId = Auth::id() ?? auth('api')->id() ?? $request->input('user_id');
+
         DB::beginTransaction();
 
         try {
 
             $venta = Venta::create([
-                'user_id' => $request->user()?->id ?? $request->input('user_id'),
+                'user_id' => $userId ?? $request->user()?->id,
                 'fecha_venta' => $request->fecha_venta ?? now()->toDateString(),
                 'cliente' => $request->input('cliente', 'Consumidor Final'),
                 'total' => 0,
                 'dinero_recibido' => $request->dinero_recibido,
-                'vuelto' => 0
+                'vuelto' => 0,
             ]);
 
             $totalVenta = 0;
@@ -123,6 +137,9 @@ class VentaController extends Controller
                 'total' => $totalVenta,
                 'vuelto' => $vuelto
             ]);
+
+            // Sumar la venta al total de la caja abierta
+            $caja->increment('total_ventas', $totalVenta);
 
             DB::commit();
 

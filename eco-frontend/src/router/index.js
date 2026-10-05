@@ -36,13 +36,13 @@ const routes = [
     }
   },
 
-  // APERTURA Y CIERRE DE CAJA
+  // APERTURA Y CIERRE DE CAJA (solo administrador)
   {
     path: '/caja',
     component: AperturaCierreCaja,
     meta: {
       requiresAuth: true,
-      allowedRoles: ['Administrador', 'Cajero']
+      allowedRoles: ['Administrador']
     }
   },
 
@@ -145,7 +145,7 @@ const routes = [
     }
   },
 
-  // PUNTO DE VENTA (Requiere Caja Abierta)
+  // PUNTO DE VENTA (el admin necesita caja abierta; al cajero se le bloquea la venta dentro de Pos.vue)
   {
     path: '/pos',
     component: Pos,
@@ -175,54 +175,29 @@ router.beforeEach(async (to) => {
     console.error('Error leyendo usuario:', error)
   }
 
-  // Rol normalizado en minúsculas para evitar diferencias de mayúsculas/minúsculas
   const rol = String(user?.rol?.nombre || user?.rol || '').trim().toLowerCase()
 
-  // 1. Manejo de la ruta raíz '/'
+  // 1. Ruta raíz
   if (to.path === '/') {
     if (!token) return '/login'
-
-    if (rol === 'cajero') {
-      let cajaAbierta = false
-      try {
-        const resCaja = await cajaService.obtenerEstado()
-        cajaAbierta = !!(resCaja && resCaja.caja)
-      } catch (e) {
-        cajaAbierta = false
-      }
-      return cajaAbierta ? '/pos' : '/caja'
-    }
-    return '/dashboard'
+    return rol === 'cajero' ? '/pos' : '/dashboard'
   }
 
-  // 2. Si NO está autenticado y la ruta requiere Auth, mandar a Login
+  // 2. Sin sesión
   if (to.meta.requiresAuth && !token) {
     return to.path === '/login' ? true : '/login'
   }
 
-  // 3. Si SÍ está autenticado e intenta ir a Login, redirigir según su estado/rol
+  // 3. Con sesión e intenta ir a login
   if (to.path === '/login' && token) {
-    let cajaAbierta = false
-    try {
-      const resCaja = await cajaService.obtenerEstado()
-      cajaAbierta = !!(resCaja && resCaja.caja)
-    } catch (e) {
-      cajaAbierta = false
-    }
-
-    if (rol === 'cajero') {
-      const destinoCajero = cajaAbierta ? '/pos' : '/caja'
-      return to.path === destinoCajero ? true : destinoCajero
-    }
-    return to.path === '/dashboard' ? true : '/dashboard'
+    return rol === 'cajero' ? '/pos' : '/dashboard'
   }
 
-  // Si la ruta no requiere autenticación y no es login con token, permitir
   if (!to.meta.requiresAuth) {
     return true
   }
 
-  // 4. Verificar estado de la caja desde el servidor
+  // 4. Estado de la caja
   let cajaAbierta = false
   try {
     const resCaja = await cajaService.obtenerEstado()
@@ -231,37 +206,24 @@ router.beforeEach(async (to) => {
     cajaAbierta = false
   }
 
-  // ==========================================
-  // RESTRICCIÓN PARA CAJERO
-  // ==========================================
+  // CAJERO: solo estas rutas (el bloqueo de ventas se hace dentro de Pos.vue)
   if (rol === 'cajero') {
-    // Si la caja está cerrada, OBLIGAR al cajero a ir a /caja y bloquear cualquier otra ruta
-    if (!cajaAbierta && to.path !== '/caja') {
-      return '/caja'
-    }
-
-    // Si la caja ya está abierta, validar sus rutas permitidas
-    const rutasPermitidas = ['/pos', '/productos', '/inventario', '/caja']
+    const rutasPermitidas = ['/pos', '/productos', '/inventario']
     if (!rutasPermitidas.includes(to.path)) {
-      const destinoCajero = cajaAbierta ? '/pos' : '/caja'
-      return to.path === destinoCajero ? true : destinoCajero
+      return '/pos'
     }
   }
 
-  // ==========================================
-  // RESTRICCIÓN DE PUNTO DE VENTA (ADMIN Y CAJERO)
-  // ==========================================
-  if (to.meta.requiresCaja && !cajaAbierta) {
+  // ADMIN: el punto de venta necesita caja abierta
+  if (to.meta.requiresCaja && !cajaAbierta && rol !== 'cajero') {
     return to.path === '/caja' ? true : '/caja'
   }
 
-  // ==========================================
-  // VALIDAR ROLES DE CADA RUTA
-  // ==========================================
+  // Validar roles de cada ruta
   if (to.meta.allowedRoles) {
     const rolesPermitidos = to.meta.allowedRoles.map(r => r.toLowerCase())
     if (!rolesPermitidos.includes(rol)) {
-      const destinoFallback = rol === 'cajero' ? (cajaAbierta ? '/pos' : '/caja') : '/dashboard'
+      const destinoFallback = rol === 'cajero' ? '/pos' : '/dashboard'
       return to.path === destinoFallback ? true : destinoFallback
     }
   }

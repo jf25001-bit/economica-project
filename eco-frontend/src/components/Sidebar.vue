@@ -1,56 +1,75 @@
 <template>
   <aside
     :class="[
-      'bg-[#0F172A] text-slate-400 h-screen fixed left-0 top-0 transition-all duration-300 shadow-2xl flex flex-col z-40 border-r border-slate-800/80',
-      isOpen ? 'w-64' : 'w-20'
+      'text-slate-400 fixed left-0 top-0 w-64 h-screen transition-all duration-300 flex flex-col z-40 bg-[#0F172A] border-r border-slate-800/80',
+      isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full shadow-none'
     ]"
   >
- <!-- Logo -->
-<div
-  class="h-[73px] px-5 flex items-center justify-start transition-all duration-300 border-b border-slate-800/60 shrink-0"
->
-  <img
-    src="/nuevo logo.svg"
-    alt="Logo La Económica"
-    :class="[
-      'object-contain object-left transition-all duration-300',
-      isOpen ? 'h-10 max-w-[85%]' : 'h-9 w-9'
-    ]"
-  />
-</div>
+    <!-- Logo -->
+    <div
+      class="h-[73px] px-5 flex items-center justify-start transition-all duration-300 border-b border-slate-800/60 shrink-0"
+    >
+      <router-link :to="rutaInicio" class="no-underline flex items-center">
+        <img
+          src="/nuevo logo.svg"
+          alt="Logo La Económica"
+          :class="[
+            'object-contain object-left transition-all duration-300',
+            isOpen ? 'h-10 max-w-[85%]' : 'h-9 w-9'
+          ]"
+        />
+      </router-link>
+    </div>
 
-    <!-- Menú por secciones -->
-    <nav class="flex-1 py-3 px-3 overflow-y-auto custom-scrollbar space-y-4">
+    <!-- Menú por secciones desplegables -->
+    <nav class="flex-1 py-3 px-3 overflow-y-auto custom-scrollbar space-y-2">
       <div v-for="seccion in menuFiltrado" :key="seccion.titulo">
-        <!-- Título de sección (solo visible con sidebar abierto) -->
-        <p
-          v-if="isOpen"
-          class="px-4 text-[10px] font-extrabold uppercase tracking-widest text-slate-600 mb-1.5 mt-2"
+        <!-- Título de sección clickeable -->
+        <button
+          v-if="seccion.titulo !== 'General'"
+          @click="toggleSeccion(seccion.titulo)"
+          class="w-full flex items-center justify-between px-4 py-1.5 mt-2 mb-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-600 hover:text-slate-300 transition-colors cursor-pointer bg-transparent border-0"
         >
-          {{ seccion.titulo }}
-        </p>
-        <div v-else class="border-t border-slate-800/60 mx-2 my-2"></div>
+          <span>{{ seccion.titulo }}</span>
+          <i
+            :class="[
+              'bi bi-chevron-down text-[10px] transition-transform duration-300',
+              seccionesAbiertas[seccion.titulo] ? 'rotate-180' : ''
+            ]"
+          ></i>
+        </button>
 
-        <div class="space-y-1">
-          <router-link
-            v-for="item in seccion.items"
-            :key="item.name"
-            :to="item.route"
-            class="no-underline flex items-center gap-3.5 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/60 transition-all duration-200 group font-medium text-sm"
-            active-class="!bg-gradient-to-r !from-sky-500 !to-blue-600 !text-white !font-bold shadow-md shadow-sky-500/20"
-            :title="!isOpen ? item.name : ''"
-          >
-            <i
-              :class="[
-                item.icon,
-                'text-lg group-hover:scale-110 transition-transform shrink-0'
-              ]"
-            ></i>
+        <!-- Items con animación de despliegue -->
+        <div
+          :class="[
+            'grid transition-all duration-300 ease-in-out',
+            seccion.titulo === 'General' || seccionesAbiertas[seccion.titulo]
+              ? 'grid-rows-[1fr] opacity-100'
+              : 'grid-rows-[0fr] opacity-0'
+          ]"
+        >
+          <div class="overflow-hidden">
+            <div class="space-y-1">
+              <router-link
+                v-for="item in seccion.items"
+                :key="item.name"
+                :to="item.route"
+                class="no-underline flex items-center gap-3.5 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/60 transition-all duration-200 group font-medium text-sm"
+                active-class="!bg-gradient-to-r !from-sky-500 !to-blue-600 !text-white !font-bold shadow-md shadow-sky-500/20"
+              >
+                <i
+                  :class="[
+                    item.icon,
+                    'text-lg group-hover:scale-110 transition-transform shrink-0'
+                  ]"
+                ></i>
 
-            <span v-if="isOpen" class="truncate no-underline">
-              {{ item.name }}
-            </span>
-          </router-link>
+                <span class="truncate no-underline">
+                  {{ item.name }}
+                </span>
+              </router-link>
+            </div>
+          </div>
         </div>
       </div>
     </nav>
@@ -60,18 +79,17 @@
       <button
         @click="cerrarSesion"
         class="flex items-center justify-center gap-3 w-full py-2.5 px-4 rounded-xl text-red-400 bg-red-500/10 hover:bg-red-500 hover:text-white transition-all duration-200 text-xs font-bold cursor-pointer border border-red-500/10 hover:border-transparent shadow-sm"
-        :title="!isOpen ? 'Cerrar sesión' : ''"
       >
         <i class="bi bi-box-arrow-left text-base shrink-0"></i>
-        <span v-if="isOpen" class="truncate">Cerrar sesión</span>
+        <span class="truncate">Cerrar sesión</span>
       </button>
     </div>
   </aside>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, ref, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
 import Swal from 'sweetalert2'
 
@@ -80,6 +98,7 @@ defineProps({
 })
 
 const router = useRouter()
+const route = useRoute()
 
 const menu = [
   {
@@ -121,6 +140,13 @@ const menu = [
   }
 ]
 
+// Secciones desplegables: guarda cuáles están abiertas
+const seccionesAbiertas = ref({})
+
+const toggleSeccion = (titulo) => {
+  seccionesAbiertas.value[titulo] = !seccionesAbiertas.value[titulo]
+}
+
 const usuarioActual = computed(() => {
   try {
     const usuario = localStorage.getItem('user')
@@ -135,7 +161,7 @@ const rolActual = computed(() => {
   return String(rawRol).trim().toLowerCase()
 })
 
-const rutasCajero = ['/caja', '/pos', '/productos', '/inventario']
+const rutasCajero = ['/pos', '/productos', '/inventario']
 
 const menuFiltrado = computed(() => {
   if (rolActual.value === 'cajero') {
@@ -147,6 +173,23 @@ const menuFiltrado = computed(() => {
       .filter(seccion => seccion.items.length > 0)
   }
   return menu
+})
+
+// Abre automáticamente la sección de la página actual
+watch(
+  () => route.path,
+  (ruta) => {
+    const seccion = menuFiltrado.value.find(s =>
+      s.items.some(item => ruta.startsWith(item.route))
+    )
+    if (seccion) seccionesAbiertas.value[seccion.titulo] = true
+  },
+  { immediate: true }
+)
+
+// Ruta a la que va el logo: el cajero no tiene dashboard, va al punto de venta
+const rutaInicio = computed(() => {
+  return rolActual.value === 'cajero' ? '/pos' : '/dashboard'
 })
 
 const cerrarSesion = async () => {

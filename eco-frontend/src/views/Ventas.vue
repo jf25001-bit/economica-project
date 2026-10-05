@@ -31,6 +31,7 @@
             <tr class="bg-slate-100/80 text-[11px] font-black uppercase tracking-wider text-slate-500">
               <th class="px-6 py-3.5 border-b border-slate-200">Factura</th>
               <th class="px-6 py-3.5 border-b border-slate-200">Cliente</th>
+              <th class="px-6 py-3.5 border-b border-slate-200">Vendedor</th>
               <th class="px-6 py-3.5 border-b border-slate-200">Fecha</th>
               <th class="px-6 py-3.5 border-b border-slate-200">Recibido</th>
               <th class="px-6 py-3.5 border-b border-slate-200">Vuelto</th>
@@ -50,6 +51,9 @@
               </td>
               <td class="px-6 py-4 font-bold text-slate-800 border-b border-slate-100">
                 {{ venta.cliente }}
+              </td>
+              <td class="px-6 py-4 font-medium text-slate-700 border-b border-slate-100">
+                {{ nombreVendedor(venta) }}
               </td>
               <td class="px-6 py-4 font-medium text-slate-500 border-b border-slate-100">
                 {{ formatearFecha(venta.fecha_venta || venta.created_at) }}
@@ -77,7 +81,7 @@
             </tr>
 
             <tr v-if="ventas.length === 0">
-              <td colspan="7" class="text-center py-12 text-slate-400 font-medium italic border-b border-slate-100">
+              <td colspan="8" class="text-center py-12 text-slate-400 font-medium italic border-b border-slate-100">
                 <i class="bi bi-receipt text-3xl block mb-2 text-slate-300"></i>
                 No hay ventas registradas.
               </td>
@@ -136,11 +140,17 @@
         </div>
 
         <div class="p-6 space-y-4">
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
             <div>
               <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Cliente</span>
-              <span class="text-sm font-bold text-slate-800 block mt-0.5">
+              <span class="text-sm font-bold text-slate-800 block mt-0.5 truncate">
                 {{ ventaSeleccionada?.cliente || 'Consumidor Final' }}
+              </span>
+            </div>
+            <div>
+              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Vendedor</span>
+              <span class="text-sm font-bold text-slate-800 block mt-0.5 truncate">
+                {{ ventaSeleccionada ? nombreVendedor(ventaSeleccionada) : '' }}
               </span>
             </div>
             <div>
@@ -273,6 +283,13 @@ const formatearFecha = (fechaRaw) => {
   if (!fechaRaw) return 'N/A'
   const objFecha = new Date(fechaRaw)
   return isNaN(objFecha.getTime()) ? fechaRaw : objFecha.toLocaleDateString()
+}
+
+// Nombre del usuario que emitió la venta
+const nombreVendedor = (venta) => {
+  const u = venta?.usuario
+  if (!u) return 'Sin registro'
+  return u.nombre || u.name || u.username || `Usuario #${venta.user_id}`
 }
 
 const verDetalleVenta = (venta) => {

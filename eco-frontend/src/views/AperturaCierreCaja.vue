@@ -14,7 +14,7 @@
       </div>
     </div>
 
-    <!-- Banner Alerta Caja Cerrada (Mismo fondo #0f172a que las demás tarjetas) -->
+    <!-- Banner Alerta Caja Cerrada -->
     <div 
       v-if="!cargandoEstado && !cajaAbierta" 
       class="bg-[#0f172a] border border-amber-500/40 rounded-2xl p-4 flex items-center gap-4 text-amber-400 shadow-md"
@@ -105,7 +105,7 @@
               <label class="block text-slate-400 text-[11px] font-black uppercase tracking-wider mb-2">TURNO LABORAL</label>
               <div class="relative">
                 <select v-model="formApertura.turno" class="w-full p-3.5 pr-10 bg-slate-900/90 border border-slate-800 rounded-xl text-xs font-bold text-white focus:outline-none focus:border-sky-500 appearance-none cursor-pointer">
-                  <option value="Turno Único">Turno Único</option>
+                  <option value="Jornada completa">Jornada completa</option>
                   <option value="Turno Mañana">Turno Mañana</option>
                   <option value="Turno Tarde">Turno Tarde</option>
                 </select>
@@ -230,7 +230,7 @@ const procesando = ref(false)
 const formApertura = ref({
   monto_apertura: 0,
   caja_id: '1',
-  turno: 'Turno Único'
+  turno: 'Jornada completa'
 })
 
 const formCierre = ref({
@@ -289,7 +289,6 @@ const consultarEstado = async () => {
         formApertura.value.monto_apertura = parseFloat(data.monto_anterior)
       }
 
-      // Alerta emergente SweetAlert2
       Swal.fire({
         title: '¡Caja Cerrada!',
         text: 'Debes aperturar un turno de caja para habilitar las operaciones en el sistema.',
@@ -310,6 +309,7 @@ const consultarEstado = async () => {
 const ejecutarApertura = async () => {
   procesando.value = true
   try {
+    // 1. Verificar si existen cajas activas en el sistema
     const activas = await cajaService.obtenerCajasActivasGlobales()
 
     if (activas && activas.length > 0) {
@@ -328,20 +328,27 @@ const ejecutarApertura = async () => {
       return
     }
 
-    let userId = 1
-    const userStr = localStorage.getItem('user') || localStorage.getItem('usuario')
-    if (userStr) {
-      try {
-        const parsed = JSON.parse(userStr)
-        if (parsed && parsed.id) userId = parsed.id
-      } catch (err) {
-        console.warn("No se pudo parsear el usuario en storage", err)
+    // 2. Extraer el ID real del usuario desde localStorage dinámicamente
+    let userId = null
+    const posiblesKeys = ['user', 'usuario', 'authUser', 'auth']
+
+    for (const key of posiblesKeys) {
+      const item = localStorage.getItem(key)
+      if (item) {
+        try {
+          const parsed = JSON.parse(item)
+          userId = parsed.id || parsed.user?.id || parsed.usuario?.id
+          if (userId) break
+        } catch (err) {
+          console.warn(`No se pudo parsear la key "${key}" de localStorage`, err)
+        }
       }
     }
 
+    // 3. Formar payload dinámico (solo incluye user_id si se detectó)
     const datosEnvio = {
       ...formApertura.value,
-      user_id: userId
+      ...(userId ? { user_id: userId } : {})
     }
 
     await cajaService.abrirCaja(datosEnvio)

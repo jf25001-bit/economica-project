@@ -99,14 +99,17 @@
         </div>
 
         <div v-else class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-300">
+          <table class="w-full text-left text-xs text-slate-300 min-w-[1000px]">
             <thead class="bg-slate-900 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
               <tr>
                 <th class="p-3">ID Caja / Usuario</th>
                 <th class="p-3">Apertura</th>
                 <th class="p-3">Cierre</th>
                 <th class="p-3">Monto Inicial</th>
+                <th class="p-3">Ventas</th>
+                <th class="p-3">Esperado</th>
                 <th class="p-3">Monto Final</th>
+                <th class="p-3">Diferencia</th>
                 <th class="p-3">Estado / Tipo</th>
               </tr>
             </thead>
@@ -116,7 +119,22 @@
                 <td class="p-3 text-slate-400">{{ item.fecha_apertura }}</td>
                 <td class="p-3 text-slate-400">{{ item.fecha_cierre || 'En curso' }}</td>
                 <td class="p-3 font-semibold text-slate-200">${{ Number(item.monto_apertura || 0).toFixed(2) }}</td>
-                <td class="p-3 font-bold text-emerald-400">${{ Number(item.monto_cierre || 0).toFixed(2) }}</td>
+                <td class="p-3 font-semibold text-slate-200">${{ Number(item.total_ventas || 0).toFixed(2) }}</td>
+                <td class="p-3 font-semibold text-sky-300">${{ montoEsperado(item).toFixed(2) }}</td>
+                <td class="p-3 font-bold text-emerald-400">
+                  <span v-if="item.estado === 'cerrada'">${{ Number(item.monto_cierre || 0).toFixed(2) }}</span>
+                  <span v-else class="text-slate-500">-</span>
+                </td>
+                <td class="p-3 font-bold">
+                  <span v-if="item.estado !== 'cerrada'" class="text-slate-500">-</span>
+                  <span v-else-if="diferencia(item) === 0" class="text-slate-300">$0.00</span>
+                  <span v-else-if="diferencia(item) > 0" class="text-emerald-400">
+                    +${{ diferencia(item).toFixed(2) }} (sobrante)
+                  </span>
+                  <span v-else class="text-rose-400">
+                    -${{ Math.abs(diferencia(item)).toFixed(2) }} (faltante)
+                  </span>
+                </td>
                 <td class="p-3">
                   <!-- Validación ampliada para cierre forzado -->
                   <div v-if="item.cerrado_por_id || (item.observacion && (item.observacion.includes('Forzado') || item.observacion.includes('forzado') || item.observacion.includes('Admin')))" class="space-y-1">
@@ -157,6 +175,16 @@ const historial = ref([])
 
 const nombreUsuario = (item) => {
   return item.usuario?.nombre || item.usuario?.name || `Usuario #${item.user_id}`
+}
+
+// Monto que debería haber en caja: apertura + ventas
+const montoEsperado = (item) => {
+  return Number(item.monto_apertura || 0) + Number(item.total_ventas || 0)
+}
+
+// Diferencia entre lo contado al cierre y lo esperado
+const diferencia = (item) => {
+  return Number((Number(item.monto_cierre || 0) - montoEsperado(item)).toFixed(2))
 }
 
 const cargarCajasActivas = async () => {
