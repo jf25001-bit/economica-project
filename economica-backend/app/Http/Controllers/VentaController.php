@@ -49,7 +49,7 @@ class VentaController extends Controller
 
             $venta = Venta::create([
                 'user_id' => $userId ?? $request->user()?->id,
-                'fecha_venta' => $request->fecha_venta ?? now()->toDateString(),
+                'fecha_venta' => $request->fecha_venta ? \Carbon\Carbon::parse($request->fecha_venta)->setTimeFrom(now()) : now(),
                 'cliente' => $request->input('cliente', 'Consumidor Final'),
                 'total' => 0,
                 'dinero_recibido' => $request->dinero_recibido,

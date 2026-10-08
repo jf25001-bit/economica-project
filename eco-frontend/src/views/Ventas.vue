@@ -26,13 +26,14 @@
       </div>
 
       <div class="overflow-x-auto w-full">
-        <table class="w-full text-left border-separate border-spacing-0 min-w-[750px]">
+        <table class="w-full text-left border-separate border-spacing-0 min-w-[850px]">
           <thead>
             <tr class="bg-slate-100/80 text-[11px] font-black uppercase tracking-wider text-slate-500">
               <th class="px-6 py-3.5 border-b border-slate-200">Factura</th>
-              <th class="px-6 py-3.5 border-b border-slate-200">Cliente</th>
+              <th class="px-6 py-3.5 border-b border-slate-200 min-w-[180px]">Cliente</th>
               <th class="px-6 py-3.5 border-b border-slate-200">Vendedor</th>
               <th class="px-6 py-3.5 border-b border-slate-200">Fecha</th>
+              <th class="px-6 py-3.5 border-b border-slate-200">Hora</th>
               <th class="px-6 py-3.5 border-b border-slate-200">Recibido</th>
               <th class="px-6 py-3.5 border-b border-slate-200">Vuelto</th>
               <th class="px-6 py-3.5 border-b border-slate-200">Total</th>
@@ -49,14 +50,23 @@
               <td class="px-6 py-4 font-mono text-xs font-bold text-slate-700 border-b border-slate-100">
                 {{ venta.factura || `#${venta.id}` }}
               </td>
-              <td class="px-6 py-4 font-bold text-slate-800 border-b border-slate-100">
+              <td 
+                class="px-6 py-4 font-bold text-slate-800 border-b border-slate-100 max-w-[220px] break-words"
+                :title="venta.cliente"
+              >
                 {{ venta.cliente }}
               </td>
-              <td class="px-6 py-4 font-medium text-slate-700 border-b border-slate-100">
+              <td 
+                class="px-6 py-4 font-medium text-slate-700 border-b border-slate-100 max-w-[160px] break-words"
+                :title="nombreVendedor(venta)"
+              >
                 {{ nombreVendedor(venta) }}
               </td>
-              <td class="px-6 py-4 font-medium text-slate-500 border-b border-slate-100">
-                {{ formatearFecha(venta.fecha_venta || venta.created_at) }}
+              <td class="px-6 py-4 font-medium text-slate-500 border-b border-slate-100 whitespace-nowrap">
+                {{ formatearFechaSolo(venta.fecha_venta || venta.created_at) }}
+              </td>
+              <td class="px-6 py-4 font-medium text-slate-500 border-b border-slate-100 whitespace-nowrap">
+                {{ formatearHoraSolo(venta.fecha_venta || venta.created_at) }}
               </td>
               <td class="px-6 py-4 font-bold text-slate-600 border-b border-slate-100">
                 ${{ Number(venta.dinero_recibido || 0).toFixed(2) }}
@@ -81,7 +91,7 @@
             </tr>
 
             <tr v-if="ventas.length === 0">
-              <td colspan="8" class="text-center py-12 text-slate-400 font-medium italic border-b border-slate-100">
+              <td colspan="9" class="text-center py-12 text-slate-400 font-medium italic border-b border-slate-100">
                 <i class="bi bi-receipt text-3xl block mb-2 text-slate-300"></i>
                 No hay ventas registradas.
               </td>
@@ -113,12 +123,13 @@
       </div>
     </div>
 
+    <!-- Modal de Detalle de Venta Ampliado -->
     <div
       v-if="mostrarModalDetalle"
       class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto"
       @click.self="cerrarModal"
     >
-      <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-3xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-5xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center text-sky-400">
@@ -139,37 +150,50 @@
           </button>
         </div>
 
-        <div class="p-6 space-y-4">
-          <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
-            <div>
-              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Cliente</span>
-              <span class="text-sm font-bold text-slate-800 block mt-0.5 truncate">
-                {{ ventaSeleccionada?.cliente || 'Consumidor Final' }}
-              </span>
+        <div class="p-6 space-y-5">
+          <!-- Sección de Cliente y Vendedor destacados juntos en la parte superior -->
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-slate-200/80 pb-3">
+              <div>
+                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Cliente</span>
+                <span class="text-base font-extrabold text-slate-800 block mt-0.5 break-words">
+                  {{ ventaSeleccionada?.cliente || 'Consumidor Final' }}
+                </span>
+              </div>
+              <div>
+                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Vendedor</span>
+                <span class="text-base font-extrabold text-slate-800 block mt-0.5 break-words">
+                  {{ ventaSeleccionada ? nombreVendedor(ventaSeleccionada) : '' }}
+                </span>
+              </div>
             </div>
-            <div>
-              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Vendedor</span>
-              <span class="text-sm font-bold text-slate-800 block mt-0.5 truncate">
-                {{ ventaSeleccionada ? nombreVendedor(ventaSeleccionada) : '' }}
-              </span>
-            </div>
-            <div>
-              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Fecha</span>
-              <span class="text-sm font-bold text-slate-800 block mt-0.5">
-                {{ formatearFecha(ventaSeleccionada?.fecha_venta || ventaSeleccionada?.created_at) }}
-              </span>
-            </div>
-            <div>
-              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Dinero Recibido</span>
-              <span class="text-sm font-bold text-slate-800 block mt-0.5">
-                ${{ Number(ventaSeleccionada?.dinero_recibido || 0).toFixed(2) }}
-              </span>
-            </div>
-            <div>
-              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Vuelto</span>
-              <span class="text-sm font-bold text-slate-800 block mt-0.5">
-                ${{ Number(ventaSeleccionada?.vuelto || 0).toFixed(2) }}
-              </span>
+
+            <!-- Datos secundarios en la fila inferior -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-1">
+              <div>
+                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Fecha</span>
+                <span class="text-sm font-bold text-slate-700 block mt-0.5">
+                  {{ formatearFechaSolo(ventaSeleccionada?.fecha_venta || ventaSeleccionada?.created_at) }}
+                </span>
+              </div>
+              <div>
+                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Hora</span>
+                <span class="text-sm font-bold text-slate-700 block mt-0.5">
+                  {{ formatearHoraSolo(ventaSeleccionada?.fecha_venta || ventaSeleccionada?.created_at) }}
+                </span>
+              </div>
+              <div>
+                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Dinero Recibido</span>
+                <span class="text-sm font-bold text-slate-700 block mt-0.5">
+                  ${{ Number(ventaSeleccionada?.dinero_recibido || 0).toFixed(2) }}
+                </span>
+              </div>
+              <div>
+                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Vuelto</span>
+                <span class="text-sm font-bold text-slate-700 block mt-0.5">
+                  ${{ Number(ventaSeleccionada?.vuelto || 0).toFixed(2) }}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -177,7 +201,7 @@
             <h4 class="text-xs font-black uppercase tracking-wider text-slate-500 mb-2">
               Productos Comprados
             </h4>
-            <div class="border border-slate-200 rounded-xl overflow-y-auto max-h-60">
+            <div class="border border-slate-200 rounded-xl overflow-y-auto max-h-72">
               <table class="w-full text-left border-collapse text-xs">
                 <thead class="sticky top-0 bg-slate-100 border-b border-slate-200 z-10">
                   <tr class="text-[10px] font-black uppercase tracking-wider text-slate-500">
@@ -187,22 +211,22 @@
                     <th class="px-4 py-2.5 text-right">Subtotal</th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
+                <tbody class="divide-y divide-slate-100 text-sm">
                   <tr
                     v-for="det in ventaSeleccionada?.detalles"
                     :key="det.id"
                     class="hover:bg-slate-50/50"
                   >
-                    <td class="px-4 py-2.5 font-bold text-slate-800">
+                    <td class="px-4 py-3 font-bold text-slate-800">
                       {{ det.producto?.nombre || 'Producto Desconocido' }}
                     </td>
-                    <td class="px-4 py-2.5 text-center font-bold text-slate-600">
+                    <td class="px-4 py-3 text-center font-bold text-slate-600">
                       {{ det.cantidad }}
                     </td>
-                    <td class="px-4 py-2.5 text-right font-medium text-slate-600">
+                    <td class="px-4 py-3 text-right font-medium text-slate-600">
                       ${{ Number(det.precio_unitario).toFixed(2) }}
                     </td>
-                    <td class="px-4 py-2.5 text-right font-bold text-slate-900">
+                    <td class="px-4 py-3 text-right font-bold text-slate-900">
                       ${{ Number(det.subtotal).toFixed(2) }}
                     </td>
                   </tr>
@@ -218,7 +242,7 @@
 
           <div class="flex justify-between items-center pt-2 border-t border-slate-100">
             <span class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Total de la Venta</span>
-            <span class="text-xl font-black text-slate-900">
+            <span class="text-2xl font-black text-slate-900">
               ${{ Number(ventaSeleccionada?.total || 0).toFixed(2) }}
             </span>
           </div>
@@ -227,7 +251,7 @@
         <div class="px-6 py-3 bg-slate-50 border-t border-slate-100 flex justify-end">
           <button
             @click="cerrarModal"
-            class="px-4 py-2 bg-slate-200 hover:bg-slate-300 active:bg-slate-400 text-slate-700 font-bold text-xs rounded-xl transition cursor-pointer border-0"
+            class="px-5 py-2 bg-slate-200 hover:bg-slate-300 active:bg-slate-400 text-slate-700 font-bold text-xs rounded-xl transition cursor-pointer border-0"
           >
             Cerrar
           </button>
@@ -279,10 +303,21 @@ const consultarVentas = async () => {
   }
 }
 
-const formatearFecha = (fechaRaw) => {
+const formatearFechaSolo = (fechaRaw) => {
   if (!fechaRaw) return 'N/A'
   const objFecha = new Date(fechaRaw)
   return isNaN(objFecha.getTime()) ? fechaRaw : objFecha.toLocaleDateString()
+}
+
+const formatearHoraSolo = (fechaRaw) => {
+  if (!fechaRaw) return 'N/A'
+  const objFecha = new Date(fechaRaw)
+  if (isNaN(objFecha.getTime())) return 'N/A'
+  return objFecha.toLocaleTimeString('es-ES', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  })
 }
 
 // Nombre del usuario que emitió la venta

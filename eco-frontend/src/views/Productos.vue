@@ -7,7 +7,7 @@
         <div class="search-wrapper relative flex items-center w-full sm:max-w-md">
           <i class="bi bi-search search-icon absolute left-4 text-gray-400"></i>
           <input
-            v-model="buscar"  
+            v-model="buscar"
             type="text"
             placeholder="Buscar producto por nombre o SKU..."
             class="search-input-field w-full pl-12 pr-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm bg-gray-50/50 box-border"
@@ -72,7 +72,7 @@
         <div class="table-card-wrapper border border-gray-100 rounded-2xl overflow-hidden w-full">
           <div class="overflow-x-auto w-full">
             <table class="w-full min-w-[980px] text-left border-collapse">
-  
+
               <thead class="bg-[#f8fafc] border-b border-gray-100">
                 <tr class="text-[#64748b] text-[11px] font-bold uppercase tracking-wider">
                   <th class="px-4 py-3.5 whitespace-nowrap w-28">SKU / CÓDIGO</th>
@@ -284,7 +284,12 @@
           </button>
         </div>
 
-        <form @submit.prevent="guardarProducto" class="p-5 flex flex-col gap-3.5 max-h-[80vh] overflow-y-auto text-xs w-full box-border">
+        <form
+          novalidate
+          @submit.prevent="guardarProducto"
+          @keydown.enter="manejarEnter"
+          class="p-5 flex flex-col gap-3.5 max-h-[80vh] overflow-y-auto text-xs w-full box-border"
+        >
 
           <div>
             <label class="block font-semibold text-gray-700 mb-1">Imagen del Producto</label>
@@ -321,21 +326,27 @@
             <input
               type="text"
               v-model="nuevoProducto.nombre"
-              required
+              @input="errores.nombre = ''"
+              maxlength="100"
               placeholder="Ej. MacBook Pro M3"
               class="w-full h-9 px-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none box-border"
             />
+            <p v-if="errores.nombre" class="text-red-500 text-[11px] font-semibold mt-1">{{ errores.nombre }}</p>
           </div>
 
           <div class="w-full min-w-0">
             <label class="block font-semibold text-gray-700 mb-1">Código de Barras / SKU</label>
             <input
               type="text"
+              inputmode="numeric"
+              maxlength="50"
               v-model="nuevoProducto.codigo_barras"
-              required
+              @input="soloNumeros('codigo_barras')"
+              @focus="$event.target.select()"
               placeholder="Ej. 7501055300075"
               class="w-full h-9 px-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none box-border"
             />
+            <p v-if="errores.codigo_barras" class="text-red-500 text-[11px] font-semibold mt-1">{{ errores.codigo_barras }}</p>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
@@ -350,6 +361,7 @@
                 <span class="truncate">{{ nombreSubcategoriaSeleccionada || 'Seleccionar...' }}</span>
                 <i class="bi bi-search text-gray-400 ml-1 shrink-0"></i>
               </button>
+              <p v-if="errores.categoria" class="text-red-500 text-[11px] font-semibold mt-1">{{ errores.categoria }}</p>
             </div>
 
             <div class="min-w-0 w-full">
@@ -362,20 +374,42 @@
                 <span class="truncate">{{ nombreUnidadMedidaSeleccionada || 'Seleccionar...' }}</span>
                 <i class="bi bi-search text-gray-400 ml-1 shrink-0"></i>
               </button>
+              <p v-if="errores.unidad" class="text-red-500 text-[11px] font-semibold mt-1">{{ errores.unidad }}</p>
             </div>
 
           </div>
 
-          <div class="w-full min-w-0">
-            <label class="block font-semibold text-gray-700 mb-1">Precio Venta ($)</label>
-            <input
-              type="number"
-              step="0.01"
-              v-model="nuevoProducto.precio_venta"
-              required
-              placeholder="0.00"
-              class="w-full h-9 px-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none box-border"
-            />
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+
+            <div class="min-w-0 w-full">
+              <label class="block font-semibold text-gray-700 mb-1">Precio Venta ($)</label>
+              <input
+                type="text"
+                inputmode="decimal"
+                maxlength="10"
+                v-model="nuevoProducto.precio_venta"
+                @input="soloDecimal('precio_venta')"
+                placeholder="0.00"
+                class="w-full h-9 px-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none box-border"
+              />
+              <p v-if="errores.precio_venta" class="text-red-500 text-[11px] font-semibold mt-1">{{ errores.precio_venta }}</p>
+            </div>
+
+            <div class="min-w-0 w-full">
+              <label class="block font-semibold text-gray-700 mb-1">Stock Mínimo</label>
+              <input
+                type="text"
+                inputmode="numeric"
+                maxlength="6"
+                v-model="nuevoProducto.stock_minimo"
+                @input="soloNumeros('stock_minimo')"
+                placeholder="5"
+                class="w-full h-9 px-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none box-border"
+              />
+              <p v-if="errores.stock_minimo" class="text-red-500 text-[11px] font-semibold mt-1">{{ errores.stock_minimo }}</p>
+              <p v-else class="text-gray-400 text-[10px] mt-1">Avisa de bajo stock al llegar a este valor</p>
+            </div>
+
           </div>
 
           <div class="flex justify-end gap-2 mt-2 pt-3 border-t border-gray-100 shrink-0">
@@ -564,6 +598,7 @@ const mostrarModal = ref(false)
 const esEditando = ref(false)
 const productoIdSeleccionado = ref(null)
 const guardando = ref(false)
+const errores = ref({})
 
 const fileInput = ref(null)
 const imagenSeleccionada = ref(null)
@@ -589,12 +624,59 @@ const modeloProductoLimpio = () => ({
   unidad_medida_id: '',
   stock: 0,
   stock_minimo: 5,
-  precio_venta: 0
+  precio_venta: ''
 })
 
 const nuevoProducto = ref(modeloProductoLimpio())
 
-const bajoStock = (p) => Number(p.stock) <= (Number(p.stock_minimo) || 5)
+const minimoDe = (p) =>
+  p.stock_minimo === null || p.stock_minimo === undefined || p.stock_minimo === ''
+    ? 5
+    : Number(p.stock_minimo)
+
+const bajoStock = (p) => Number(p.stock) <= minimoDe(p)
+
+const soloNumeros = (campo) => {
+  nuevoProducto.value[campo] = String(nuevoProducto.value[campo] ?? '').replace(/\D/g, '')
+  errores.value[campo] = ''
+}
+
+const soloDecimal = (campo) => {
+  const limpio = String(nuevoProducto.value[campo] ?? '').replace(/[^\d.]/g, '')
+  const [entero, ...decimales] = limpio.split('.')
+  nuevoProducto.value[campo] = decimales.length
+    ? `${entero}.${decimales.join('').slice(0, 2)}`
+    : entero
+  errores.value[campo] = ''
+}
+
+const validarFormulario = () => {
+  const p = nuevoProducto.value
+  const e = {}
+
+  if (!String(p.nombre).trim()) e.nombre = 'El nombre es obligatorio'
+
+  if (!p.codigo_barras) e.codigo_barras = 'El código de barras es obligatorio'
+  else if (!/^\d+$/.test(p.codigo_barras)) e.codigo_barras = 'Solo se permiten números'
+
+  if (!p.sub_categoria_id && !p.categoria_id) e.categoria = 'Selecciona una categoría'
+  if (!p.unidad_medida_id) e.unidad = 'Selecciona una unidad de medida'
+
+  if (!/^\d+(\.\d{1,2})?$/.test(String(p.precio_venta))) e.precio_venta = 'Precio inválido (máximo 2 decimales)'
+  else if (Number(p.precio_venta) <= 0) e.precio_venta = 'El precio debe ser mayor a 0'
+
+  if (!/^\d+$/.test(String(p.stock_minimo))) e.stock_minimo = 'Ingresa un número entero'
+
+  errores.value = e
+  return Object.keys(e).length === 0
+}
+
+const manejarEnter = (e) => {
+  if (e.target.tagName !== 'INPUT') return
+  e.preventDefault()
+  const campos = [...e.currentTarget.querySelectorAll('input:not([type="file"])')]
+  campos[campos.indexOf(e.target) + 1]?.focus()
+}
 
 const productosFiltrados = computed(() => {
   let resultado = [...productos.value]
@@ -777,6 +859,7 @@ const seleccionarCategoriaBuscador = (categoria) => {
   nuevoProducto.value.categoria_id = categoria.id
   nuevoProducto.value.sub_categoria_id = ''
   nombreSubcategoriaSeleccionada.value = categoria.nombre
+  errores.value.categoria = ''
   cerrarBuscador()
 }
 
@@ -787,9 +870,11 @@ const seleccionarItemBuscador = (item) => {
     nuevoProducto.value.categoria_id = item.categoria_id || item.categoria?.id || ''
     nuevoProducto.value.sub_categoria_id = item.id
     nombreSubcategoriaSeleccionada.value = item.nombre
+    errores.value.categoria = ''
   } else if (tipoBuscador.value === 'unidad_medida') {
     nuevoProducto.value.unidad_medida_id = item.id
     nombreUnidadMedidaSeleccionada.value = item.nombre
+    errores.value.unidad = ''
   }
 
   cerrarBuscador()
@@ -822,20 +907,20 @@ const guardarProducto = async () => {
   }
 
   if (guardando.value) return
-
-  if (
-    (!nuevoProducto.value.sub_categoria_id && !nuevoProducto.value.categoria_id) ||
-    !nuevoProducto.value.unidad_medida_id
-  ) {
-    alert('Por favor selecciona Categoría y Unidad de Medida válidos.')
-    return
-  }
+  if (!validarFormulario()) return
 
   guardando.value = true
 
   try {
+    const datos = {
+      ...nuevoProducto.value,
+      nombre: String(nuevoProducto.value.nombre).trim(),
+      precio_venta: Number(nuevoProducto.value.precio_venta),
+      stock_minimo: Number(nuevoProducto.value.stock_minimo)
+    }
+
     const res = await guardarProductoAPI(
-      nuevoProducto.value,
+      datos,
       esEditando.value ? productoIdSeleccionado.value : null
     )
 
@@ -856,7 +941,7 @@ const guardarProducto = async () => {
     await cargarProductos()
   } catch (error) {
     console.error('Error al guardar:', error)
-    alert('Ocurrió un error al procesar la solicitud.')
+    alert(error.response?.data?.message || 'Ocurrió un error al procesar la solicitud.')
   } finally {
     guardando.value = false
   }
@@ -902,6 +987,7 @@ const restaurarBorrador = () => {
     nombreSubcategoriaSeleccionada.value = borrador.nombreSubcategoria || ''
     nombreUnidadMedidaSeleccionada.value = borrador.nombreUnidadMedida || ''
     esEditando.value = false
+    errores.value = {}
     mostrarModal.value = true
     return true
   } catch (error) {
@@ -911,6 +997,7 @@ const restaurarBorrador = () => {
     sessionStorage.removeItem(CLAVE_BORRADOR)
   }
 }
+
 let cargaAuxiliares = null
 
 const irACategorias = () => {
@@ -937,6 +1024,7 @@ const abrirModalForm = async () => {
   }
 
   esEditando.value = false
+  errores.value = {}
   nombreSubcategoriaSeleccionada.value = ''
   nombreUnidadMedidaSeleccionada.value = ''
   removerImagen()
@@ -948,6 +1036,7 @@ const cerrarModal = () => {
   mostrarModal.value = false
   esEditando.value = false
   productoIdSeleccionado.value = null
+  errores.value = {}
   nombreSubcategoriaSeleccionada.value = ''
   nombreUnidadMedidaSeleccionada.value = ''
   removerImagen()
@@ -959,6 +1048,7 @@ const editarProducto = (producto) => {
 
   esEditando.value = true
   productoIdSeleccionado.value = producto.id
+  errores.value = {}
 
   nombreSubcategoriaSeleccionada.value =
     producto.subcategoria?.nombre ||
@@ -969,14 +1059,14 @@ const editarProducto = (producto) => {
     (producto.unidad_medida_id ? 'ID: ' + producto.unidad_medida_id : '')
 
   nuevoProducto.value = {
-    codigo_barras: producto.codigo_barras || '',
+    codigo_barras: String(producto.codigo_barras ?? ''),
     nombre: producto.nombre || '',
     categoria_id: producto.subcategoria?.categoria?.id || producto.categoria_id || '',
     sub_categoria_id: producto.sub_categoria_id || '',
     unidad_medida_id: producto.unidad_medida_id || '',
     stock: producto.stock || 0,
-    stock_minimo: producto.stock_minimo || 5,
-    precio_venta: producto.precio_venta || 0
+    stock_minimo: String(minimoDe(producto)),
+    precio_venta: producto.precio_venta != null ? Number(producto.precio_venta).toFixed(2) : ''
   }
 
   imagenPreview.value = producto.imagenes && producto.imagenes.length

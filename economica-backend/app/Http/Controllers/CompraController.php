@@ -47,7 +47,7 @@ class CompraController extends Controller
         DB::beginTransaction();
         try {
             $compra = Compra::create([
-                'fecha_compra' => $request->fecha_compra ?? now(),
+                'fecha_compra' => $request->fecha_compra ? \Carbon\Carbon::parse($request->fecha_compra)->setTimeFrom(now()) : now(),
                 'total' => 0
             ]);
 

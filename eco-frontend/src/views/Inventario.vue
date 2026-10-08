@@ -1,7 +1,6 @@
 <template>
   <div class="p-4 sm:p-6 w-full max-w-full overflow-x-hidden box-border">
-    
-    <!-- Encabezado -->
+
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
       <div>
         <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">Inventario</h1>
@@ -17,11 +16,9 @@
       </button>
     </div>
 
-    <!-- Buscador -->
     <div class="bg-white rounded-2xl shadow-md p-4 mb-6 w-full box-border">
       <div class="relative w-full">
         <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-
         <input
           v-model="busqueda"
           type="text"
@@ -31,7 +28,6 @@
       </div>
     </div>
 
-    <!-- Tabla principal -->
     <div class="bg-white rounded-2xl shadow-md overflow-hidden w-full max-w-full border border-gray-100">
       <div class="overflow-x-auto w-full">
         <table class="w-full min-w-[700px] table-fixed">
@@ -49,105 +45,54 @@
           </thead>
 
           <tbody class="divide-y divide-gray-100">
-            <template
-              v-for="item in inventarioFiltrado"
-              :key="item.id"
-            >
-              <tr class="hover:bg-gray-50/80 transition-colors">
-                <td class="px-4 py-3 sm:px-6 sm:py-4 font-mono text-xs sm:text-sm text-gray-600 truncate">{{ item.codigo }}</td>
-                <td class="px-4 py-3 sm:px-6 sm:py-4 font-medium text-gray-800 break-words text-sm">{{ item.nombre }}</td>
-                <td class="px-4 py-3 sm:px-6 sm:py-4 text-gray-600 break-words text-sm">{{ item.categoria }}</td>
-                <td class="px-4 py-3 sm:px-6 sm:py-4 font-semibold text-center whitespace-nowrap">{{ item.stock }}</td>
-                <td class="px-4 py-3 sm:px-6 sm:py-4 text-center whitespace-nowrap">
-                  <span class="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
-                    {{ item.lotes.length }}
-                  </span>
-                </td>
-                <td class="px-4 py-3 sm:px-6 sm:py-4 text-center whitespace-nowrap text-sm">
-  <div v-if="editandoId === item.id" class="flex items-center justify-center gap-1">
-    <input
-      v-model.number="minimoTemp"
-      type="number"
-      min="0"
-      class="w-16 rounded-lg border border-gray-300 px-2 py-1 text-center text-sm focus:outline-none focus:ring-2 focus:ring-[#5B80B0]"
-      @keyup.enter="guardarMinimo(item)"
-      @keyup.esc="cancelarEdicion"
-    />
-    <button
-      type="button"
-      class="text-green-600 hover:text-green-700 cursor-pointer"
-      :disabled="guardandoMinimo"
-      @click="guardarMinimo(item)"
-    >
-      <i class="bi bi-check-lg"></i>
-    </button>
-    <button
-      type="button"
-      class="text-gray-400 hover:text-gray-600 cursor-pointer"
-      @click="cancelarEdicion"
-    >
-      <i class="bi bi-x-lg"></i>
-    </button>
-  </div>
-
-  <div v-else class="flex items-center justify-center gap-2">
-    <span>{{ item.minimo }}</span>
-    <button
-      type="button"
-      class="text-gray-400 hover:text-[#5B80B0] cursor-pointer"
-      title="Editar stock mínimo"
-      @click="iniciarEdicion(item)"
-    >
-      <i class="bi bi-pencil-square"></i>
-    </button>
-  </div>
-</td>
-
-                <td class="px-4 py-3 sm:px-6 sm:py-4 text-center whitespace-nowrap">
-                  <span
-                    :class="[
-                      'px-2.5 py-1 rounded-full text-xs font-medium inline-block',
-                      item.stock > item.minimo
-                        ? 'bg-[#5B80B0]/10 text-[#5B80B0]'
-                        : 'bg-amber-100 text-amber-700'
-                    ]"
-                  >
-                    {{ item.stock > item.minimo ? 'Disponible' : 'Stock Bajo' }}
-                  </span>
-                </td>
-
-                <td class="px-4 py-3 sm:px-6 sm:py-4 text-right whitespace-nowrap">
-                  <button
-                    type="button"
-                    class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-600 transition hover:bg-gray-100 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-                    :disabled="item.lotes.length === 0"
-                    @click="abrirDetalleLotes(item)"
-                  >
-                    <i class="bi bi-eye"></i>
-                    Ver lotes
-                  </button>
-                </td>
-              </tr>
-            </template>
-
-            <!-- Estados -->
-            <tr v-if="cargando">
-              <td colspan="8" class="text-center py-10 text-gray-400 text-sm">
-                Cargando inventario...
+            <tr v-for="item in inventarioFiltrado" :key="item.id" class="hover:bg-gray-50/80 transition-colors">
+              <td class="px-4 py-3 sm:px-6 sm:py-4 font-mono text-xs sm:text-sm text-gray-600 truncate">{{ item.codigo }}</td>
+              <td class="px-4 py-3 sm:px-6 sm:py-4 font-medium text-gray-800 break-words text-sm">{{ item.nombre }}</td>
+              <td class="px-4 py-3 sm:px-6 sm:py-4 text-gray-600 break-words text-sm">{{ item.categoria }}</td>
+              <td class="px-4 py-3 sm:px-6 sm:py-4 font-semibold text-center whitespace-nowrap">{{ item.stock }}</td>
+              <td class="px-4 py-3 sm:px-6 sm:py-4 text-center whitespace-nowrap">
+                <span class="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
+                  {{ item.lotes.length }}
+                </span>
+              </td>
+              <td class="px-4 py-3 sm:px-6 sm:py-4 text-center whitespace-nowrap text-sm">{{ item.minimo }}</td>
+              <td class="px-4 py-3 sm:px-6 sm:py-4 text-center whitespace-nowrap">
+                <span
+                  :class="[
+                    'px-2.5 py-1 rounded-full text-xs font-medium inline-block',
+                    item.stock > item.minimo
+                      ? 'bg-[#5B80B0]/10 text-[#5B80B0]'
+                      : 'bg-amber-100 text-amber-700'
+                  ]"
+                >
+                  {{ item.stock > item.minimo ? 'Disponible' : 'Stock Bajo' }}
+                </span>
+              </td>
+              <td class="px-4 py-3 sm:px-6 sm:py-4 text-right whitespace-nowrap">
+                <button
+                  type="button"
+                  class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-600 transition hover:bg-gray-100 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                  :disabled="item.lotes.length === 0"
+                  @click="abrirDetalleLotes(item)"
+                >
+                  <i class="bi bi-eye"></i>
+                  Ver lotes
+                </button>
               </td>
             </tr>
 
+            <tr v-if="cargando">
+              <td colspan="8" class="text-center py-10 text-gray-400 text-sm">Cargando inventario...</td>
+            </tr>
+
             <tr v-else-if="inventarioFiltrado.length === 0">
-              <td colspan="8" class="text-center py-10 text-gray-400 italic text-sm">
-                No hay productos en inventario.
-              </td>
+              <td colspan="8" class="text-center py-10 text-gray-400 italic text-sm">No hay productos en inventario.</td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- Modal de Detalle de Lotes -->
     <div
       v-if="productoSeleccionado"
       class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto"
@@ -160,9 +105,7 @@
               <i class="bi bi-box-seam text-lg"></i>
             </div>
             <div class="min-w-0">
-              <h3 class="text-base font-bold text-white m-0 truncate">
-                Detalle de lotes
-              </h3>
+              <h3 class="text-base font-bold text-white m-0 truncate">Detalle de lotes</h3>
               <p class="text-[11px] text-slate-400 font-medium m-0 truncate">
                 {{ productoSeleccionado.nombre }} - {{ productoSeleccionado.codigo }}
               </p>
@@ -180,30 +123,22 @@
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
             <div>
               <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Producto</span>
-              <span class="text-sm font-bold text-slate-800 block mt-0.5 truncate">
-                {{ productoSeleccionado.nombre }}
-              </span>
+              <span class="text-sm font-bold text-slate-800 block mt-0.5 truncate">{{ productoSeleccionado.nombre }}</span>
             </div>
             <div>
               <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Categoría</span>
-              <span class="text-sm font-bold text-slate-800 block mt-0.5 truncate">
-                {{ productoSeleccionado.categoria }}
-              </span>
+              <span class="text-sm font-bold text-slate-800 block mt-0.5 truncate">{{ productoSeleccionado.categoria }}</span>
             </div>
             <div>
               <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Stock total</span>
-              <span class="text-sm font-black text-slate-900 block mt-0.5">
-                {{ productoSeleccionado.stock }}
-              </span>
+              <span class="text-sm font-black text-slate-900 block mt-0.5">{{ productoSeleccionado.stock }}</span>
             </div>
           </div>
 
           <div>
             <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2 mb-2">
               <div>
-                <h4 class="text-xs font-black uppercase tracking-wider text-slate-500 m-0">
-                  Lotes en existencia
-                </h4>
+                <h4 class="text-xs font-black uppercase tracking-wider text-slate-500 m-0">Lotes en existencia</h4>
                 <p class="text-[11px] text-slate-500 font-medium m-0 mt-1">
                   Salida FIFO: primero se descuenta el lote con vencimiento más cercano.
                 </p>
@@ -257,7 +192,6 @@
       </div>
     </div>
 
-    <!-- Error -->
     <div v-if="error" class="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
       {{ error }}
     </div>
@@ -275,44 +209,6 @@ const busqueda = ref('')
 const cargando = ref(false)
 const error = ref('')
 const productoSeleccionado = ref(null)
-const editandoId = ref(null)
-const minimoTemp = ref(0)
-const guardandoMinimo = ref(false)
-
-const iniciarEdicion = (item) => {
-  editandoId.value = item.id
-  minimoTemp.value = item.minimo
-}
-
-const cancelarEdicion = () => {
-  editandoId.value = null
-}
-
-const guardarMinimo = async (item) => {
-  const valor = Number(minimoTemp.value)
-
-  if (!Number.isInteger(valor) || valor < 0) {
-    error.value = 'El stock mínimo debe ser un número entero mayor o igual a 0.'
-    return
-  }
-
-  guardandoMinimo.value = true
-  error.value = ''
-
-  try {
-    await api.patch(`/productos/${item.id}/stock-minimo`, { stock_minimo: valor })
-
-    const producto = productos.value.find(p => p.id === item.id)
-    if (producto) producto.stock_minimo = valor
-
-    editandoId.value = null
-  } catch (err) {
-    console.error('Error actualizando stock mínimo:', err)
-    error.value = err.response?.data?.message || 'No se pudo actualizar el stock mínimo.'
-  } finally {
-    guardandoMinimo.value = false
-  }
-}
 
 const lotesPorProducto = computed(() => {
   return lotes.value.reduce((grupos, lote) => {
@@ -400,9 +296,7 @@ const formatearFecha = (fecha) => {
   if (!fecha) return 'Sin vencimiento'
 
   const fechaObj = new Date(`${fecha}T00:00:00`)
-  return isNaN(fechaObj.getTime())
-    ? fecha
-    : fechaObj.toLocaleDateString()
+  return isNaN(fechaObj.getTime()) ? fecha : fechaObj.toLocaleDateString()
 }
 
 const abrirDetalleLotes = (item) => {
