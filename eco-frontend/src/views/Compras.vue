@@ -1,23 +1,22 @@
 <template>
-  <div class="main-interface-container p-3 sm:p-5 lg:p-6 font-sans text-slate-800 bg-slate-100 min-h-screen w-full">
-    <div class="w-full max-w-5xl mx-auto space-y-4 sm:space-y-6">
+  <div class="main-interface-container p-4 lg:p-6 font-sans text-slate-800 bg-slate-100 min-h-screen">
+    <div class="w-full max-w-5xl mx-auto space-y-6">
 
-      <!-- NAVBAR SUPERIOR -->
-      <div class="top-strict-navbar flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white rounded-2xl shadow-sm border border-slate-200 p-4 gap-4">
+      <div class="top-strict-navbar flex items-center justify-between bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
         <div class="flex items-center gap-3">
-          <div class="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-slate-900 text-white shadow-sm shrink-0">
-            <i class="bi bi-cart-check-fill text-xl sm:text-2xl"></i>
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-white shadow-sm">
+            <i class="bi bi-cart-check-fill text-xl"></i>
           </div>
           <div>
-            <h1 class="text-lg sm:text-xl font-bold text-slate-900">Módulo de Compras</h1>
+            <h1 class="text-xl font-bold text-slate-900">Módulo de Compras</h1>
             <p class="text-xs text-slate-500">Control de entradas, recepción de órdenes e inventario</p>
           </div>
         </div>
 
-        <div class="top-right-actions w-full sm:w-auto flex items-center justify-end">
+        <div class="top-right-actions flex items-center gap-4">
           <button
             @click="iniciarNuevaCompra"
-            class="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl shadow-md transition font-semibold text-sm flex items-center justify-center gap-2 cursor-pointer active:bg-slate-950"
+            class="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl shadow-md transition font-semibold text-sm flex items-center gap-2 cursor-pointer active:bg-slate-950"
           >
             <i class="bi bi-plus-lg"></i>
             Nueva Compra
@@ -26,11 +25,11 @@
       </div>
 
       <div class="content-layout-flex flex flex-col xl:flex-row gap-5 items-start w-full">
-        <div class="left-content-panel w-full xl:flex-1 xl:min-w-0 bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 flex flex-col">
-          <div class="section-header-row flex justify-between items-center mb-4 sm:mb-6">
+        <div class="left-content-panel w-full xl:flex-1 xl:min-w-0 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 min-h-[calc(100vh-13rem)] flex flex-col">
+          <div class="section-header-row flex justify-between items-center mb-6">
             <div class="title-block">
-              <h2 class="text-lg sm:text-xl font-bold text-slate-900">Órdenes de Compra</h2>
-              <p class="text-xs sm:text-sm text-slate-500">Listado general ({{ compras.length }} registros)</p>
+              <h2 class="text-xl font-bold text-slate-900">Órdenes de Compra</h2>
+              <p class="text-sm text-slate-500">Listado general ({{ compras.length }} registros)</p>
             </div>
           </div>
 
@@ -39,18 +38,18 @@
               <table class="w-full text-left border-collapse">
                 <thead class="bg-slate-50 border-b border-slate-200">
                   <tr class="text-slate-500 text-xs font-semibold uppercase tracking-wider">
-                    <th class="px-4 sm:px-6 py-3.5">ID Orden</th>
-                    <th class="px-4 sm:px-6 py-3.5">Fecha</th>
-                    <th class="px-4 sm:px-6 py-3.5">Total ($)</th>
-                    <th class="px-4 sm:px-6 py-3.5 text-right">Acciones</th>
+                    <th class="px-6 py-4">ID Orden</th>
+                    <th class="px-6 py-4">Fecha</th>
+                    <th class="px-6 py-4">Total ($)</th>
+                    <th class="px-6 py-4 text-right">Acciones</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                   <tr v-for="c in comprasPaginadas" :key="c.id" class="hover:bg-slate-50/80 text-sm transition">
-                    <td class="px-4 sm:px-6 py-3.5 font-mono font-bold text-slate-900">#{{ c.id }}</td>
-                    <td class="px-4 sm:px-6 py-3.5 text-slate-500 text-xs">{{ c.fecha_compra ?? '—' }}</td>
-                    <td class="px-4 sm:px-6 py-3.5 font-bold text-slate-900">${{ Number(c.total ?? 0).toFixed(2) }}</td>
-                    <td class="px-4 sm:px-6 py-3.5 text-right">
+                    <td class="px-6 py-4 font-mono font-bold text-slate-900">#{{ c.id }}</td>
+                    <td class="px-6 py-4 text-slate-500 text-xs">{{ c.fecha_compra ?? '—' }}</td>
+                    <td class="px-6 py-4 font-bold text-slate-900">${{ Number(c.total ?? 0).toFixed(2) }}</td>
+                    <td class="px-6 py-4 text-right">
                       <button
                         @click="abrirEditar(c)"
                         class="bg-slate-100 text-slate-700 p-2 rounded-lg hover:bg-slate-900 hover:text-white transition cursor-pointer inline-flex items-center justify-center border border-slate-300"
@@ -61,21 +60,18 @@
                     </td>
                   </tr>
                   <tr v-if="compras.length === 0">
-                    <td colspan="4" class="text-center py-16 text-slate-400 italic text-sm">
-                      No hay compras registradas.
-                    </td>
+                    <td colspan="4" class="text-center py-20 text-slate-400 italic">No hay compras registradas.</td>
                   </tr>
                 </tbody>
               </table>
             </div>
 
-            <!-- CONTROLES DE PAGINACIÓN -->
-            <div v-if="totalPaginasCompras > 1" class="px-4 sm:px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-end shrink-0">
+            <div v-if="totalPaginasCompras > 1" class="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-end shrink-0">
               <div class="flex items-center gap-1.5">
                 <button
                   @click="paginaActualCompras--"
                   :disabled="paginaActualCompras === 1"
-                  class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-slate-200 bg-white text-slate-400 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition cursor-pointer shadow-sm"
+                  class="w-9 h-9 rounded-xl border border-slate-200 bg-white text-slate-400 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition cursor-pointer shadow-sm"
                   title="Anterior"
                 >
                   <i class="bi bi-chevron-left text-xs"></i>
@@ -86,7 +82,7 @@
                   :key="pagina"
                   @click="paginaActualCompras = pagina"
                   :class="[
-                    'w-8 h-8 sm:w-9 sm:h-9 rounded-xl text-xs font-bold transition cursor-pointer flex items-center justify-center shadow-sm',
+                    'w-9 h-9 rounded-xl text-xs font-bold transition cursor-pointer flex items-center justify-center shadow-sm',
                     paginaActualCompras === pagina
                       ? 'bg-slate-800 text-white border border-slate-800'
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
@@ -98,7 +94,7 @@
                 <button
                   @click="paginaActualCompras++"
                   :disabled="paginaActualCompras === totalPaginasCompras"
-                  class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-slate-200 bg-white text-slate-400 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition cursor-pointer shadow-sm"
+                  class="w-9 h-9 rounded-xl border border-slate-200 bg-white text-slate-400 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition cursor-pointer shadow-sm"
                   title="Siguiente"
                 >
                   <i class="bi bi-chevron-right text-xs"></i>
@@ -108,20 +104,18 @@
           </div>
         </div>
 
-        <!-- WIDGET LATERAL -->
-        <div class="right-widgets-panel w-full xl:w-[280px] xl:shrink-0">
+        <div class="right-widgets-panel w-full xl:w-[260px] xl:shrink-0">
           <div class="bg-white rounded-2xl shadow-sm p-4 border border-slate-200">
             <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Resumen</h2>
-            <div class="flex justify-between items-center p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
-              <span class="text-xs text-slate-600 font-semibold">Total Compras</span>
-              <span class="text-lg font-black text-slate-900">{{ compras.length }}</span>
+            <div class="flex justify-between items-center p-3 bg-slate-50 border border-slate-200 rounded-xl">
+              <span class="text-xs text-slate-600">Total Compras</span>
+              <span class="text-lg font-bold text-slate-900">{{ compras.length }}</span>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- MODAL PRINCIPAL COMPRA -->
     <div v-if="modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
       <div class="modal-card-box bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-lg w-full max-h-[92vh] flex flex-col overflow-hidden">
 
@@ -155,7 +149,7 @@
                 type="date"
                 :readonly="modoEdicion"
                 :class="[
-                  'form-force-input w-full px-3 py-2 border rounded-lg text-sm font-medium outline-none',
+                  'form-force-input px-3 py-2 border rounded-lg text-sm font-medium outline-none',
                   modoEdicion ? 'bg-slate-100 text-slate-500 border-slate-200 cursor-not-allowed' : 'bg-white text-slate-800 border-slate-300 focus:border-slate-900'
                 ]"
               />
@@ -185,7 +179,7 @@
                   type="button"
                   @click="abrirSelector(i)"
                   :disabled="modoEdicion"
-                  class="form-force-button w-full h-10 flex items-center justify-between px-3 rounded-lg border border-slate-300 bg-white hover:border-slate-900 text-slate-800 text-left cursor-pointer shadow-sm transition disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed disabled:hover:border-slate-300"
+                  class="form-force-button h-10 flex items-center justify-between px-3 rounded-lg border border-slate-300 bg-white hover:border-slate-900 text-slate-800 text-left cursor-pointer shadow-sm transition disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed disabled:hover:border-slate-300"
                 >
                   <span class="truncate text-sm font-medium">
                     {{ getProductoNombre(d.producto_id) || 'Seleccionar producto...' }}
@@ -199,7 +193,7 @@
                 <select
                   v-model="d.proveedor_id"
                   :disabled="!d.producto_id"
-                  class="form-force-input w-full h-10 px-3 border border-slate-300 rounded-lg text-sm bg-white text-slate-800 outline-none focus:border-slate-900 disabled:bg-slate-100 disabled:text-slate-400"
+                  class="form-force-input h-10 px-3 border border-slate-300 rounded-lg text-sm bg-white text-slate-800 outline-none focus:border-slate-900 disabled:bg-slate-100 disabled:text-slate-400"
                 >
                   <option value="">-- Seleccionar Proveedor --</option>
                   <option
@@ -222,18 +216,17 @@
                 </button>
               </div>
 
-              <!-- CANTIDAD Y UNIDADES POR PAQUETE -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="field-grid-2">
                 <div>
                   <label class="text-xs font-semibold text-slate-600 block mb-1">Cant. Paquetes</label>
                   <input
                     v-model.number="d.cantidad"
                     type="number"
-                    step="1"
                     min="1"
+                    step="1"
                     placeholder="1"
-                    @keydown="manejarEnteros"
-                    class="form-force-input w-full h-10 px-3 border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 outline-none focus:border-slate-900"
+                    @keydown="soloEnteros"
+                    class="form-force-input h-10 px-3 border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 outline-none focus:border-slate-900"
                   />
                 </div>
                 <div>
@@ -241,11 +234,11 @@
                   <input
                     v-model.number="d.unidades_por_paquete"
                     type="number"
-                    step="1"
                     min="1"
+                    step="1"
                     placeholder="1"
-                    @keydown="manejarEnteros"
-                    class="form-force-input w-full h-10 px-3 border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 outline-none focus:border-slate-900"
+                    @keydown="soloEnteros"
+                    class="form-force-input h-10 px-3 border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 outline-none focus:border-slate-900"
                   />
                 </div>
               </div>
@@ -257,16 +250,15 @@
                   <input
                     v-model.number="d.precio_compra"
                     type="number"
-                    step="0.0001"
-                    min="0"
+                    step="0.01"
+                    min="0.01"
                     placeholder="0.00"
-                    class="form-force-input w-full h-10 pl-7 pr-3 border border-slate-300 rounded-lg text-sm font-bold text-slate-900 outline-none focus:border-slate-900"
+                    class="form-force-input h-10 pl-7 pr-3 border border-slate-300 rounded-lg text-sm font-bold text-slate-900 outline-none focus:border-slate-900"
                   />
                 </div>
               </div>
 
-              <!-- CÓDIGO DE LOTE Y EXPIRACIÓN -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+              <div class="field-grid-2 pt-2 border-t border-slate-100">
                 <div>
                   <label class="text-xs font-semibold text-slate-600 block mb-1">Código de Lote</label>
                   <input
@@ -275,7 +267,7 @@
                     :readonly="modoEdicion"
                     placeholder="Ej: LOTE-123"
                     :class="[
-                      'form-force-input w-full h-10 px-3 border rounded-lg text-sm outline-none',
+                      'form-force-input h-10 px-3 border rounded-lg text-sm outline-none',
                       modoEdicion ? 'bg-slate-100 text-slate-500 border-slate-200 cursor-not-allowed' : 'bg-white text-slate-800 border-slate-300 focus:border-slate-900'
                     ]"
                   />
@@ -285,7 +277,7 @@
                   <input
                     v-model="d.fecha_expiracion"
                     type="date"
-                    class="form-force-input w-full h-10 px-3 border border-slate-300 rounded-lg text-sm bg-white text-slate-700 outline-none focus:border-slate-900"
+                    class="form-force-input h-10 px-3 border border-slate-300 rounded-lg text-sm bg-white text-slate-700 outline-none focus:border-slate-900"
                   />
                 </div>
               </div>
@@ -348,7 +340,6 @@
       </div>
     </div>
 
-    <!-- MODAL CATÁLOGO DE PRODUCTOS -->
     <div v-if="modalProductos" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden">
         <div class="px-5 py-3.5 border-b border-slate-200 flex justify-between items-center bg-slate-900 text-white">
@@ -407,6 +398,7 @@ import { getCompras, createCompra, updateCompra } from '../services/compraServic
 import { getProductos } from '../services/productoService'
 import { getProveedores } from '../services/proveedorService'
 import { avisoConAccion } from '@/utils/avisos'
+import { alertaError, alertaAdvertencia, alertaExito, mensajesDeError } from '@/utils/alertas'
 
 const route = useRoute()
 const router = useRouter()
@@ -443,20 +435,6 @@ const paginasVisibles = computed(() => {
     paginas.push(i)
   }
   return paginas
-})
-
-const productosFiltrados = computed(() => {
-  if (!busqueda.value) return productos.value
-  return productos.value.filter(p => 
-    p.nombre.toLowerCase().includes(busqueda.value.toLowerCase())
-  )
-})
-
-const totalCompraNueva = computed(() => {
-  const total = detalles.value.reduce((acc, d) => {
-    return acc + ((d.cantidad || 0) * (d.precio_compra || 0))
-  }, 0)
-  return total.toFixed(2)
 })
 
 const cargar = async () => {
@@ -598,13 +576,6 @@ async function iniciarNuevaCompra() {
   abrirModalCrear()
 }
 
-// Bloquea caracteres no deseados en campos enteros
-const manejarEnteros = (e) => {
-  if (['.', ',', 'e', 'E', '+', '-'].includes(e.key)) {
-    e.preventDefault()
-  }
-}
-
 function abrirModalCrear() {
   modoEdicion.value = false
   compraIdEdicion.value = null
@@ -628,18 +599,15 @@ function abrirEditar(compra) {
 
   if (compra.detalles && compra.detalles.length > 0) {
     detalles.value = compra.detalles.map(det => {
-      const unidPorPaquete = det.unidades_por_paquete || 1
-      const cantidadPaquetes = Math.round(det.cantidad / unidPorPaquete) || 1
-      const precioPaquete = det.precio_compra * unidPorPaquete
       const lote = det.lotes && det.lotes.length > 0 ? det.lotes[0] : null
-
       return {
+        id: det.id,
         detalle_id: det.id,
         producto_id: det.producto_id,
         proveedor_id: det.proveedor_id || '',
-        cantidad: cantidadPaquetes,
-        unidades_por_paquete: unidPorPaquete,
-        precio_compra: parseFloat(precioPaquete),
+        cantidad: det.cantidad || 1,
+        unidades_por_paquete: det.unidades_por_paquete || 1,
+        precio_compra: Number(det.precio_compra || 0),
         codigo_lote: lote ? lote.codigo_lote : (det.codigo_lote || ''),
         fecha_expiracion: lote && lote.fecha_expiracion ? lote.fecha_expiracion.substring(0, 10) : (det.fecha_expiracion ? det.fecha_expiracion.substring(0, 10) : '')
       }
@@ -659,11 +627,6 @@ function abrirEditar(compra) {
   modal.value = true
 }
 
-function cerrar() {
-  sessionStorage.removeItem(CLAVE_BORRADOR)
-  modal.value = false
-}
-
 function add() {
   detalles.value.push({
     producto_id: '',
@@ -676,16 +639,22 @@ function add() {
   })
 }
 
-function remove(index) {
-  if (detalles.value.length > 1) {
-    detalles.value.splice(index, 1)
-  }
+function remove(i) {
+  detalles.value.splice(i, 1)
 }
+
+function cerrar() {
+  sessionStorage.removeItem(CLAVE_BORRADOR)
+  modal.value = false
+}
+
+const totalCompraNueva = computed(() => {
+  return detalles.value.reduce((acc, d) => acc + ((d.cantidad || 0) * (d.precio_compra || 0)), 0).toFixed(2)
+})
 
 function abrirSelector(i) {
   if (modoEdicion.value) return
   indexProducto.value = i
-  busqueda.value = ''
   modalProductos.value = true
 }
 
@@ -700,10 +669,8 @@ async function avisarProductoSinProveedor(p) {
 }
 
 function seleccionarProducto(p) {
-  if (indexProducto.value !== null && detalles.value[indexProducto.value]) {
-    detalles.value[indexProducto.value].producto_id = p.id
-    detalles.value[indexProducto.value].proveedor_id = ''
-  }
+  detalles.value[indexProducto.value].producto_id = p.id
+  detalles.value[indexProducto.value].proveedor_id = ''
   modalProductos.value = false
 
   if (obtenerProveedoresDelProducto(p.id).length === 0) {
@@ -711,31 +678,48 @@ function seleccionarProducto(p) {
   }
 }
 
+const productosFiltrados = computed(() => {
+  if (!Array.isArray(productos.value)) return []
+  const query = busqueda.value.toLowerCase().trim()
+  return productos.value.filter(p => (p.nombre || '').toLowerCase().includes(query))
+})
+
 function getProductoNombre(id) {
-  const prod = productos.value.find(p => p.id === id)
+  if (!Array.isArray(productos.value)) return ''
+  const prod = productos.value.find(p => String(p.id) === String(id))
   return prod ? prod.nombre : ''
 }
 
+// Bloquea teclas que generan decimales o signos en los campos de cantidad
+const soloEnteros = (e) => {
+  if (['.', ',', 'e', 'E', '+', '-'].includes(e.key)) e.preventDefault()
+}
+
 async function guardar() {
-  if (detalles.value.some(d => !d.producto_id || d.cantidad < 1 || d.unidades_por_paquete < 1)) {
-    alert('Por favor complete todos los datos de los productos correctamente.')
-    return
+  if (detalles.value.length === 0) {
+    return alertaAdvertencia('Falta un producto', 'Debes agregar al menos un producto a la orden.')
   }
 
   for (const [i, d] of detalles.value.entries()) {
     const n = i + 1
 
     if (!d.producto_id || !d.proveedor_id) {
-      return alert(`Ítem #${n}: selecciona el producto y su proveedor.`)
+      return alertaAdvertencia(`Revisa el ítem #${n}`, 'Selecciona el producto y su proveedor.')
     }
     if (!Number.isInteger(Number(d.cantidad)) || Number(d.cantidad) < 1) {
-      return alert(`Ítem #${n}: la cantidad de paquetes debe ser un número entero de 1 en adelante (no se permiten fracciones como 1.5).`)
+      return alertaAdvertencia(
+        `Revisa el ítem #${n}`,
+        'La cantidad de paquetes debe ser un número entero de 1 en adelante (no se permiten fracciones como 1.5).'
+      )
     }
     if (!Number.isInteger(Number(d.unidades_por_paquete)) || Number(d.unidades_por_paquete) < 1) {
-      return alert(`Ítem #${n}: las unidades por paquete deben ser un número entero de 1 en adelante.`)
+      return alertaAdvertencia(
+        `Revisa el ítem #${n}`,
+        'Las unidades por paquete deben ser un número entero de 1 en adelante.'
+      )
     }
     if (!(Number(d.precio_compra) > 0)) {
-      return alert(`Ítem #${n}: el precio del paquete debe ser mayor a 0.`)
+      return alertaAdvertencia(`Revisa el ítem #${n}`, 'El precio del paquete debe ser mayor a 0.')
     }
   }
 
@@ -748,15 +732,17 @@ async function guardar() {
         detalle_id: d.detalle_id || d.id || undefined,
         producto_id: Number(d.producto_id),
         proveedor_id: Number(d.proveedor_id),
-        cantidad: Math.floor(Number(d.cantidad)),
-        unidades_por_paquete: Math.floor(Number(d.unidades_por_paquete || 1)),
+        cantidad: Number(d.cantidad),
+        unidades_por_paquete: Number(d.unidades_por_paquete || 1),
         precio_compra: Number(d.precio_compra),
         codigo_lote: d.codigo_lote || null,
         fecha_expiracion: d.fecha_expiracion || null
       }))
     }
 
-    if (modoEdicion.value) {
+    const esEdicion = modoEdicion.value
+
+    if (esEdicion) {
       await updateCompra(compraIdEdicion.value, payload)
     } else {
       await createCompra(payload)
@@ -765,12 +751,75 @@ async function guardar() {
     await cargar()
     await cargarProductos()
     cerrar()
-  } catch (err) {
-    console.error('Error al guardar compra:', err)
-    const msj = err.response?.data?.message || err.response?.data?.error || 'Ocurrió un error al guardar'
-    alert('Error: ' + msj)
+
+    alertaExito(
+      esEdicion ? 'Compra actualizada' : 'Compra registrada',
+      'El inventario se actualizó correctamente.'
+    )
+  } catch (error) {
+    console.error(error)
+    alertaError(
+      'No se pudo guardar la compra',
+      mensajesDeError(error, 'Error al procesar la solicitud.')
+    )
   } finally {
     cargando.value = false
   }
 }
 </script>
+
+<style scoped>
+.modal-card-box {
+  width: 100% !important;
+  max-width: 580px !important;
+  box-sizing: border-box !important;
+}
+
+.modal-body-scroll {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.form-row-single {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.form-stack-container {
+  display: block !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.producto-card-item {
+  display: block !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.field-block {
+  display: block !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.field-grid-2 {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+  gap: 12px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.form-force-input,
+.form-force-button {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+</style>
