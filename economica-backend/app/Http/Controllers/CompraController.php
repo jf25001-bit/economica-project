@@ -90,6 +90,9 @@ class CompraController extends Controller
                 ]);
 
                 $producto->increment('stock', $unidadesTotales);
+
+                // Costo unitario promedio y, si aplica, precio de venta automático
+                $producto->recalcularPrecios();
             }
 
             $compra->update(['total' => $totalGeneral]);
@@ -164,7 +167,7 @@ class CompraController extends Controller
                     $lote->update([
                         'fecha_expiracion' => $det['fecha_expiracion'] ?? null,
                         'cantidad_inicial' => $unidadesNuevas,
-                        'cantidad_actual'   => $lote->cantidad_actual + $diferencia,
+                        'cantidad_actual'  => $lote->cantidad_actual + $diferencia,
                     ]);
                 }
 
@@ -179,6 +182,9 @@ class CompraController extends Controller
                     'precio_compra'        => $precioPaquete,
                     'subtotal'             => $paquetes * $precioPaquete,
                 ]);
+
+                // Costo unitario promedio y, si aplica, precio de venta automático
+                Producto::findOrFail($detalle->producto_id)->recalcularPrecios();
             }
 
             // La fecha de la compra no se modifica; el total se recalcula desde los ítems
@@ -212,7 +218,7 @@ class CompraController extends Controller
     {
         return [
             'detalles.*.cantidad.integer' => 'La cantidad de paquetes debe ser un número entero (no se permiten fracciones como 1.5).',
-            'detalles.*.cantidad.min' => 'La cantidad mínima de paquetes a comprar es 1.',
+            'detalles.*.cantidad.min' => 'La cantidad de paquetes debe ser al menos 1.',
             'detalles.*.cantidad.max' => 'La cantidad de paquetes es demasiado grande.',
             'detalles.*.unidades_por_paquete.integer' => 'Las unidades por paquete deben ser un número entero.',
             'detalles.*.unidades_por_paquete.min' => 'Las unidades por paquete deben ser al menos 1.',

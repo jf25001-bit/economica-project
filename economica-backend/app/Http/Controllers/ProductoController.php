@@ -8,6 +8,7 @@ use App\Models\SubCategoria;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class ProductoController extends Controller
 {
@@ -32,7 +33,7 @@ class ProductoController extends Controller
         ])->get();
 
         if ($this->esCajero()) {
-            $productos->makeHidden(['precio_compra']);
+            $productos->makeHidden(['precio_compra', 'margen_porcentaje']);
         }
 
         return response()->json($productos, 200);
@@ -51,18 +52,18 @@ class ProductoController extends Controller
             ], 403);
         }
 
-        $request->validate([
+        $request->validate(array_merge([
             'codigo_barras'    => 'nullable|string|max:50|unique:productos,codigo_barras',
             'nombre'           => 'required|string|max:100|unique:productos,nombre',
             'precio_venta'     => 'required|numeric|min:0',
-            'stock'            => 'required|integer|min:0',
+            'stock'            => 'sometimes|numeric|min:0',
             'stock_minimo'     => 'required|integer|min:0',
             'sub_categoria_id' => 'nullable|required_without:categoria_id|exists:sub_categorias,id',
             'categoria_id'     => 'nullable|required_without:sub_categoria_id|exists:categorias,id',
             'unidad_medida_id' => 'nullable|exists:unidad_medidas,id',
             'proveedores'      => 'nullable|array',
             'proveedores.*'    => 'exists:proveedores,id',
-        ]);
+        ], $this->reglasPrecioAutomatico($request)), $this->mensajesPrecioAutomatico());
 
         return DB::transaction(function () use ($request) {
             $data = $request->except('proveedores', 'categoria_id');
@@ -72,6 +73,10 @@ class ProductoController extends Controller
 
             if ($request->has('proveedores')) {
                 $producto->proveedores()->sync($request->proveedores);
+            }
+
+            if ($producto->precio_automatico) {
+                $producto->recalcularPrecios();
             }
 
             return response()->json([
@@ -97,7 +102,7 @@ class ProductoController extends Controller
         }
 
         if ($this->esCajero()) {
-            $producto->makeHidden(['precio_compra']);
+            $producto->makeHidden(['precio_compra', 'margen_porcentaje']);
         }
 
         return response()->json($producto, 200);
@@ -124,18 +129,18 @@ class ProductoController extends Controller
             ], 403);
         }
 
-        $request->validate([
+        $request->validate(array_merge([
             'codigo_barras'    => 'nullable|string|max:50|unique:productos,codigo_barras,' . $id,
             'nombre'           => 'required|string|max:100|unique:productos,nombre,' . $id,
             'precio_venta'     => 'required|numeric|min:0',
-            'stock'            => 'required|integer|min:0',
+            'stock'            => 'sometimes|numeric|min:0',
             'stock_minimo'     => 'required|integer|min:0',
             'sub_categoria_id' => 'nullable|required_without:categoria_id|exists:sub_categorias,id',
             'categoria_id'     => 'nullable|required_without:sub_categoria_id|exists:categorias,id',
             'unidad_medida_id' => 'nullable|exists:unidad_medidas,id',
             'proveedores'      => 'nullable|array',
             'proveedores.*'    => 'exists:proveedores,id',
-        ]);
+        ], $this->reglasPrecioAutomatico($request)), $this->mensajesPrecioAutomatico());
 
         return DB::transaction(function () use ($request, $producto) {
             $data = $request->except('proveedores', 'categoria_id');
@@ -147,12 +152,17 @@ class ProductoController extends Controller
                 $producto->proveedores()->sync($request->proveedores);
             }
 
+            if ($producto->precio_automatico) {
+                $producto->recalcularPrecios();
+            }
+
             return response()->json([
                 'message' => 'Producto actualizado con éxito',
                 'data' => $producto->load('proveedores')
             ], 200);
         });
     }
+
     public function actualizarStockMinimo(Request $request, $id)
     {
         $producto = Producto::find($id);
@@ -182,7 +192,6 @@ class ProductoController extends Controller
         ], 200);
     }
 
-
     public function destroy($id)
     {
         $producto = Producto::find($id);
@@ -204,6 +213,31 @@ class ProductoController extends Controller
         return response()->json([
             'message' => 'Producto eliminado con éxito'
         ], 200);
+    }
+
+    private function reglasPrecioAutomatico(Request $request): array
+    {
+        return [
+            'precio_automatico' => 'nullable|boolean',
+            'margen_porcentaje' => [
+                'nullable',
+                'numeric',
+                'min:0',
+                'max:1000',
+                Rule::requiredIf(fn () => $request->boolean('precio_automatico')),
+            ],
+        ];
+    }
+
+    private function mensajesPrecioAutomatico(): array
+    {
+        return [
+            'precio_automatico.boolean' => 'El modo de precio no es válido.',
+            'margen_porcentaje.required' => 'Indica el margen de ganancia (%) para usar el precio automático.',
+            'margen_porcentaje.numeric' => 'El margen de ganancia debe ser un número.',
+            'margen_porcentaje.min' => 'El margen de ganancia no puede ser negativo.',
+            'margen_porcentaje.max' => 'El margen de ganancia no puede superar 1000%.',
+        ];
     }
 
     private function resolverSubcategoriaId(Request $request): int

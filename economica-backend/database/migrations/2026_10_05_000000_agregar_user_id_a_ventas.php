@@ -7,11 +7,13 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     public function up(): void
-    {
+{
+    if (!Schema::hasColumn('ventas', 'user_id')) {
         Schema::table('ventas', function (Blueprint $table) {
-            $table->unsignedBigInteger('user_id')->nullable()->after('id');
+            $table->foreignId('user_id')->nullable()->after('id')->constrained('users')->nullOnDelete();
         });
     }
+}
 
     public function down(): void
     {

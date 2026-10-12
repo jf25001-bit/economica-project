@@ -81,7 +81,7 @@
                   <th class="px-4 py-3.5 min-w-[140px]">CATEGORÍA / SUBCATEGORÍA</th>
                   <th class="px-4 py-3.5 whitespace-nowrap w-32">ESTADO</th>
                   <th class="px-4 py-3.5 whitespace-nowrap w-32">STOCK / UNIDAD</th>
-                  <th v-if="!esCajero" class="px-4 py-3.5 whitespace-nowrap w-28">PRECIO VENTA</th>
+                  <th v-if="!esCajero" class="px-4 py-3.5 whitespace-nowrap min-w-[150px]">PRECIO VENTA</th>
                   <th v-if="!esCajero" class="px-4 py-3.5 text-center whitespace-nowrap w-24">ACCIONES</th>
                 </tr>
               </thead>
@@ -136,7 +136,7 @@
 
                   <td class="px-4 py-3.5 whitespace-nowrap">
                     <span :class="bajoStock(producto) ? 'text-amber-600 font-bold' : 'text-gray-700 font-medium'">
-                      {{ producto.stock }}
+                      {{ formatearCantidad(producto.stock) }}
                     </span>
                     <span class="text-xs text-gray-400 ml-1">
                       ({{ producto.unidad_medida?.nombre || producto.unidad_medida_id || 'pza' }})
@@ -145,6 +145,13 @@
 
                   <td v-if="!esCajero" class="px-4 py-3.5 font-bold text-[#0f172a] whitespace-nowrap">
                     ${{ producto.precio_venta }}
+                    <span
+                      v-if="producto.precio_automatico"
+                      class="ml-1 rounded-full bg-sky-50 text-sky-700 px-1.5 py-0.5 text-[9px] font-bold align-middle"
+                      title="Precio calculado automáticamente según el costo"
+                    >
+                      AUTO {{ Number(producto.margen_porcentaje) }}%
+                    </span>
                   </td>
 
                   <td v-if="!esCajero" class="px-4 py-3.5 text-center whitespace-nowrap">
@@ -379,10 +386,29 @@
 
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+          <div class="w-full min-w-0">
+            <label class="block font-semibold text-gray-700 mb-1">Precio de Venta (por unidad)</label>
 
-            <div class="min-w-0 w-full">
-              <label class="block font-semibold text-gray-700 mb-1">Precio Venta ($)</label>
+            <div class="grid grid-cols-2 gap-1 p-1 bg-gray-100 rounded-xl mb-2">
+              <button
+                type="button"
+                class="h-8 rounded-lg text-[11px] font-bold transition cursor-pointer"
+                :class="!nuevoProducto.precio_automatico ? 'bg-white text-[#1a233a] shadow-sm' : 'text-gray-500 hover:text-gray-700'"
+                @click="cambiarModoPrecio(false)"
+              >
+                Manual
+              </button>
+              <button
+                type="button"
+                class="h-8 rounded-lg text-[11px] font-bold transition cursor-pointer"
+                :class="nuevoProducto.precio_automatico ? 'bg-white text-[#1a233a] shadow-sm' : 'text-gray-500 hover:text-gray-700'"
+                @click="cambiarModoPrecio(true)"
+              >
+                Automático (según costo)
+              </button>
+            </div>
+
+            <template v-if="!nuevoProducto.precio_automatico">
               <input
                 type="text"
                 inputmode="decimal"
@@ -393,23 +419,53 @@
                 class="w-full h-9 px-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none box-border"
               />
               <p v-if="errores.precio_venta" class="text-red-500 text-[11px] font-semibold mt-1">{{ errores.precio_venta }}</p>
-            </div>
+            </template>
 
-            <div class="min-w-0 w-full">
-              <label class="block font-semibold text-gray-700 mb-1">Stock Mínimo</label>
-              <input
-                type="text"
-                inputmode="numeric"
-                maxlength="6"
-                v-model="nuevoProducto.stock_minimo"
-                @input="soloNumeros('stock_minimo')"
-                placeholder="5"
-                class="w-full h-9 px-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none box-border"
-              />
-              <p v-if="errores.stock_minimo" class="text-red-500 text-[11px] font-semibold mt-1">{{ errores.stock_minimo }}</p>
-              <p v-else class="text-gray-400 text-[10px] mt-1">Avisa de bajo stock al llegar a este valor</p>
-            </div>
+            <div v-else class="flex flex-col gap-2">
+              <div class="relative w-full">
+                <input
+                  type="text"
+                  inputmode="decimal"
+                  maxlength="7"
+                  v-model="nuevoProducto.margen_porcentaje"
+                  @input="soloDecimal('margen_porcentaje')"
+                  placeholder="Margen de ganancia, ej. 30"
+                  class="w-full h-9 pl-3 pr-8 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none box-border"
+                />
+                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">%</span>
+              </div>
+              <p v-if="errores.margen_porcentaje" class="text-red-500 text-[11px] font-semibold">{{ errores.margen_porcentaje }}</p>
 
+              <div class="rounded-xl bg-sky-50 border border-sky-100 p-3 text-[11px] text-sky-800 space-y-0.5">
+                <template v-if="costoActual !== null">
+                  <p>Costo unitario actual: <b>${{ costoActual.toFixed(4) }}</b></p>
+                  <p v-if="precioCalculado !== null">
+                    Precio de venta calculado: <b>${{ precioCalculado.toFixed(2) }}</b>
+                  </p>
+                  <p v-if="margenReal !== null">
+                    Margen real con redondeo: <b>{{ margenReal.toFixed(1) }}%</b>
+                  </p>
+                </template>
+                <p v-else>
+                  Aún no hay compras de este producto. El precio se calculará al registrar la primera compra.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="w-full min-w-0">
+            <label class="block font-semibold text-gray-700 mb-1">Stock Mínimo</label>
+            <input
+              type="text"
+              inputmode="numeric"
+              maxlength="6"
+              v-model="nuevoProducto.stock_minimo"
+              @input="soloNumeros('stock_minimo')"
+              placeholder="5"
+              class="w-full h-9 px-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none box-border"
+            />
+            <p v-if="errores.stock_minimo" class="text-red-500 text-[11px] font-semibold mt-1">{{ errores.stock_minimo }}</p>
+            <p v-else class="text-gray-400 text-[10px] mt-1">Avisa de bajo stock al llegar a este valor</p>
           </div>
 
           <div class="flex justify-end gap-2 mt-2 pt-3 border-t border-gray-100 shrink-0">
@@ -573,6 +629,13 @@ import {
   eliminarProductoAPI
 } from '@/services/productoService'
 import { avisoConAccion } from '@/utils/avisos'
+import {
+  alertaError,
+  alertaAdvertencia,
+  alertaExito,
+  confirmar,
+  mensajesDeError
+} from '@/utils/alertas'
 
 const route = useRoute()
 const router = useRouter()
@@ -624,10 +687,38 @@ const modeloProductoLimpio = () => ({
   unidad_medida_id: '',
   stock: 0,
   stock_minimo: 5,
-  precio_venta: ''
+  precio_venta: '',
+  precio_automatico: false,
+  margen_porcentaje: ''
 })
 
 const nuevoProducto = ref(modeloProductoLimpio())
+
+const costoActual = ref(null)
+
+const redondearPrecio = (precio) => {
+  const centavos = Number((precio * 100).toFixed(4))
+  return (Math.ceil(centavos / 5) * 5) / 100
+}
+
+const precioCalculado = computed(() => {
+  const costo = costoActual.value
+  const texto = String(nuevoProducto.value.margen_porcentaje ?? '').trim()
+  const margen = Number(texto)
+
+  if (costo === null || texto === '' || !Number.isFinite(margen) || margen < 0) return null
+
+  return redondearPrecio(costo * (1 + margen / 100))
+})
+
+const margenReal = computed(() => {
+  const costo = costoActual.value
+  const precio = precioCalculado.value
+
+  if (costo === null || costo <= 0 || precio === null) return null
+
+  return (precio / costo - 1) * 100
+})
 
 const minimoDe = (p) =>
   p.stock_minimo === null || p.stock_minimo === undefined || p.stock_minimo === ''
@@ -635,6 +726,12 @@ const minimoDe = (p) =>
     : Number(p.stock_minimo)
 
 const bajoStock = (p) => Number(p.stock) <= minimoDe(p)
+
+const formatearCantidad = (valor) => {
+  const n = Number(valor)
+  if (!Number.isFinite(n)) return '0'
+  return Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/\.?0+$/, '')
+}
 
 const soloNumeros = (campo) => {
   nuevoProducto.value[campo] = String(nuevoProducto.value[campo] ?? '').replace(/\D/g, '')
@@ -650,6 +747,12 @@ const soloDecimal = (campo) => {
   errores.value[campo] = ''
 }
 
+const cambiarModoPrecio = (automatico) => {
+  nuevoProducto.value.precio_automatico = automatico
+  errores.value.precio_venta = ''
+  errores.value.margen_porcentaje = ''
+}
+
 const validarFormulario = () => {
   const p = nuevoProducto.value
   const e = {}
@@ -662,8 +765,14 @@ const validarFormulario = () => {
   if (!p.sub_categoria_id && !p.categoria_id) e.categoria = 'Selecciona una categoría'
   if (!p.unidad_medida_id) e.unidad = 'Selecciona una unidad de medida'
 
-  if (!/^\d+(\.\d{1,2})?$/.test(String(p.precio_venta))) e.precio_venta = 'Precio inválido (máximo 2 decimales)'
-  else if (Number(p.precio_venta) <= 0) e.precio_venta = 'El precio debe ser mayor a 0'
+  if (p.precio_automatico) {
+    const margen = String(p.margen_porcentaje ?? '')
+    if (!/^\d+(\.\d{1,2})?$/.test(margen)) e.margen_porcentaje = 'Ingresa un margen válido (máximo 2 decimales)'
+    else if (Number(margen) > 1000) e.margen_porcentaje = 'El margen no puede superar 1000%'
+  } else {
+    if (!/^\d+(\.\d{1,2})?$/.test(String(p.precio_venta))) e.precio_venta = 'Precio inválido (máximo 2 decimales)'
+    else if (Number(p.precio_venta) <= 0) e.precio_venta = 'El precio debe ser mayor a 0'
+  }
 
   if (!/^\d+$/.test(String(p.stock_minimo))) e.stock_minimo = 'Ingresa un número entero'
 
@@ -902,25 +1011,34 @@ const cargarProductos = async () => {
 
 const guardarProducto = async () => {
   if (esCajero.value) {
-    alert('No tienes permiso para agregar productos.')
+    alertaAdvertencia('Sin permiso', 'No tienes permiso para agregar o modificar productos.')
     return
   }
 
   if (guardando.value) return
   if (!validarFormulario()) return
 
+  const p = nuevoProducto.value
+  const automatico = !!p.precio_automatico
+  const margenTexto = String(p.margen_porcentaje ?? '').trim()
+  const precioManual = Number(p.precio_venta) || 0
+
+  const payload = {
+    ...p,
+    nombre: String(p.nombre).trim(),
+    stock_minimo: Number(p.stock_minimo),
+    precio_automatico: automatico,
+    margen_porcentaje: margenTexto === '' ? null : Number(margenTexto),
+    precio_venta: automatico ? (precioCalculado.value ?? precioManual) : precioManual
+  }
+
+  if (esEditando.value) delete payload.stock
+
   guardando.value = true
 
   try {
-    const datos = {
-      ...nuevoProducto.value,
-      nombre: String(nuevoProducto.value.nombre).trim(),
-      precio_venta: Number(nuevoProducto.value.precio_venta),
-      stock_minimo: Number(nuevoProducto.value.stock_minimo)
-    }
-
     const res = await guardarProductoAPI(
-      datos,
+      payload,
       esEditando.value ? productoIdSeleccionado.value : null
     )
 
@@ -937,11 +1055,18 @@ const guardarProducto = async () => {
       }
     }
 
+    const fueEdicion = esEditando.value
+
     cerrarModal()
     await cargarProductos()
+
+    alertaExito(fueEdicion ? 'Producto actualizado' : 'Producto creado')
   } catch (error) {
     console.error('Error al guardar:', error)
-    alert(error.response?.data?.message || 'Ocurrió un error al procesar la solicitud.')
+    alertaError(
+      'No se pudo guardar el producto',
+      mensajesDeError(error, 'Ocurrió un error al procesar la solicitud.')
+    )
   } finally {
     guardando.value = false
   }
@@ -949,17 +1074,29 @@ const guardarProducto = async () => {
 
 const eliminarProducto = async (id) => {
   if (esCajero.value) {
-    alert('No tienes permiso para eliminar productos.')
+    alertaAdvertencia('Sin permiso', 'No tienes permiso para eliminar productos.')
     return
   }
 
-  if (!confirm('¿Estás seguro de eliminar este producto?')) return
+  const acepto = await confirmar({
+    titulo: '¿Eliminar producto?',
+    texto: 'Esta acción no se puede deshacer.',
+    confirmarTexto: 'Sí, eliminar',
+    peligro: true
+  })
+
+  if (!acepto) return
 
   try {
     await eliminarProductoAPI(id)
     await cargarProductos()
+    alertaExito('Producto eliminado')
   } catch (error) {
     console.error('Error al eliminar:', error)
+    alertaError(
+      'No se pudo eliminar el producto',
+      mensajesDeError(error, 'Es posible que el producto ya tenga compras o ventas registradas.')
+    )
   }
 }
 
@@ -986,6 +1123,7 @@ const restaurarBorrador = () => {
     nuevoProducto.value = { ...modeloProductoLimpio(), ...borrador.producto }
     nombreSubcategoriaSeleccionada.value = borrador.nombreSubcategoria || ''
     nombreUnidadMedidaSeleccionada.value = borrador.nombreUnidadMedida || ''
+    costoActual.value = null
     esEditando.value = false
     errores.value = {}
     mostrarModal.value = true
@@ -1025,6 +1163,7 @@ const abrirModalForm = async () => {
 
   esEditando.value = false
   errores.value = {}
+  costoActual.value = null
   nombreSubcategoriaSeleccionada.value = ''
   nombreUnidadMedidaSeleccionada.value = ''
   removerImagen()
@@ -1037,6 +1176,7 @@ const cerrarModal = () => {
   esEditando.value = false
   productoIdSeleccionado.value = null
   errores.value = {}
+  costoActual.value = null
   nombreSubcategoriaSeleccionada.value = ''
   nombreUnidadMedidaSeleccionada.value = ''
   removerImagen()
@@ -1066,8 +1206,13 @@ const editarProducto = (producto) => {
     unidad_medida_id: producto.unidad_medida_id || '',
     stock: producto.stock || 0,
     stock_minimo: String(minimoDe(producto)),
-    precio_venta: producto.precio_venta != null ? Number(producto.precio_venta).toFixed(2) : ''
+    precio_venta: producto.precio_venta != null ? Number(producto.precio_venta).toFixed(2) : '',
+    precio_automatico: !!producto.precio_automatico,
+    margen_porcentaje: producto.margen_porcentaje != null ? String(Number(producto.margen_porcentaje)) : ''
   }
+
+  const costo = Number(producto.precio_compra)
+  costoActual.value = Number.isFinite(costo) && costo > 0 ? costo : null
 
   imagenPreview.value = producto.imagenes && producto.imagenes.length
     ? obtenerUrlImagen(producto.imagenes[0].ruta)
