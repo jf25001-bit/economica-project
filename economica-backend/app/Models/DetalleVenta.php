@@ -19,15 +19,14 @@ class DetalleVenta extends Model
         'producto_id'
     ];
 
-   
     public function venta()
     {
         return $this->belongsTo(Venta::class, 'venta_id');
     }
 
-    
+    // withTrashed: el historial sigue mostrando productos que ya fueron eliminados
     public function producto()
     {
-        return $this->belongsTo(Producto::class, 'producto_id');
+        return $this->belongsTo(Producto::class, 'producto_id')->withTrashed();
     }
 }

@@ -14,7 +14,7 @@ class DetalleCompra extends Model
     protected $fillable = [
         'compra_id',
         'producto_id',
-        'proveedor_id', 
+        'proveedor_id',
         'cantidad',
         'unidades_por_paquete',
         'precio_compra',
@@ -23,34 +23,22 @@ class DetalleCompra extends Model
 
     public function compra()
     {
-        return $this->belongsTo(
-            Compra::class,
-            'compra_id'
-        );
+        return $this->belongsTo(Compra::class, 'compra_id');
     }
 
+    // withTrashed: el historial sigue mostrando productos que ya fueron eliminados
     public function producto()
     {
-        return $this->belongsTo(
-            Producto::class,
-            'producto_id'
-        );
+        return $this->belongsTo(Producto::class, 'producto_id')->withTrashed();
     }
 
-    
     public function proveedor()
     {
-        return $this->belongsTo(
-            Proveedor::class,
-            'proveedor_id'
-        );
+        return $this->belongsTo(Proveedor::class, 'proveedor_id');
     }
 
     public function lotes()
     {
-        return $this->hasMany(
-            Lote::class,
-            'detalle_compra_id'
-        );
+        return $this->hasMany(Lote::class, 'detalle_compra_id');
     }
 }

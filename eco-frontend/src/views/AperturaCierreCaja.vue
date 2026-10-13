@@ -14,9 +14,25 @@
       </div>
     </div>
 
+    <!-- Banner: caja abierta por otro usuario -->
+    <div
+      v-if="!cargandoEstado && !cajaAbierta && cajaOtroUsuario"
+      class="bg-[#0f172a] border border-sky-500/40 rounded-2xl p-4 flex items-center gap-4 text-sky-400 shadow-md"
+    >
+      <div class="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center shrink-0">
+        <i class="bi bi-person-lock text-xl text-sky-400"></i>
+      </div>
+      <div>
+        <h4 class="font-bold text-sm text-sky-400">Caja abierta por {{ cajaOtroUsuario.usuario }}</h4>
+        <p class="text-xs text-slate-400 mt-0.5">
+          Solo su dueño puede cerrarla de forma normal. Como administrador, puedes hacer un Cierre Forzado desde Control de Cajas.
+        </p>
+      </div>
+    </div>
+
     <!-- Banner Alerta Caja Cerrada -->
     <div 
-      v-if="!cargandoEstado && !cajaAbierta" 
+      v-else-if="!cargandoEstado && !cajaAbierta" 
       class="bg-[#0f172a] border border-amber-500/40 rounded-2xl p-4 flex items-center gap-4 text-amber-400 shadow-md"
     >
       <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
@@ -70,6 +86,10 @@
           <h3 class="text-2xl font-black text-white pt-2">
             {{ !cajaAbierta ? 'Turno Inactivo' : 'Turno Activo' }}
           </h3>
+
+          <p v-if="cajaAbierta" class="text-[11px] font-bold text-sky-400">
+            {{ etiquetaTurno(cajaInfo?.turno) }}
+          </p>
           
           <p class="text-xs text-slate-400 font-medium max-w-xs leading-relaxed">
             {{ !cajaAbierta 
@@ -105,9 +125,9 @@
               <label class="block text-slate-400 text-[11px] font-black uppercase tracking-wider mb-2">TURNO LABORAL</label>
               <div class="relative">
                 <select v-model="formApertura.turno" class="w-full p-3.5 pr-10 bg-slate-900/90 border border-slate-800 rounded-xl text-xs font-bold text-white focus:outline-none focus:border-sky-500 appearance-none cursor-pointer">
-                  <option value="Jornada completa">Jornada completa</option>
-                  <option value="Turno Mañana">Turno Mañana</option>
-                  <option value="Turno Tarde">Turno Tarde</option>
+                  <option value="unico">Turno Único (jornada completa)</option>
+                  <option value="manana">Turno Mañana (12:00 a.m. – 11:59 a.m.)</option>
+                  <option value="tarde">Turno Tarde (12:00 p.m. – 11:59 p.m.)</option>
                 </select>
                 <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
               </div>
@@ -224,18 +244,22 @@ import { cajaService } from '@/services/cajaService'
 
 const cajaAbierta = ref(false)
 const cajaInfo = ref(null)
+const cajaOtroUsuario = ref(null)
 const cargandoEstado = ref(true)
 const procesando = ref(false)
 
 const formApertura = ref({
   monto_apertura: 0,
   caja_id: '1',
-  turno: 'Jornada completa'
+  turno: 'unico'
 })
 
 const formCierre = ref({
   monto_cierre: 0
 })
+
+const etiquetaTurno = (t) =>
+  ({ unico: 'Turno Único', manana: 'Turno Mañana', tarde: 'Turno Tarde' }[t] || 'Turno Único')
 
 const montoEsperado = computed(() => {
   const apertura = parseFloat(cajaInfo.value?.monto_apertura || 0)
@@ -277,6 +301,7 @@ const consultarEstado = async () => {
     if (data && data.caja) {
       cajaAbierta.value = true
       cajaInfo.value = data.caja
+      cajaOtroUsuario.value = null
 
       const apertura = parseFloat(data.caja.monto_apertura || 0)
       const ventas = parseFloat(data.caja.total_ventas || 0)
@@ -284,20 +309,33 @@ const consultarEstado = async () => {
     } else {
       cajaAbierta.value = false
       cajaInfo.value = null
+      cajaOtroUsuario.value = data?.caja_otro_usuario || null
       
       if (data && data.monto_anterior !== undefined) {
         formApertura.value.monto_apertura = parseFloat(data.monto_anterior)
       }
 
-      Swal.fire({
-        title: '¡Caja Cerrada!',
-        text: 'Debes aperturar un turno de caja para habilitar las operaciones en el sistema.',
-        icon: 'warning',
-        confirmButtonText: 'Entendido',
-        confirmButtonColor: '#0284c7',
-        background: '#0f172a',
-        color: '#fff'
-      })
+      if (cajaOtroUsuario.value) {
+        Swal.fire({
+          title: 'Caja abierta por otro usuario',
+          text: `La caja activa pertenece a "${cajaOtroUsuario.value.usuario}". Solo su dueño puede cerrarla de forma normal. Puedes hacer un Cierre Forzado desde Control de Cajas.`,
+          icon: 'info',
+          confirmButtonText: 'Entendido',
+          confirmButtonColor: '#0284c7',
+          background: '#0f172a',
+          color: '#fff'
+        })
+      } else {
+        Swal.fire({
+          title: '¡Caja Cerrada!',
+          text: 'Debes aperturar un turno de caja para habilitar las operaciones en el sistema.',
+          icon: 'warning',
+          confirmButtonText: 'Entendido',
+          confirmButtonColor: '#0284c7',
+          background: '#0f172a',
+          color: '#fff'
+        })
+      }
     }
   } catch (e) {
     console.error("Error al consultar caja:", e)

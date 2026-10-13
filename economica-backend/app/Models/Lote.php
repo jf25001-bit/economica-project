@@ -21,19 +21,14 @@ class Lote extends Model
         'vencido_descontado_at' => 'datetime',
     ];
 
+    // withTrashed: el historial sigue mostrando productos que ya fueron eliminados
     public function producto()
     {
-        return $this->belongsTo(
-            Producto::class,
-            'producto_id'
-        );
+        return $this->belongsTo(Producto::class, 'producto_id')->withTrashed();
     }
 
     public function detalleCompra()
     {
-        return $this->belongsTo(
-            DetalleCompra::class,
-            'detalle_compra_id'
-        );
+        return $this->belongsTo(DetalleCompra::class, 'detalle_compra_id');
     }
 }

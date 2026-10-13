@@ -78,13 +78,20 @@
                 ${{ Number(venta.total).toFixed(2) }}
               </td>
               <td class="px-6 py-4 border-b border-slate-100">
-                <div class="flex items-center justify-center">
+                <div class="flex items-center justify-center gap-2">
                   <button
                     @click="verDetalleVenta(venta)"
                     class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-[#2B3A4A] hover:text-white transition cursor-pointer"
                     title="Ver Detalle de Venta"
                   >
                     <i class="bi bi-eye-fill text-sm"></i>
+                  </button>
+                  <button
+                    @click="imprimirTicket(venta)"
+                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-[#2B3A4A] hover:text-white transition cursor-pointer"
+                    title="Imprimir Ticket"
+                  >
+                    <i class="bi bi-printer-fill text-sm"></i>
                   </button>
                 </div>
               </td>
@@ -248,7 +255,14 @@
           </div>
         </div>
 
-        <div class="px-6 py-3 bg-slate-50 border-t border-slate-100 flex justify-end">
+        <div class="px-6 py-3 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
+          <button
+            @click="imprimirTicket(ventaSeleccionada)"
+            class="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition cursor-pointer border-0 inline-flex items-center gap-2"
+          >
+            <i class="bi bi-printer-fill"></i>
+            Imprimir ticket
+          </button>
           <button
             @click="cerrarModal"
             class="px-5 py-2 bg-slate-200 hover:bg-slate-300 active:bg-slate-400 text-slate-700 font-bold text-xs rounded-xl transition cursor-pointer border-0"
@@ -271,6 +285,9 @@ const ventaSeleccionada = ref(null)
 
 const paginaActualVentas = ref(1)
 const porPaginaVentas = ref(10)
+
+// Nombre que sale arriba del ticket (cámbialo por el de tu minisúper)
+const nombreNegocio = 'La Económica'
 
 const ventasPaginadas = computed(() => {
   const inicio = (paginaActualVentas.value - 1) * porPaginaVentas.value
@@ -335,6 +352,94 @@ const verDetalleVenta = (venta) => {
 const cerrarModal = () => {
   mostrarModalDetalle.value = false
   ventaSeleccionada.value = null
+}
+
+// Evita que un nombre con símbolos rompa el ticket
+const limpiarTexto = (texto) => {
+  return String(texto ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+}
+
+// Abre el ticket de 80 mm y lo manda a imprimir
+const imprimirTicket = (venta) => {
+  if (!venta) return
+
+  const fechaRaw = venta.fecha_venta || venta.created_at
+  const detalles = venta.detalles || []
+
+  let filas = ''
+  detalles.forEach((det) => {
+    const nombre = limpiarTexto(det.producto?.nombre || 'Producto')
+    filas += `
+      <div class="producto">${nombre}</div>
+      <div class="linea">
+        <span>${det.cantidad} x $${Number(det.precio_unitario).toFixed(2)}</span>
+        <span>$${Number(det.subtotal).toFixed(2)}</span>
+      </div>
+    `
+  })
+
+  const html = `
+    <html>
+      <head>
+        <title>Ticket ${limpiarTexto(venta.factura || venta.id)}</title>
+        <style>
+          @page { size: 80mm auto; margin: 0; }
+          body {
+            width: 72mm;
+            margin: 0 auto;
+            padding: 4mm 0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #000;
+          }
+          .centro { text-align: center; }
+          .negocio { font-size: 16px; font-weight: bold; }
+          .separador { border-top: 1px dashed #000; margin: 6px 0; }
+          .linea { display: flex; justify-content: space-between; }
+          .producto { font-weight: bold; margin-top: 4px; }
+          .total { font-size: 15px; font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        <div class="centro negocio">${limpiarTexto(nombreNegocio)}</div>
+        <div class="centro">Ticket de venta</div>
+        <div class="separador"></div>
+
+        <div>Factura: ${limpiarTexto(venta.factura || '#' + venta.id)}</div>
+        <div>Fecha: ${formatearFechaSolo(fechaRaw)}</div>
+        <div>Hora: ${formatearHoraSolo(fechaRaw)}</div>
+        <div>Cliente: ${limpiarTexto(venta.cliente || 'Consumidor Final')}</div>
+        <div>Atendió: ${limpiarTexto(nombreVendedor(venta))}</div>
+        <div class="separador"></div>
+
+        ${filas}
+
+        <div class="separador"></div>
+        <div class="linea total"><span>TOTAL</span><span>$${Number(venta.total || 0).toFixed(2)}</span></div>
+        <div class="linea"><span>Recibido</span><span>$${Number(venta.dinero_recibido || 0).toFixed(2)}</span></div>
+        <div class="linea"><span>Vuelto</span><span>$${Number(venta.vuelto || 0).toFixed(2)}</span></div>
+        <div class="separador"></div>
+
+        <div class="centro">¡Gracias por su compra!</div>
+      </body>
+    </html>
+  `
+
+  const ventana = window.open('', '_blank', 'width=400,height=600')
+  if (!ventana) {
+    alert('El navegador bloqueó la ventana del ticket. Permite las ventanas emergentes e intenta de nuevo.')
+    return
+  }
+  ventana.document.write(html)
+  ventana.document.close()
+  ventana.focus()
+  setTimeout(() => {
+    ventana.print()
+    ventana.close()
+  }, 300)
 }
 
 onMounted(() => {
