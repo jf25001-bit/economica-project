@@ -17,6 +17,10 @@ class Lote extends Model
         'producto_id'
     ];
 
+    protected $casts = [
+        'vencido_descontado_at' => 'datetime',
+    ];
+
     public function producto()
     {
         return $this->belongsTo(

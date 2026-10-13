@@ -151,6 +151,7 @@ class CompraController extends Controller
                 $unidadesNuevas = $paquetes * $unidPorPaquete;
                 $unidadesAnteriores = $detalle->cantidad * $detalle->unidades_por_paquete;
                 $diferencia = $unidadesNuevas - $unidadesAnteriores;
+                $ajusteStock = $diferencia;
 
                 $lote = $detalle->lotes->first();
 
@@ -163,16 +164,29 @@ class CompraController extends Controller
                         ]);
                     }
 
+                    $nuevaFecha = $det['fecha_expiracion'] ?? null;
+                    $estabaDescontado = $lote->vencido_descontado_at !== null;
+                    $seguiraVencido = $nuevaFecha !== null
+                        && substr($nuevaFecha, 0, 10) < now('America/El_Salvador')->toDateString();
+                    $cantidadAntes = (float) $lote->cantidad_actual;
+                    $cantidadDespues = $cantidadAntes + $diferencia;
+
+                    if ($estabaDescontado && $seguiraVencido) {
+                        $ajusteStock = 0;
+                    } elseif ($estabaDescontado) {
+                        $ajusteStock = $cantidadDespues;
+                        $lote->vencido_descontado_at = null;
+                    }
+
                     // Código de lote intacto; la cantidad actual se ajusta por la diferencia
-                    $lote->update([
-                        'fecha_expiracion' => $det['fecha_expiracion'] ?? null,
-                        'cantidad_inicial' => $unidadesNuevas,
-                        'cantidad_actual'  => $lote->cantidad_actual + $diferencia,
-                    ]);
+                    $lote->fecha_expiracion = $nuevaFecha;
+                    $lote->cantidad_inicial = $unidadesNuevas;
+                    $lote->cantidad_actual = $cantidadDespues;
+                    $lote->save();
                 }
 
-                if ($diferencia !== 0) {
-                    Producto::where('id', $detalle->producto_id)->increment('stock', $diferencia);
+                if (abs($ajusteStock) > 0.00001) {
+                    Producto::where('id', $detalle->producto_id)->increment('stock', $ajusteStock);
                 }
 
                 $detalle->update([

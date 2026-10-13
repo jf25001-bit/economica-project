@@ -1,6 +1,7 @@
 import api from './api'
 
-export const getProductos = () => {
+export const getProductos = async () => {
+  await api.get('/lotes').catch(() => {})
   return api.get('/productos')
 }
 

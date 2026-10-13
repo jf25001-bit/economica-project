@@ -6,6 +6,7 @@ import Productos from '../views/Productos.vue'
 import Ventas from '../views/Ventas.vue'
 import Compras from '@/views/Compras.vue'
 import Inventario from '@/views/Inventario.vue'
+import DetalleLotes from '@/views/DetalleLotes.vue'
 import Usuarios from '@/views/Usuarios.vue'
 import Reportes from '@/views/Reportes.vue'
 import Login from '@/views/Login.vue'
@@ -16,7 +17,6 @@ import Pos from '@/views/Pos.vue'
 import AperturaCierreCaja from '@/views/AperturaCierreCaja.vue'
 
 const routes = [
-  // LOGIN
   {
     path: '/',
     redirect: '/login'
@@ -26,7 +26,6 @@ const routes = [
     component: Login
   },
 
-  // DASHBOARD
   {
     path: '/dashboard',
     component: Dashboard,
@@ -36,7 +35,6 @@ const routes = [
     }
   },
 
-  // APERTURA Y CIERRE DE CAJA (solo administrador)
   {
     path: '/caja',
     component: AperturaCierreCaja,
@@ -46,7 +44,6 @@ const routes = [
     }
   },
 
-  // PRODUCTOS
   {
     path: '/productos',
     component: Productos,
@@ -65,7 +62,6 @@ const routes = [
     }
   },
 
-  // CATEGORÍAS
   {
     path: '/categorias',
     component: Categorias,
@@ -75,7 +71,6 @@ const routes = [
     }
   },
 
-  // VENTAS
   {
     path: '/ventas',
     component: Ventas,
@@ -85,7 +80,6 @@ const routes = [
     }
   },
 
-  // COMPRAS
   {
     path: '/compras',
     component: Compras,
@@ -95,7 +89,6 @@ const routes = [
     }
   },
 
-  // INVENTARIO
   {
     path: '/inventario',
     component: Inventario,
@@ -104,8 +97,16 @@ const routes = [
       allowedRoles: ['Administrador', 'Cajero']
     }
   },
+  {
+    path: '/inventario/:id/lotes',
+    name: 'DetalleLotes',
+    component: DetalleLotes,
+    meta: {
+      requiresAuth: true,
+      allowedRoles: ['Administrador', 'Cajero']
+    }
+  },
 
-  // USUARIOS
   {
     path: '/usuarios',
     component: Usuarios,
@@ -115,7 +116,6 @@ const routes = [
     }
   },
 
-  // REPORTES
   {
     path: '/reportes',
     component: Reportes,
@@ -125,7 +125,6 @@ const routes = [
     }
   },
 
-  // PROVEEDORES
   {
     path: '/proveedores',
     component: Proveedores,
@@ -135,7 +134,6 @@ const routes = [
     }
   },
 
-  // IMÁGENES
   {
     path: '/imagenes',
     component: Imagenes,
@@ -145,7 +143,6 @@ const routes = [
     }
   },
 
-  // PUNTO DE VENTA (el admin necesita caja abierta; al cajero se le bloquea la venta dentro de Pos.vue)
   {
     path: '/pos',
     component: Pos,
@@ -177,18 +174,15 @@ router.beforeEach(async (to) => {
 
   const rol = String(user?.rol?.nombre || user?.rol || '').trim().toLowerCase()
 
-  // 1. Ruta raíz
   if (to.path === '/') {
     if (!token) return '/login'
     return rol === 'cajero' ? '/pos' : '/dashboard'
   }
 
-  // 2. Sin sesión
   if (to.meta.requiresAuth && !token) {
     return to.path === '/login' ? true : '/login'
   }
 
-  // 3. Con sesión e intenta ir a login
   if (to.path === '/login' && token) {
     return rol === 'cajero' ? '/pos' : '/dashboard'
   }
@@ -197,7 +191,6 @@ router.beforeEach(async (to) => {
     return true
   }
 
-  // 4. Estado de la caja
   let cajaAbierta = false
   try {
     const resCaja = await cajaService.obtenerEstado()
@@ -206,20 +199,18 @@ router.beforeEach(async (to) => {
     cajaAbierta = false
   }
 
-  // CAJERO: solo estas rutas (el bloqueo de ventas se hace dentro de Pos.vue)
   if (rol === 'cajero') {
     const rutasPermitidas = ['/pos', '/productos', '/inventario']
-    if (!rutasPermitidas.includes(to.path)) {
+    const permitida = rutasPermitidas.some(r => to.path === r || to.path.startsWith(`${r}/`))
+    if (!permitida) {
       return '/pos'
     }
   }
 
-  // ADMIN: el punto de venta necesita caja abierta
   if (to.meta.requiresCaja && !cajaAbierta && rol !== 'cajero') {
     return to.path === '/caja' ? true : '/caja'
   }
 
-  // Validar roles de cada ruta
   if (to.meta.allowedRoles) {
     const rolesPermitidos = to.meta.allowedRoles.map(r => r.toLowerCase())
     if (!rolesPermitidos.includes(rol)) {
