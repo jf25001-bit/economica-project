@@ -1,21 +1,21 @@
-import api from './api'
+  import api from './api'
 
-export const getCompras = async () => {
-  const response = await api.get('/compras')
-  return response.data
-}
+  export const getCompras = async () => {
+    const response = await api.get('/compras')
+    return response.data
+  }
 
-export const createCompra = async (data) => {
-  const response = await api.post('/compras', data)
-  return response.data
-}
+  export const createCompra = async (data) => {
+    const response = await api.post('/compras', data)
+    return response.data
+  }
 
-export const updateCompra = async (id, data) => {
-  const response = await api.put(`/compras/${id}`, data)
-  return response.data
-}
+  export const updateCompra = async (id, data) => {
+    const response = await api.put(`/compras/${id}`, data)
+    return response.data
+  }
 
-export const deleteCompra = async (id) => {
-  const response = await api.delete(`/compras/${id}`)
-  return response.data
-}
+  export const deleteCompra = async (id) => {
+    const response = await api.delete(`/compras/${id}`)
+    return response.data
+  }

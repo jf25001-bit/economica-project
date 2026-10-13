@@ -72,6 +72,15 @@ class VentaController extends Controller
                     ], 404);
                 }
 
+                if ($producto->anulado) {
+
+                    DB::rollBack();
+
+                    return response()->json([
+                        'message' => "El producto {$producto->nombre} está anulado y no se puede vender."
+                    ], 400);
+                }
+
                 $cantidadSolicitada = (int) $item['cantidad'];
 
                 $lotesConStock = Lote::where('producto_id', $producto->id)

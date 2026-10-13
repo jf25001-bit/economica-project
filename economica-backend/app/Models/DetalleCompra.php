@@ -26,10 +26,9 @@ class DetalleCompra extends Model
         return $this->belongsTo(Compra::class, 'compra_id');
     }
 
-    // withTrashed: el historial sigue mostrando productos que ya fueron eliminados
     public function producto()
     {
-        return $this->belongsTo(Producto::class, 'producto_id')->withTrashed();
+        return $this->belongsTo(Producto::class, 'producto_id');
     }
 
     public function proveedor()

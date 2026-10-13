@@ -4,11 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Producto extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $table = 'productos';
 
@@ -27,6 +26,7 @@ class Producto extends Model
 
     protected $casts = [
         'precio_automatico' => 'boolean',
+        'anulado' => 'boolean',
     ];
 
     public function proveedores()
@@ -55,11 +55,6 @@ class Producto extends Model
         return $this->hasMany(Lote::class, 'producto_id');
     }
 
-    /**
-     * Costo por unidad = precio del paquete / unidades por paquete.
-     * Con varios lotes en existencia se usa el promedio ponderado por cantidad.
-     * Si no hay lotes con stock, se usa el costo de la última compra.
-     */
     public function calcularCostoUnitario(): ?float
     {
         $tablaLotes = (new Lote)->getTable();
@@ -100,11 +95,6 @@ class Producto extends Model
         return null;
     }
 
-    /**
-     * Actualiza siempre el costo unitario y, si el producto está en modo
-     * automático, recalcula el precio de venta: costo x (1 + margen / 100).
-     * Los productos en modo manual no cambian su precio de venta.
-     */
     public function recalcularPrecios(): void
     {
         $costo = $this->calcularCostoUnitario();
@@ -124,10 +114,6 @@ class Producto extends Model
         $this->save();
     }
 
-    /**
-     * Redondea hacia arriba al siguiente múltiplo de 5 centavos
-     * (0.73 -> 0.75, 1.47 -> 1.50) para no quedar por debajo del margen pedido.
-     */
     public static function redondearPrecio(float $precio): float
     {
         $centavos = round($precio * 100, 4);

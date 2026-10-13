@@ -18,29 +18,25 @@ use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\UnidadMedidaController;
 use App\Http\Controllers\CajaController;
 
-// --- RUTAS PÚBLICAS ---
+// Públicas
 Route::get('/saludo', function () {
     return response()->json(['mensaje' => 'Hola desde Laravel']);
 });
 
-// Autenticación pública
 Route::prefix('auth')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login', [AuthController::class, 'login']);
 });
 
-
-// --- RUTAS PROTEGIDAS POR JWT (Requieren Token Bearer) ---
+// Protegidas (JWT)
 Route::middleware('auth:api')->group(function () {
 
-    // Auth sesión activa
     Route::prefix('auth')->group(function () {
         Route::get('me', [AuthController::class, 'me']);
         Route::post('logout', [AuthController::class, 'logout']);
         Route::post('refresh', [AuthController::class, 'refresh']);
     });
 
-    // Caja
     Route::prefix('caja')->group(function () {
         Route::get('estado', [CajaController::class, 'estadoActual']);
         Route::post('abrir', [CajaController::class, 'abrir']);
@@ -50,12 +46,10 @@ Route::middleware('auth:api')->group(function () {
         Route::post('forzar-cierre/{id}', [CajaController::class, 'forzarCierre']);
     });
 
-    // Reportes
-     Route::prefix('reportes')->group(function () {
+    Route::prefix('reportes')->group(function () {
         Route::get('general', [ReporteController::class, 'reporteGeneral']);
     });
 
-    // Módulos CRUD
     Route::apiResource('ventas', VentaController::class);
     Route::apiResource('compras', CompraController::class);
     Route::apiResource('usuarios', UserController::class);
@@ -63,6 +57,7 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('categorias', CategoriaController::class);
     Route::apiResource('subcategorias', SubCategoriaController::class);
     Route::patch('productos/{id}/stock-minimo', [ProductoController::class, 'actualizarStockMinimo']);
+    Route::patch('productos/{id}/reactivar', [ProductoController::class, 'reactivar']);
     Route::apiResource('productos', ProductoController::class);
     Route::apiResource('proveedores', ProveedorController::class);
     Route::apiResource('detallecompras', DetalleCompraController::class);

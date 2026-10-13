@@ -56,6 +56,14 @@ class CompraController extends Controller
             foreach ($request->detalles as $item) {
                 $producto = Producto::findOrFail($item['producto_id']);
 
+                if ($producto->anulado) {
+                    DB::rollBack();
+
+                    return response()->json([
+                        'message' => "El producto {$producto->nombre} está anulado y no se puede comprar."
+                    ], 422);
+                }
+
                 $paquetesComprados = (int) $item['cantidad'];
                 $unidadesPorPaquete = isset($item['unidades_por_paquete']) && $item['unidades_por_paquete'] > 0
                     ? (int) $item['unidades_por_paquete']
@@ -91,7 +99,6 @@ class CompraController extends Controller
 
                 $producto->increment('stock', $unidadesTotales);
 
-                // Costo unitario promedio y, si aplica, precio de venta automático
                 $producto->recalcularPrecios();
             }
 
@@ -137,7 +144,6 @@ class CompraController extends Controller
                     ]);
                 }
 
-                // El producto no se puede cambiar en una compra ya registrada
                 if (isset($det['producto_id']) && (int) $det['producto_id'] !== (int) $detalle->producto_id) {
                     throw ValidationException::withMessages([
                         "detalles.$i.producto_id" => 'No se puede cambiar el producto de una compra ya registrada.',
@@ -178,7 +184,6 @@ class CompraController extends Controller
                         $lote->vencido_descontado_at = null;
                     }
 
-                    // Código de lote intacto; la cantidad actual se ajusta por la diferencia
                     $lote->fecha_expiracion = $nuevaFecha;
                     $lote->cantidad_inicial = $unidadesNuevas;
                     $lote->cantidad_actual = $cantidadDespues;
@@ -197,11 +202,9 @@ class CompraController extends Controller
                     'subtotal'             => $paquetes * $precioPaquete,
                 ]);
 
-                // Costo unitario promedio y, si aplica, precio de venta automático
                 Producto::findOrFail($detalle->producto_id)->recalcularPrecios();
             }
 
-            // La fecha de la compra no se modifica; el total se recalcula desde los ítems
             $compra->update(['total' => $compra->detalles()->sum('subtotal')]);
 
             return response()->json([

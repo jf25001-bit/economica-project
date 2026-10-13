@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class ProductoController extends Controller
 {
@@ -51,6 +52,8 @@ class ProductoController extends Controller
                 'message' => 'Los usuarios con rol Cajero no tienen permiso para crear productos.'
             ], 403);
         }
+
+        $this->validarNoChocaConAnulado($request);
 
         $request->validate(array_merge([
             'codigo_barras'    => 'nullable|string|max:50|unique:productos,codigo_barras',
@@ -129,6 +132,8 @@ class ProductoController extends Controller
             ], 403);
         }
 
+        $this->validarNoChocaConAnulado($request, $producto->id);
+
         $request->validate(array_merge([
             'codigo_barras'    => 'nullable|string|max:50|unique:productos,codigo_barras,' . $id,
             'nombre'           => 'required|string|max:100|unique:productos,nombre,' . $id,
@@ -192,12 +197,51 @@ class ProductoController extends Controller
         ], 200);
     }
 
-    /**
-     * Borrado LÓGICO: el producto deja de aparecer en el catálogo, pero sigue
-     * existiendo en la base de datos para que las compras y ventas anteriores
-     * conserven su detalle.
-     */
     public function destroy($id)
+    {
+        if ($this->esCajero()) {
+            return response()->json([
+                'message' => 'Los usuarios con rol Cajero no tienen permiso para anular productos.'
+            ], 403);
+        }
+
+        return DB::transaction(function () use ($id) {
+            $producto = Producto::lockForUpdate()->find($id);
+
+            if (!$producto) {
+                return response()->json([
+                    'message' => 'Producto no encontrado'
+                ], 404);
+            }
+
+            if ($producto->anulado) {
+                return response()->json([
+                    'message' => 'El producto ya está anulado'
+                ], 422);
+            }
+
+            $stock = (float) $producto->stock;
+
+            if ($stock > 0) {
+                $cantidad = rtrim(rtrim(number_format($stock, 2, '.', ''), '0'), '.');
+
+                return response()->json([
+                    'message' => "No se puede anular \"{$producto->nombre}\": aún tiene {$cantidad} unidades en stock. Véndelas o ajusta el inventario antes de anularlo.",
+                    'stock' => $stock
+                ], 422);
+            }
+
+            $producto->anulado = true;
+            $producto->save();
+
+            return response()->json([
+                'message' => 'Producto anulado con éxito',
+                'data' => $producto
+            ], 200);
+        });
+    }
+
+    public function reactivar($id)
     {
         $producto = Producto::find($id);
 
@@ -209,24 +253,61 @@ class ProductoController extends Controller
 
         if ($this->esCajero()) {
             return response()->json([
-                'message' => 'Los usuarios con rol Cajero no tienen permiso para eliminar productos.'
+                'message' => 'Los usuarios con rol Cajero no tienen permiso para reactivar productos.'
             ], 403);
         }
 
-        DB::transaction(function () use ($producto) {
-            // Se libera el nombre y el código de barras para poder crear otro
-            // producto igual más adelante (ambos campos son únicos).
-            $sufijo = " (eliminado #{$producto->id})";
-            $producto->nombre = mb_substr($producto->nombre, 0, 100 - mb_strlen($sufijo)) . $sufijo;
-            $producto->codigo_barras = null;
-            $producto->save();
+        if (!$producto->anulado) {
+            return response()->json([
+                'message' => 'El producto no está anulado'
+            ], 422);
+        }
 
-            $producto->delete(); // SoftDeletes: solo marca deleted_at
-        });
+        $producto->anulado = false;
+        $producto->save();
 
         return response()->json([
-            'message' => 'Producto eliminado con éxito'
+            'message' => 'Producto reactivado con éxito',
+            'data' => $producto
         ], 200);
+    }
+
+    private function validarNoChocaConAnulado(Request $request, $ignorarId = null): void
+    {
+        $nombre = trim((string) $request->input('nombre'));
+        $codigo = trim((string) $request->input('codigo_barras'));
+
+        if ($nombre === '' && $codigo === '') {
+            return;
+        }
+
+        $anulados = Producto::where('anulado', true)
+            ->when($ignorarId, fn ($q) => $q->where('id', '!=', $ignorarId))
+            ->where(function ($q) use ($nombre, $codigo) {
+                if ($nombre !== '') {
+                    $q->orWhere('nombre', $nombre);
+                }
+                if ($codigo !== '') {
+                    $q->orWhere('codigo_barras', $codigo);
+                }
+            })
+            ->get();
+
+        $errores = [];
+
+        foreach ($anulados as $anulado) {
+            if ($nombre !== '' && mb_strtolower($anulado->nombre) === mb_strtolower($nombre)) {
+                $errores['nombre'] = ['Ya existe un producto anulado con este nombre. Reactívalo en lugar de crear otro.'];
+            }
+
+            if ($codigo !== '' && (string) $anulado->codigo_barras === $codigo) {
+                $errores['codigo_barras'] = ['Este código pertenece a un producto anulado. Reactívalo en lugar de crear otro.'];
+            }
+        }
+
+        if ($errores) {
+            throw ValidationException::withMessages($errores);
+        }
     }
 
     private function reglasPrecioAutomatico(Request $request): array

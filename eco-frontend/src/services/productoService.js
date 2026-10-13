@@ -30,3 +30,7 @@ export const subirImagenAPI = (formData) => {
 export const eliminarProductoAPI = (id) => {
   return api.delete(`/productos/${id}`)
 }
+
+export const reactivarProductoAPI = (id) => {
+  return api.patch(`/productos/${id}/reactivar`)
+}

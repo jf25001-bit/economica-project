@@ -14,7 +14,21 @@
           />
         </div>
 
-        <div v-if="!esCajero" class="top-right-actions flex items-center w-full sm:w-auto shrink-0">
+        <div v-if="!esCajero" class="top-right-actions flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto shrink-0">
+          <button
+            class="w-full sm:w-auto bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 px-4 py-2.5 rounded-xl shadow-sm transition-all font-medium text-sm flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer"
+            @click="irAAnulados"
+          >
+            <i class="bi bi-archive"></i>
+            <span>Anulados</span>
+            <span
+              v-if="totalAnulados > 0"
+              class="rounded-full bg-gray-800 text-white px-1.5 py-0.5 text-[10px] font-bold leading-none"
+            >
+              {{ totalAnulados }}
+            </span>
+          </button>
+
           <button
             class="w-full sm:w-auto bg-[#1a233a] hover:bg-[#111827] text-white px-5 py-2.5 rounded-xl shadow-sm transition-all font-medium text-sm flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer"
             @click="abrirModalForm"
@@ -165,10 +179,10 @@
                       </button>
                       <button
                         class="p-1.5 text-red-500 hover:text-red-700 rounded-lg border border-gray-200 hover:bg-white shadow-xs transition cursor-pointer"
-                        @click="eliminarProducto(producto.id)"
-                        title="Eliminar producto"
+                        @click="anularProducto(producto)"
+                        title="Anular producto"
                       >
-                        <i class="bi bi-trash"></i>
+                        <i class="bi bi-slash-circle"></i>
                       </button>
                     </div>
                   </td>
@@ -652,7 +666,10 @@ const usuarioActual = computed(() => {
 
 const esCajero = computed(() => (usuarioActual.value?.rol?.nombre || '') === 'Cajero')
 
-const productos = ref([])
+const productosCargados = ref([])
+const productos = computed(() => productosCargados.value.filter(p => !p.anulado))
+const totalAnulados = computed(() => productosCargados.value.length - productos.value.length)
+
 const categorias = ref([])
 const subcategorias = ref([])
 const unidadesMedida = ref([])
@@ -1003,9 +1020,18 @@ const cargarAuxiliaresFormulario = async () => {
 const cargarProductos = async () => {
   try {
     const res = await getProductos()
-    productos.value = res.data.data || res.data
+    productosCargados.value = res.data.data || res.data
   } catch (error) {
     console.error('Error cargando productos:', error)
+  }
+}
+
+const marcarErroresDelServidor = (error) => {
+  const erroresServidor = error.response?.data?.errors
+  if (error.response?.status !== 422 || !erroresServidor) return
+
+  for (const campo of ['nombre', 'codigo_barras']) {
+    if (erroresServidor[campo]) errores.value[campo] = erroresServidor[campo][0]
   }
 }
 
@@ -1063,6 +1089,7 @@ const guardarProducto = async () => {
     alertaExito(fueEdicion ? 'Producto actualizado' : 'Producto creado')
   } catch (error) {
     console.error('Error al guardar:', error)
+    marcarErroresDelServidor(error)
     alertaError(
       'No se pudo guardar el producto',
       mensajesDeError(error, 'Ocurrió un error al procesar la solicitud.')
@@ -1072,32 +1099,36 @@ const guardarProducto = async () => {
   }
 }
 
-const eliminarProducto = async (id) => {
+const anularProducto = async (producto) => {
   if (esCajero.value) {
-    alertaAdvertencia('Sin permiso', 'No tienes permiso para eliminar productos.')
+    alertaAdvertencia('Sin permiso', 'No tienes permiso para anular productos.')
     return
   }
 
   const acepto = await confirmar({
-    titulo: '¿Eliminar producto?',
-    texto: 'Esta acción no se puede deshacer.',
-    confirmarTexto: 'Sí, eliminar',
+    titulo: '¿Anular producto?',
+    texto: `"${producto.nombre}" dejará de aparecer en ventas, compras y en este listado. Podrás reactivarlo desde Anulados.`,
+    confirmarTexto: 'Sí, anular',
     peligro: true
   })
 
   if (!acepto) return
 
   try {
-    await eliminarProductoAPI(id)
+    await eliminarProductoAPI(producto.id)
     await cargarProductos()
-    alertaExito('Producto eliminado')
+    alertaExito('Producto anulado')
   } catch (error) {
-    console.error('Error al eliminar:', error)
+    console.error('Error al anular:', error)
     alertaError(
-      'No se pudo eliminar el producto',
-      mensajesDeError(error, 'Es posible que el producto ya tenga compras o ventas registradas.')
+      'No se pudo anular el producto',
+      mensajesDeError(error, 'Ocurrió un error al procesar la solicitud.')
     )
   }
+}
+
+const irAAnulados = () => {
+  router.push('/productos/anulados')
 }
 
 const CLAVE_BORRADOR = 'borrador_producto'

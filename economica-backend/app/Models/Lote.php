@@ -21,10 +21,9 @@ class Lote extends Model
         'vencido_descontado_at' => 'datetime',
     ];
 
-    // withTrashed: el historial sigue mostrando productos que ya fueron eliminados
     public function producto()
     {
-        return $this->belongsTo(Producto::class, 'producto_id')->withTrashed();
+        return $this->belongsTo(Producto::class, 'producto_id');
     }
 
     public function detalleCompra()
@@ -32,13 +31,11 @@ class Lote extends Model
         return $this->belongsTo(DetalleCompra::class, 'detalle_compra_id');
     }
 
-    
     public static function hoy(): string
     {
         return now('America/El_Salvador')->toDateString();
     }
 
-    
     public function estaVencido(): bool
     {
         $fecha = substr((string) $this->fecha_expiracion, 0, 10);

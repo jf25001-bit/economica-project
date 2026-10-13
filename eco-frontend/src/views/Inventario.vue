@@ -68,10 +68,17 @@
             </thead>
 
             <tbody class="divide-y divide-gray-100">
-              <tr v-for="item in filas" :key="item.id" class="hover:bg-gray-50/80 transition-colors">
-                <td class="px-4 py-3 font-mono text-sm text-gray-600 whitespace-nowrap">{{ item.codigo }}</td>
-                <td class="px-4 py-3 font-medium text-gray-800 break-words text-sm">{{ item.nombre }}</td>
-                <td class="px-4 py-3 text-gray-600 break-words text-sm">{{ item.categoria }}</td>
+              <tr
+                v-for="item in filas"
+                :key="item.id"
+                :class="['transition-colors', item.anulado ? 'bg-gray-200/70 text-gray-500' : 'hover:bg-gray-50/80']"
+              >
+                <td class="px-4 py-3 font-mono text-sm whitespace-nowrap" :class="item.anulado ? 'text-gray-500' : 'text-gray-600'">{{ item.codigo }}</td>
+                <td class="px-4 py-3 font-medium break-words text-sm" :class="item.anulado ? 'text-gray-600 line-through' : 'text-gray-800'">
+                  {{ item.nombre }}
+                  <span v-if="item.anulado" class="ml-2 rounded-full bg-gray-800 text-white px-2 py-0.5 text-[10px] font-bold align-middle no-underline inline-block">Anulado</span>
+                </td>
+                <td class="px-4 py-3 break-words text-sm" :class="item.anulado ? 'text-gray-500' : 'text-gray-600'">{{ item.categoria }}</td>
 
                 <td class="px-4 py-3 font-semibold text-center whitespace-nowrap">
                   <span>{{ item.stock }}</span>
@@ -93,6 +100,13 @@
 
                 <td class="px-4 py-3 text-center whitespace-nowrap">
                   <span
+                    v-if="item.anulado"
+                    class="px-2.5 py-1 rounded-full text-xs font-medium inline-block bg-gray-300 text-gray-700"
+                  >
+                    Anulado
+                  </span>
+                  <span
+                    v-else
                     :class="[
                       'px-2.5 py-1 rounded-full text-xs font-medium inline-block',
                       item.stock > item.minimo
@@ -117,7 +131,8 @@
                 <td class="px-4 py-3 text-right whitespace-nowrap">
                   <button
                     type="button"
-                    class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-600 transition hover:bg-gray-100 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                    class="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                    :class="item.anulado ? 'bg-white text-gray-700 hover:bg-gray-100 border-gray-300' : 'border-gray-200 text-gray-600 hover:bg-gray-100'"
                     :disabled="item.lotes.length === 0"
                     @click="verLotes(item)"
                   >
@@ -134,15 +149,25 @@
           <div
             v-for="item in filas"
             :key="item.id"
-            class="min-w-0 rounded-xl border border-gray-100 bg-white p-4 shadow-sm flex flex-col gap-3"
+            :class="['min-w-0 rounded-xl border p-4 shadow-sm flex flex-col gap-3', item.anulado ? 'bg-gray-200/70 border-gray-300' : 'border-gray-100 bg-white']"
           >
             <div class="flex items-start justify-between gap-2">
               <div class="min-w-0">
-                <p class="font-semibold text-gray-800 text-sm break-words m-0">{{ item.nombre }}</p>
-                <p class="font-mono text-[11px] text-gray-400 truncate m-0 mt-0.5">{{ item.codigo }}</p>
-                <p class="text-xs text-gray-500 truncate m-0 mt-0.5">{{ item.categoria }}</p>
+                <p class="font-semibold text-sm break-words m-0" :class="item.anulado ? 'text-gray-700 line-through' : 'text-gray-800'">
+                  {{ item.nombre }}
+                  <span v-if="item.anulado" class="ml-1 rounded-full bg-gray-800 text-white px-2 py-0.5 text-[10px] font-bold align-middle no-underline inline-block">Anulado</span>
+                </p>
+                <p class="font-mono text-[11px] truncate m-0 mt-0.5" :class="item.anulado ? 'text-gray-500' : 'text-gray-400'">{{ item.codigo }}</p>
+                <p class="text-xs truncate m-0 mt-0.5" :class="item.anulado ? 'text-gray-500' : 'text-gray-500'">{{ item.categoria }}</p>
               </div>
               <span
+                v-if="item.anulado"
+                class="px-2.5 py-1 rounded-full text-[11px] font-medium shrink-0 bg-gray-300 text-gray-700"
+              >
+                Anulado
+              </span>
+              <span
+                v-else
                 :class="[
                   'px-2.5 py-1 rounded-full text-[11px] font-medium shrink-0',
                   item.stock > item.minimo
@@ -154,9 +179,9 @@
               </span>
             </div>
 
-            <div class="grid grid-cols-3 gap-2 text-center bg-gray-50 rounded-lg p-2">
+            <div class="grid grid-cols-3 gap-2 text-center rounded-lg p-2" :class="item.anulado ? 'bg-gray-300/60' : 'bg-gray-50'">
               <div class="min-w-0">
-                <span class="block text-[10px] font-bold uppercase tracking-wider text-gray-400">Stock</span>
+                <span class="block text-[10px] font-bold uppercase tracking-wider text-gray-500">Stock</span>
                 <span class="block text-sm font-bold text-gray-800">{{ item.stock }}</span>
                 <span
                   v-if="filtroVencimiento === 'vencidos'"
@@ -166,13 +191,13 @@
                 </span>
               </div>
               <div class="min-w-0">
-                <span class="block text-[10px] font-bold uppercase tracking-wider text-gray-400">Lotes</span>
+                <span class="block text-[10px] font-bold uppercase tracking-wider text-gray-500">Lotes</span>
                 <span class="block text-sm font-bold text-gray-800">
                   {{ filtroVencimiento === 'vencidos' ? item.vencidos : item.lotesVigentes.length }}
                 </span>
               </div>
               <div class="min-w-0">
-                <span class="block text-[10px] font-bold uppercase tracking-wider text-gray-400">Mínimo</span>
+                <span class="block text-[10px] font-bold uppercase tracking-wider text-gray-500">Mínimo</span>
                 <span class="block text-sm font-bold text-gray-800">{{ item.minimo }}</span>
               </div>
             </div>
@@ -182,13 +207,14 @@
                 <i :class="['bi', item.badge.icon]"></i>
                 {{ item.badge.texto }}
               </span>
-              <span v-else class="text-xs text-gray-400">
+              <span v-else class="text-xs text-gray-500">
                 {{ item.lotesVigentes.length ? 'Vigente' : '—' }}
               </span>
 
               <button
                 type="button"
-                class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 transition hover:bg-gray-100 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                class="inline-flex items-center justify-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                :class="item.anulado ? 'bg-white text-gray-700 hover:bg-gray-100 border-gray-300' : 'border-gray-200 text-gray-600 hover:bg-gray-100'"
                 :disabled="item.lotes.length === 0"
                 @click="verLotes(item)"
               >
@@ -251,20 +277,34 @@ let temporizador = null
 
 const inventario = computed(() => construirInventario(productos.value, lotes.value))
 
-const filtrosVencimiento = computed(() => {
-  const porVencer = inventario.value.filter(i => i.porVencer > 0).length
-  const vencidos = inventario.value.filter(i => i.vencidos > 0).length
+const esAnulado = (item) => {
+  return Boolean(
+    item.anulado ||
+    item.estado === 'anulado' ||
+    item.deleted_at ||
+    item.is_active === false ||
+    item.is_active === 0
+  )
+}
 
-  return FILTROS_VENCIMIENTO.map(f => {
-    if (f.value === 'por-vencer') return { ...f, label: `${f.label} (${porVencer})` }
-    if (f.value === 'vencidos') return { ...f, label: `${f.label} (${vencidos})` }
-    return f
-  })
+const filtrosVencimiento = computed(() => {
+  const porVencer = inventario.value.filter(i => !esAnulado(i) && i.porVencer > 0).length
+  const vencidos = inventario.value.filter(i => !esAnulado(i) && i.vencidos > 0).length
+
+  return [
+    { value: '', label: 'Todos' },
+    { value: 'anulados', label: 'Anulados' },
+    ...FILTROS_VENCIMIENTO.slice(1).map(f => {
+      if (f.value === 'por-vencer') return { ...f, label: `${f.label} (${porVencer})` }
+      if (f.value === 'vencidos') return { ...f, label: `${f.label} (${vencidos})` }
+      return f
+    })
+  ]
 })
 
 const avisoVencidos = computed(() => ({
-  lotes: inventario.value.reduce((total, i) => total + i.vencidosRecientes, 0),
-  productos: inventario.value.filter(i => i.vencidosRecientes > 0).length
+  lotes: inventario.value.reduce((total, i) => total + (esAnulado(i) ? 0 : i.vencidosRecientes), 0),
+  productos: inventario.value.filter(i => !esAnulado(i) && i.vencidosRecientes > 0).length
 }))
 
 const textoAvisoVencidos = computed(() => {
@@ -276,8 +316,16 @@ const inventarioFiltrado = computed(() => {
   const query = busqueda.value.toLowerCase().trim()
 
   const lista = inventario.value.filter(item => {
-    if (filtroVencimiento.value === 'por-vencer' && item.porVencer === 0) return false
-    if (filtroVencimiento.value === 'vencidos' && item.vencidos === 0) return false
+    const anulado = esAnulado(item)
+
+    if (filtroVencimiento.value === 'anulados') {
+      if (!anulado) return false
+    } else {
+      if (anulado) return false
+      if (filtroVencimiento.value === 'por-vencer' && item.porVencer === 0) return false
+      if (filtroVencimiento.value === 'vencidos' && item.vencidos === 0) return false
+    }
+
     if (!query) return true
 
     return (
@@ -288,7 +336,6 @@ const inventarioFiltrado = computed(() => {
     )
   })
 
-  // Vencidos: primero los que llevan menos días vencidos (-1 antes que -30)
   if (filtroVencimiento.value === 'vencidos') {
     lista.sort((a, b) => b.diasUltimoVencido - a.diasUltimoVencido || a.nombre.localeCompare(b.nombre))
   }
@@ -321,7 +368,11 @@ const badgeVencimiento = (item) => {
   return null
 }
 
-const filas = computed(() => paginados.value.map(item => ({ ...item, badge: badgeVencimiento(item) })))
+const filas = computed(() => paginados.value.map(item => ({
+  ...item,
+  anulado: esAnulado(item),
+  badge: badgeVencimiento(item)
+})))
 
 const Toast = Swal.mixin({
   toast: true,
@@ -333,8 +384,8 @@ const Toast = Swal.mixin({
 })
 
 const notificarVencimientos = () => {
-  const porVencer = inventario.value.filter(i => i.porVencer > 0).length
-  const urgentes = inventario.value.filter(i => i.severidad === 'urgente').length
+  const porVencer = inventario.value.filter(i => !esAnulado(i) && i.porVencer > 0).length
+  const urgentes = inventario.value.filter(i => !esAnulado(i) && i.severidad === 'urgente').length
   if (!porVencer) return
 
   const lineas = [
@@ -360,8 +411,8 @@ const cargarInventario = async ({ silencioso = false } = {}) => {
       api.get('/lotes')
     ])
 
-    const dataProductos = resProductos.data?.data || resProductos.data || []
-    const dataLotes = resLotes.data?.data || resLotes.data || []
+    const dataProductos = resProductos.data?.data || resProductos.data || resProductos || []
+    const dataLotes = resLotes.data?.data || resLotes.data || resLotes || []
 
     productos.value = Array.isArray(dataProductos) ? dataProductos : []
     lotes.value = Array.isArray(dataLotes) ? dataLotes : []

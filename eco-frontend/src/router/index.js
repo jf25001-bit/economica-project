@@ -53,6 +53,11 @@ const routes = [
     }
   },
   {
+    path: '/productos/anulados',
+    name: 'ProductosAnulados',
+    component: () => import('@/views/ProductosAnulados.vue')
+  },
+  {
     path: '/control-cajas',
     name: 'ControlCajas',
     component: () => import('@/views/ControlCajas.vue'),

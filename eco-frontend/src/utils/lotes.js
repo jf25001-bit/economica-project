@@ -23,6 +23,11 @@ export const ESTADOS_LOTE = {
     clase: 'bg-amber-50 text-amber-700 border-amber-200',
     icon: 'bi-clock-history',
     fila: 'bg-amber-50/50'
+  },
+  agotado: {
+    clase: 'bg-gray-100 text-gray-500 border-gray-200',
+    icon: 'bi-dash-circle',
+    fila: 'bg-gray-50/50'
   }
 }
 
@@ -48,7 +53,8 @@ export const diasParaVencer = (fecha) => {
   return Math.round((f - hoy) / 86400000)
 }
 
-export const clasificarLote = (fecha) => {
+export const clasificarLote = (fecha, cantidadActual = 1) => {
+  if (cantidadActual <= 0) return { dias: diasParaVencer(fecha), estadoVenc: 'agotado' }
   const dias = diasParaVencer(fecha)
   if (dias === null) return { dias: null, estadoVenc: 'sin-fecha' }
   if (dias < 0) return { dias, estadoVenc: 'vencido' }
@@ -59,6 +65,7 @@ export const clasificarLote = (fecha) => {
 }
 
 export const textoEstadoLote = (lote) => {
+  if (lote.estadoVenc === 'agotado') return 'Agotado'
   const d = lote.diasRestantes
   if (lote.estadoVenc === 'vencido') {
     const n = Math.abs(d)
@@ -87,11 +94,13 @@ export const ordenarLotesFifo = (lista) => {
 const sumarCantidad = (lista) => lista.reduce((total, l) => total + l.cantidad_actual, 0)
 
 export const construirInventario = (productos, lotes) => {
+  const anulados = new Set(productos.filter(p => p.anulado).map(p => Number(p.id)))
   const grupos = {}
 
   for (const lote of lotes) {
     const cantidadActual = Number(lote.cantidad_actual) || 0
-    if (!lote.producto_id || cantidadActual <= 0) continue
+    if (!lote.producto_id) continue
+    if (cantidadActual <= 0 && !anulados.has(Number(lote.producto_id))) continue
     if (!grupos[lote.producto_id]) grupos[lote.producto_id] = []
 
     grupos[lote.producto_id].push({
@@ -105,16 +114,16 @@ export const construirInventario = (productos, lotes) => {
     let orden = 0
 
     const lotesProducto = ordenarLotesFifo(grupos[producto.id] || []).map(lote => {
-      const { dias, estadoVenc } = clasificarLote(lote.fecha_expiracion)
+      const { dias, estadoVenc } = clasificarLote(lote.fecha_expiracion, lote.cantidad_actual)
       return {
         ...lote,
         diasRestantes: dias,
         estadoVenc,
-        ordenFifo: estadoVenc === 'vencido' ? null : ++orden
+        ordenFifo: (estadoVenc === 'vencido' || estadoVenc === 'agotado') ? null : ++orden
       }
     })
 
-    const lotesVigentes = lotesProducto.filter(l => l.estadoVenc !== 'vencido')
+    const lotesVigentes = lotesProducto.filter(l => l.estadoVenc !== 'vencido' && l.estadoVenc !== 'agotado')
     const lotesVencidos = lotesProducto.filter(l => l.estadoVenc === 'vencido')
     const lotesPorVencer = lotesVigentes.filter(l => ESTADOS_POR_VENCER.includes(l.estadoVenc))
 
@@ -128,6 +137,7 @@ export const construirInventario = (productos, lotes) => {
       codigo: producto.codigo_barras || 'Sin codigo',
       nombre: producto.nombre || 'Sin nombre',
       categoria: producto.subcategoria?.categoria?.nombre || 'General',
+      anulado: !!producto.anulado,
       stock: lotesProducto.length > 0 ? sumarCantidad(lotesVigentes) : Number(producto.stock) || 0,
       minimo: Number(producto.stock_minimo) || 0,
       lotes: lotesProducto,
@@ -135,7 +145,6 @@ export const construirInventario = (productos, lotes) => {
       lotesVencidos,
       vencidos: lotesVencidos.length,
       vencidosRecientes: lotesVencidos.filter(l => l.diasRestantes >= -DIAS_AVISO_VENCIDOS).length,
-      
       diasUltimoVencido: lotesVencidos.length
         ? Math.max(...lotesVencidos.map(l => l.diasRestantes))
         : null,
