@@ -9,116 +9,150 @@ use Carbon\Carbon;
 
 class CajaController extends Controller
 {
-    /**
-     * Verifica si el usuario autenticado es administrador.
-     */
+    // Horarios de los turnos (hora inicio incluida, hora fin excluida)
+    private const TURNOS = [
+        'manana' => ['inicio' => 0,  'fin' => 12, 'texto' => 'Mañana (12:00 a.m. a 11:59 a.m.)'],
+        'tarde'  => ['inicio' => 12, 'fin' => 24, 'texto' => 'Tarde (12:00 p.m. a 11:59 p.m.)'],
+        // 'unico' no tiene restricción de horario
+    ];
+
+    private function usuarioActual()
+    {
+        return Auth::user() ?? auth('api')->user();
+    }
+
     private function esAdministrador()
     {
-        $user = Auth::user() ?? auth('api')->user();
+        $user = $this->usuarioActual();
         $rol = strtolower(trim($user->rol->nombre ?? $user->rol ?? ''));
         return $rol === 'administrador';
     }
 
+    private function nombreDe($user)
+    {
+        return $user->nombre ?? $user->name ?? ('Usuario #' . ($user->id ?? '?'));
+    }
+
     /**
-     * Obtener el estado actual de la caja abierta en el sistema.
+     * Estado de la caja DEL USUARIO autenticado.
      */
     public function estadoActual(Request $request)
     {
+        $user = $this->usuarioActual();
+
         $caja = Caja::where('estado', 'abierta')
+            ->where('user_id', $user->id)
             ->orderBy('id', 'desc')
             ->first();
 
+        $otra = null;
+        if (!$caja) {
+            $otra = Caja::with('usuario')->where('estado', 'abierta')->first();
+        }
+
         return response()->json([
             'caja' => $caja,
-            'monto_anterior' => 0.00
+            'caja_otro_usuario' => $otra ? [
+                'id'      => $otra->id,
+                'usuario' => $otra->usuario ? $this->nombreDe($otra->usuario) : 'otro usuario',
+            ] : null,
+            'monto_anterior' => 0.00,
         ]);
     }
 
     /**
-     * Abrir una nueva caja (solo administrador) garantizando que NO exista otra caja abierta.
+     * Abrir caja (solo administrador), validando turno y que no haya otra abierta.
      */
     public function abrir(Request $request)
     {
         if (!$this->esAdministrador()) {
-            return response()->json([
-                'message' => 'Solo el administrador puede abrir la caja.'
-            ], 403);
+            return response()->json(['message' => 'Solo el administrador puede abrir la caja.'], 403);
         }
 
         $request->validate([
             'monto_apertura' => 'required|numeric|min:0',
+            'turno'          => 'nullable|in:unico,manana,tarde',
         ]);
 
-        $userId = Auth::id() ?? auth('api')->id() ?? $request->input('user_id');
+        $user  = $this->usuarioActual();
+        $turno = $request->input('turno', 'unico');
 
-        if (!$userId) {
-            return response()->json([
-                'message' => 'No se pudo identificar al usuario autenticado.'
-            ], 401);
+        // Validación de horario del turno
+        if (isset(self::TURNOS[$turno])) {
+            // Hora de El Salvador fija, sin depender de config/app.php
+            $ahora = Carbon::now('America/El_Salvador');
+            $hora  = $ahora->hour;
+            $t = self::TURNOS[$turno];
+            if ($hora < $t['inicio'] || $hora >= $t['fin']) {
+                return response()->json([
+                    'message' => "No puedes abrir el turno {$t['texto']} fuera de su horario. Hora actual del sistema: " . $ahora->format('h:i A') . "."
+                ], 422);
+            }
         }
 
-        // VALIDACIÓN GLOBAL
-        $cajaAbiertaGlobal = Caja::where('estado', 'abierta')->first();
-
+        // Solo una caja abierta en todo el sistema
+        $cajaAbiertaGlobal = Caja::with('usuario')->where('estado', 'abierta')->first();
         if ($cajaAbiertaGlobal) {
+            $quien = $cajaAbiertaGlobal->usuario ? $this->nombreDe($cajaAbiertaGlobal->usuario) : 'otro usuario';
             return response()->json([
-                'message' => 'No se puede abrir caja. Ya existe una caja abierta en el sistema. Se debe realizar el cierre antes de aperturar un nuevo turno.'
+                'message' => "Ya existe una caja abierta por {$quien}. Debe cerrarse antes de abrir un nuevo turno."
             ], 400);
         }
 
         $caja = Caja::create([
-            'user_id'        => (int)$userId,
+            'user_id'        => $user->id,
             'monto_apertura' => $request->monto_apertura,
             'total_ventas'   => 0.00,
             'estado'         => 'abierta',
+            'turno'          => $turno,
             'fecha_apertura' => Carbon::now(),
         ]);
 
-        return response()->json([
-            'message' => 'Caja aperturada exitosamente.',
-            'caja'    => $caja
-        ], 201);
+        return response()->json(['message' => 'Caja aperturada exitosamente.', 'caja' => $caja], 201);
     }
 
     /**
-     * Cerrar la caja abierta (solo administrador).
+     * Cierre NORMAL: solo la caja propia del usuario autenticado.
      */
     public function cerrar(Request $request)
     {
         if (!$this->esAdministrador()) {
-            return response()->json([
-                'message' => 'Solo el administrador puede cerrar la caja.'
-            ], 403);
+            return response()->json(['message' => 'Solo el administrador puede cerrar la caja.'], 403);
         }
 
-        $request->validate([
-            'monto_cierre' => 'required|numeric|min:0'
-        ]);
+        $request->validate(['monto_cierre' => 'required|numeric|min:0']);
 
-        $userId = Auth::id() ?? auth('api')->id() ?? $request->input('user_id');
+        $user = $this->usuarioActual();
 
-        $caja = Caja::where('estado', 'abierta')->first();
+        $caja = Caja::where('estado', 'abierta')
+            ->where('user_id', $user->id)
+            ->first();
 
         if (!$caja) {
-            return response()->json([
-                'message' => 'No hay ninguna caja abierta para cerrar.'
-            ], 400);
+            $otra = Caja::with('usuario')->where('estado', 'abierta')->first();
+            if ($otra) {
+                $quien = $otra->usuario ? $this->nombreDe($otra->usuario) : 'otro usuario';
+                return response()->json([
+                    'message' => "La caja abierta pertenece a {$quien}. Solo su dueño puede hacer cierre normal; "
+                               . "como administrador debes hacer un Cierre Forzado desde Control de Cajas."
+                ], 403);
+            }
+            return response()->json(['message' => 'No tienes ninguna caja abierta para cerrar.'], 400);
         }
 
         $caja->update([
             'monto_cierre'   => $request->monto_cierre,
             'fecha_cierre'   => Carbon::now(),
             'estado'         => 'cerrada',
+            'tipo_cierre'    => 'normal',
+            'cerrado_por_id' => $user->id,
         ]);
 
-        return response()->json([
-            'message' => 'Caja cerrada exitosamente.',
-            'caja'    => $caja
-        ]);
+        return response()->json(['message' => 'Caja cerrada exitosamente.', 'caja' => $caja]);
     }
 
     /**
-     * Obtener todas las cajas abiertas en el sistema (Para Control de Cajas)
+     * Cajas abiertas en el sistema (Control de Cajas).
      */
     public function cajasActivas()
     {
@@ -131,7 +165,7 @@ class CajaController extends Controller
     }
 
     /**
-     * Obtener el historial completo de cajas (Para Control de Cajas)
+     * Historial completo (Control de Cajas).
      */
     public function historial()
     {
@@ -143,24 +177,39 @@ class CajaController extends Controller
     }
 
     /**
-     * Forzar el cierre de una caja específica desde el módulo de administración
+     * Cierre FORZADO: solo admin, solo sobre cajas de OTROS usuarios.
      */
     public function forzarCierre(Request $request, $id)
     {
+        if (!$this->esAdministrador()) {
+            return response()->json(['message' => 'Solo un administrador puede forzar el cierre.'], 403);
+        }
+
         $caja = Caja::find($id);
 
         if (!$caja) {
             return response()->json(['message' => 'Caja no encontrada.'], 404);
         }
 
-        $adminId = Auth::id() ?? auth('api')->id() ?? $request->input('admin_id');
+        if ($caja->estado !== 'abierta') {
+            return response()->json(['message' => 'Esta caja ya está cerrada.'], 400);
+        }
+
+        $admin = $this->usuarioActual();
+
+        if ($caja->user_id === $admin->id) {
+            return response()->json([
+                'message' => 'No puedes forzar el cierre de tu propia caja. Usa el cierre normal desde Apertura / Cierre.'
+            ], 403);
+        }
 
         $caja->update([
             'monto_cierre'   => $request->input('monto_cierre', $caja->monto_apertura + $caja->total_ventas),
             'fecha_cierre'   => Carbon::now(),
             'estado'         => 'cerrada',
-            'observacion'    => $request->input('observacion', 'Cierre forzado por Administrador'),
-            'cerrado_por_id' => $adminId,
+            'tipo_cierre'    => 'forzado',
+            'observacion'    => $request->input('observacion', 'Cierre forzado por el Administrador'),
+            'cerrado_por_id' => $admin->id,
         ]);
 
         return response()->json([

@@ -62,6 +62,7 @@
               </div>
               
               <h3 class="text-base font-black text-white mt-3">{{ nombreUsuario(caja) }}</h3>
+              <p class="text-[11px] font-bold text-sky-400 mt-0.5">{{ etiquetaTurno(caja.turno) }}</p>
               <p class="text-xs text-slate-400 mt-1">Apertura: {{ caja.fecha_apertura }}</p>
               
               <div class="mt-4 pt-3 border-t border-slate-800 space-y-1.5">
@@ -76,12 +77,17 @@
               </div>
             </div>
 
-            <button 
+            <!-- Solo se puede forzar el cierre de cajas de OTROS usuarios -->
+            <button
+              v-if="!esMiCaja(caja)"
               @click="forzarCierre(caja)"
               class="w-full py-2.5 bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/20 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2"
             >
               <i class="bi bi-lock-fill"></i> Forzar Cierre de Caja
             </button>
+            <p v-else class="text-[11px] text-slate-400 text-center py-2.5 border border-slate-800 rounded-xl">
+              Es tu caja. Ciérrala desde Apertura / Cierre.
+            </p>
           </div>
         </div>
       </div>
@@ -115,7 +121,10 @@
             </thead>
             <tbody class="divide-y divide-slate-800">
               <tr v-for="item in historial" :key="item.id" class="hover:bg-slate-900/60 transition-colors">
-                <td class="p-3 font-extrabold text-white">Caja #{{ item.id }} ({{ nombreUsuario(item) }})</td>
+                <td class="p-3 font-extrabold text-white">
+                  Caja #{{ item.id }} ({{ nombreUsuario(item) }})
+                  <p class="text-[10px] font-medium text-slate-500">{{ etiquetaTurno(item.turno) }}</p>
+                </td>
                 <td class="p-3 text-slate-400">{{ item.fecha_apertura }}</td>
                 <td class="p-3 text-slate-400">{{ item.fecha_cierre || 'En curso' }}</td>
                 <td class="p-3 font-semibold text-slate-200">${{ Number(item.monto_apertura || 0).toFixed(2) }}</td>
@@ -136,10 +145,9 @@
                   </span>
                 </td>
                 <td class="p-3">
-                  <!-- Validación ampliada para cierre forzado -->
-                  <div v-if="item.cerrado_por_id || (item.observacion && (item.observacion.includes('Forzado') || item.observacion.includes('forzado') || item.observacion.includes('Admin')))" class="space-y-1">
+                  <div v-if="item.tipo_cierre === 'forzado'" class="space-y-1">
                     <span class="px-2.5 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[10px] font-bold rounded-md inline-flex items-center gap-1">
-                      <i class="bi bi-shield-exclamation"></i> Cierre Forzado por Admin
+                      <i class="bi bi-shield-exclamation"></i> Cierre Forzado por Admin: {{ nombreCerrador(item) }}
                     </span>
                     <p v-if="item.observacion" class="text-[10px] text-slate-400 leading-tight">
                       {{ item.observacion }}
@@ -173,9 +181,27 @@ const vista = ref('activas')
 const cajasActivas = ref([])
 const historial = ref([])
 
+// ID del usuario que tiene la sesión iniciada
+const miId = (() => {
+  try {
+    return JSON.parse(localStorage.getItem('user'))?.id ?? null
+  } catch (e) {
+    return null
+  }
+})()
+
+const esMiCaja = (caja) => miId !== null && caja.user_id === miId
+
 const nombreUsuario = (item) => {
   return item.usuario?.nombre || item.usuario?.name || `Usuario #${item.user_id}`
 }
+
+const nombreCerrador = (item) => {
+  return item.cerrado_por?.nombre || item.cerrado_por?.name || `Admin #${item.cerrado_por_id}`
+}
+
+const etiquetaTurno = (t) =>
+  ({ unico: 'Turno Único', manana: 'Turno Mañana', tarde: 'Turno Tarde' }[t] || 'Turno Único')
 
 // Monto que debería haber en caja: apertura + ventas
 const montoEsperado = (item) => {
@@ -259,7 +285,7 @@ const forzarCierre = async (caja) => {
     } catch (e) {
       Swal.fire({
         title: 'Error',
-        text: 'No se pudo forzar el cierre de la caja.',
+        text: e.response?.data?.message || 'No se pudo forzar el cierre de la caja.',
         icon: 'error',
         background: '#1e293b',
         color: '#ffffff'

@@ -116,10 +116,11 @@
       </div>
     </div>
 
+    <!-- MODAL DE COMPRA (ancho) -->
     <div v-if="modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
-      <div class="modal-card-box bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-lg w-full max-h-[92vh] flex flex-col overflow-hidden">
+      <div class="modal-card-box bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-h-[92vh] flex flex-col overflow-hidden">
 
-        <div class="px-5 py-4 flex justify-between items-center border-b border-slate-200 bg-slate-900 text-white shrink-0">
+        <div class="px-6 py-4 flex justify-between items-center border-b border-slate-200 bg-slate-900 text-white shrink-0">
           <div class="flex items-center gap-3">
             <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-white border border-slate-700 shrink-0">
               <i :class="modoEdicion ? 'bi bi-pencil-square' : 'bi bi-bag-plus-fill'" class="text-lg"></i>
@@ -139,24 +140,25 @@
           </button>
         </div>
 
-        <div class="modal-body-scroll p-4 sm:p-5 overflow-y-auto overflow-x-hidden flex-1 space-y-5 bg-slate-50/50">
+        <div class="modal-body-scroll p-5 sm:p-6 overflow-y-auto overflow-x-hidden flex-1 space-y-5 bg-slate-50/50">
 
-          <div class="form-row-single space-y-3">
-            <div class="p-3.5 border border-slate-200 rounded-xl bg-white shadow-sm">
+          <!-- Fecha y total, lado a lado -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-4 border border-slate-200 rounded-xl bg-white shadow-sm">
               <label class="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-1.5">Fecha de Compra</label>
               <input
                 v-model="fechaCompraNueva"
                 type="date"
                 :readonly="modoEdicion"
                 :class="[
-                  'form-force-input px-3 py-2 border rounded-lg text-sm font-medium outline-none',
+                  'form-force-input h-10 px-3 py-2 border rounded-lg text-sm font-medium outline-none',
                   modoEdicion ? 'bg-slate-100 text-slate-500 border-slate-200 cursor-not-allowed' : 'bg-white text-slate-800 border-slate-300 focus:border-slate-900'
                 ]"
               />
             </div>
-            <div class="p-3.5 border border-slate-200 rounded-xl bg-white shadow-sm flex items-center justify-between">
+            <div class="p-4 border border-slate-200 rounded-xl bg-white shadow-sm flex items-center justify-between">
               <span class="text-xs font-bold text-slate-700 uppercase tracking-wide">Monto Total Estimado</span>
-              <span class="text-2xl font-black text-slate-900">${{ totalCompraNueva }}</span>
+              <span class="text-3xl font-black text-slate-900">${{ totalCompraNueva }}</span>
             </div>
           </div>
 
@@ -166,58 +168,71 @@
             <div
               v-for="(d, i) in detalles"
               :key="i"
-              class="producto-card-item p-4 border border-slate-200 rounded-xl bg-white shadow-sm mb-4 space-y-3.5"
+              class="producto-card-item p-5 border border-slate-200 rounded-xl bg-white shadow-sm mb-4 space-y-4"
             >
               <div class="flex items-center justify-between border-b border-slate-100 pb-2">
                 <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Ítem #{{ i + 1 }}</span>
                 <span v-if="d.detalle_id" class="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-mono">ID Registro: #{{ d.detalle_id }}</span>
               </div>
 
-              <div class="field-block">
-                <label class="text-xs font-semibold text-slate-600 block mb-1">Producto</label>
-                <button
-                  type="button"
-                  @click="abrirSelector(i)"
-                  :disabled="modoEdicion"
-                  class="form-force-button h-10 flex items-center justify-between px-3 rounded-lg border border-slate-300 bg-white hover:border-slate-900 text-slate-800 text-left cursor-pointer shadow-sm transition disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed disabled:hover:border-slate-300"
-                >
-                  <span class="truncate text-sm font-medium">
-                    {{ getProductoNombre(d.producto_id) || 'Seleccionar producto...' }}
-                  </span>
-                  <i class="bi bi-search text-slate-400 text-xs shrink-0 ml-2"></i>
-                </button>
-              </div>
-
-              <div class="field-block">
-                <label class="text-xs font-semibold text-slate-600 block mb-1">Proveedor Suministrador</label>
-                <select
-                  v-model="d.proveedor_id"
-                  :disabled="!d.producto_id"
-                  class="form-force-input h-10 px-3 border border-slate-300 rounded-lg text-sm bg-white text-slate-800 outline-none focus:border-slate-900 disabled:bg-slate-100 disabled:text-slate-400"
-                >
-                  <option value="">-- Seleccionar Proveedor --</option>
-                  <option
-                    v-for="prov in obtenerProveedoresDelProducto(d.producto_id)"
-                    :key="prov.id"
-                    :value="prov.id"
+              <!-- Fila 1: Producto | Proveedor -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="min-w-0">
+                  <label class="text-xs font-semibold text-slate-600 block mb-1">Producto</label>
+                  <button
+                    type="button"
+                    @click="abrirSelector(i)"
+                    :disabled="modoEdicion"
+                    class="form-force-button h-10 flex items-center justify-between px-3 rounded-lg border border-slate-300 bg-white hover:border-slate-900 text-slate-800 text-left cursor-pointer shadow-sm transition disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed disabled:hover:border-slate-300"
                   >
-                    {{ prov.nombre_proveedor || prov.nombre }}
-                  </option>
-                </select>
-                <p v-if="d.producto_id && obtenerProveedoresDelProducto(d.producto_id).length === 0" class="text-[11px] text-amber-600 mt-1">
-                  * Este producto no tiene proveedores vinculados aún.
-                </p>
-                <button
-                  type="button"
-                  @click="irAProveedores(i)"
-                  class="mt-1.5 text-[11px] font-bold text-slate-500 hover:text-slate-900 underline underline-offset-2 cursor-pointer"
-                >
-                  ¿No aparece el proveedor? Agregar o vincular proveedor
-                </button>
+                    <span class="truncate text-sm font-medium">
+                      {{ getProductoNombre(d.producto_id) || d.producto_nombre || 'Seleccionar producto...' }}
+                    </span>
+                    <i class="bi bi-search text-slate-400 text-xs shrink-0 ml-2"></i>
+                  </button>
+                </div>
+
+                <div class="min-w-0">
+                  <label class="text-xs font-semibold text-slate-600 block mb-1">Proveedor Suministrador</label>
+                  <select
+                    v-model="d.proveedor_id"
+                    :disabled="!d.producto_id"
+                    class="form-force-input h-10 px-3 border border-slate-300 rounded-lg text-sm bg-white text-slate-800 outline-none focus:border-slate-900 disabled:bg-slate-100 disabled:text-slate-400"
+                  >
+                    <option value="">-- Seleccionar Proveedor --</option>
+                    <option
+                      v-if="d.proveedor_id && !obtenerProveedoresDelProducto(d.producto_id).some(p => String(p.id) === String(d.proveedor_id))"
+                      :value="d.proveedor_id"
+                    >
+                      {{ d.proveedor_nombre || `Proveedor #${d.proveedor_id}` }}
+                    </option>
+                    <option
+                      v-for="prov in obtenerProveedoresDelProducto(d.producto_id)"
+                      :key="prov.id"
+                      :value="prov.id"
+                    >
+                      {{ prov.nombre_proveedor || prov.nombre }}
+                    </option>
+                  </select>
+                  <p
+                    v-if="d.producto_id && !d.proveedor_id && obtenerProveedoresDelProducto(d.producto_id).length === 0"
+                    class="text-[11px] text-amber-600 mt-1"
+                  >
+                    * Este producto no tiene proveedores vinculados aún.
+                  </p>
+                  <button
+                    type="button"
+                    @click="irAProveedores(i)"
+                    class="mt-1.5 text-[11px] font-bold text-slate-500 hover:text-slate-900 underline underline-offset-2 cursor-pointer"
+                  >
+                    ¿No aparece el proveedor? Agregar o vincular proveedor
+                  </button>
+                </div>
               </div>
 
-              <div class="field-grid-2">
-                <div>
+              <!-- Fila 2: cantidades, precio, lote y expiración -->
+              <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 pt-3 border-t border-slate-100">
+                <div class="min-w-0">
                   <label class="text-xs font-semibold text-slate-600 block mb-1">Cant. Paquetes</label>
                   <input
                     v-model.number="d.cantidad"
@@ -229,7 +244,7 @@
                     class="form-force-input h-10 px-3 border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 outline-none focus:border-slate-900"
                   />
                 </div>
-                <div>
+                <div class="min-w-0">
                   <label class="text-xs font-semibold text-slate-600 block mb-1">Unid. por Paquete</label>
                   <input
                     v-model.number="d.unidades_por_paquete"
@@ -241,25 +256,21 @@
                     class="form-force-input h-10 px-3 border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 outline-none focus:border-slate-900"
                   />
                 </div>
-              </div>
-
-              <div class="field-block">
-                <label class="text-xs font-semibold text-slate-600 block mb-1">Precio Paquete ($)</label>
-                <div class="relative w-full">
-                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">$</span>
-                  <input
-                    v-model.number="d.precio_compra"
-                    type="number"
-                    step="0.01"
-                    min="0.01"
-                    placeholder="0.00"
-                    class="form-force-input h-10 pl-7 pr-3 border border-slate-300 rounded-lg text-sm font-bold text-slate-900 outline-none focus:border-slate-900"
-                  />
+                <div class="min-w-0">
+                  <label class="text-xs font-semibold text-slate-600 block mb-1">Precio Paquete ($)</label>
+                  <div class="relative w-full">
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">$</span>
+                    <input
+                      v-model.number="d.precio_compra"
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      placeholder="0.00"
+                      class="form-force-input h-10 pl-7 pr-3 border border-slate-300 rounded-lg text-sm font-bold text-slate-900 outline-none focus:border-slate-900"
+                    />
+                  </div>
                 </div>
-              </div>
-
-              <div class="field-grid-2 pt-2 border-t border-slate-100">
-                <div>
+                <div class="min-w-0">
                   <label class="text-xs font-semibold text-slate-600 block mb-1">Código de Lote</label>
                   <input
                     v-model="d.codigo_lote"
@@ -272,7 +283,7 @@
                     ]"
                   />
                 </div>
-                <div>
+                <div class="min-w-0 col-span-2 lg:col-span-1">
                   <label class="text-xs font-semibold text-slate-600 block mb-1">Fecha Expiración</label>
                   <input
                     v-model="d.fecha_expiracion"
@@ -282,7 +293,8 @@
                 </div>
               </div>
 
-              <div class="pt-3 border-t border-slate-200 flex items-center justify-between bg-slate-50 -mx-4 -mb-4 p-3.5 rounded-b-xl">
+              <!-- Subtotal y eliminar -->
+              <div class="pt-3 border-t border-slate-200 flex items-center justify-between bg-slate-50 -mx-5 -mb-5 px-5 py-3.5 rounded-b-xl">
                 <div>
                   <span class="text-[10px] text-slate-400 font-bold uppercase block tracking-wider">Subtotal Ítem</span>
                   <span class="text-lg font-black text-slate-900">
@@ -314,7 +326,7 @@
           </button>
         </div>
 
-        <div class="px-5 py-3.5 bg-white border-t border-slate-200 flex items-center justify-between shrink-0">
+        <div class="px-6 py-3.5 bg-white border-t border-slate-200 flex items-center justify-between shrink-0">
           <div class="flex items-center gap-2">
             <span class="text-xs text-slate-500 font-medium">Total Final:</span>
             <span class="text-xl font-black text-slate-900">${{ totalCompraNueva }}</span>
@@ -604,7 +616,10 @@ function abrirEditar(compra) {
         id: det.id,
         detalle_id: det.id,
         producto_id: det.producto_id,
+        // Nombres guardados para mostrarlos aunque el producto ya no esté en el catálogo
+        producto_nombre: det.producto?.nombre || '',
         proveedor_id: det.proveedor_id || '',
+        proveedor_nombre: det.proveedor?.nombre_proveedor || det.proveedor?.nombre || '',
         cantidad: det.cantidad || 1,
         unidades_por_paquete: det.unidades_por_paquete || 1,
         precio_compra: Number(det.precio_compra || 0),
@@ -769,21 +784,14 @@ async function guardar() {
 </script>
 
 <style scoped>
+/* Modal ancho: antes estaba limitado a 580px */
 .modal-card-box {
   width: 100% !important;
-  max-width: 580px !important;
+  max-width: 1100px !important;
   box-sizing: border-box !important;
 }
 
 .modal-body-scroll {
-  width: 100% !important;
-  box-sizing: border-box !important;
-}
-
-.form-row-single {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 12px !important;
   width: 100% !important;
   box-sizing: border-box !important;
 }
@@ -796,20 +804,6 @@ async function guardar() {
 
 .producto-card-item {
   display: block !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-}
-
-.field-block {
-  display: block !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-}
-
-.field-grid-2 {
-  display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
-  gap: 12px !important;
   width: 100% !important;
   box-sizing: border-box !important;
 }

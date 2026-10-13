@@ -193,33 +193,33 @@ const rutaInicio = computed(() => {
 })
 
 const cerrarSesion = async () => {
+  const confirmacion = await Swal.fire({
+    title: '¿Cerrar Sesión?',
+    text: '¿Estás seguro de que deseas salir del sistema?',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, salir',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#64748b',
+    background: '#1e293b',
+    color: '#ffffff'
+  })
+
+  // Si dio Cancelar (o cerró el aviso), NO se cierra la sesión
+  if (!confirmacion.isConfirmed) return
+
   try {
-    const confirmacion = await Swal.fire({
-      title: '¿Cerrar Sesión?',
-      text: '¿Estás seguro de que deseas salir del sistema?',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'Sí, salir',
-      cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#64748b',
-      background: '#1e293b',
-      color: '#ffffff'
-    })
-
-    if (!confirmacion.isConfirmed) return
-
     const token = localStorage.getItem('token')
-
     await axios.post(
       'http://127.0.0.1:8000/api/auth/logout',
       {},
       { headers: { Authorization: `Bearer ${token}` } }
     )
-
   } catch (e) {
     console.error('Error al cerrar sesión en el servidor:', e)
   } finally {
+    // Aquí solo se llega si el usuario confirmó
     localStorage.clear()
     router.push('/login')
   }

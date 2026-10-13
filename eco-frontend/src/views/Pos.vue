@@ -13,11 +13,11 @@
       </div>
 
       <div class="flex items-center gap-4">
-        <button 
-          @click="resetearVenta" 
+        <button
+          @click="resetearVenta"
           class="px-4 py-2.5 text-xs text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-xl transition-all font-bold border border-rose-200 flex items-center gap-2 cursor-pointer"
         >
-          <i class="bi bi-trash text-sm"></i> 
+          <i class="bi bi-trash text-sm"></i>
           <span>Limpiar Carrito</span>
         </button>
       </div>
@@ -37,11 +37,11 @@
 
     <!-- Grid principal -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-      
+
       <!-- Panel de Controles (5 cols) -->
       <div class="lg:col-span-5 flex flex-col min-w-0">
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-5 w-full box-border">
-          
+
           <!-- 1. Cliente -->
           <div class="w-full box-border">
             <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-2">
@@ -87,9 +87,9 @@
               class="w-full max-w-full box-border px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:bg-white focus:border-slate-800 focus:ring-2 focus:ring-slate-800/10 text-sm text-slate-800 font-medium transition-all disabled:opacity-50"
             >
               <option value="">-- Buscar por catálogo --</option>
-              <option 
-                v-for="prod in productosCatalogo" 
-                :key="prod.id" 
+              <option
+                v-for="prod in productosCatalogo"
+                :key="prod.id"
                 :value="prod.id"
                 :disabled="prod.stock <= 0"
               >
@@ -103,7 +103,7 @@
 
       <!-- Tabla del Carrito y Cierre de Venta (7 cols) -->
       <div class="lg:col-span-7 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col overflow-hidden min-w-0">
-        
+
         <!-- Listado con altura FIJA -->
         <div class="h-[340px] overflow-y-auto p-4 custom-scrollbar bg-white flex flex-col">
           <table class="w-full border-collapse">
@@ -124,7 +124,7 @@
                 </td>
                 <td class="p-3.5 text-slate-600 font-medium align-middle">${{ Number(item.precio_venta).toFixed(2) }}</td>
                 <td class="p-3.5 align-middle">
-                  <input 
+                  <input
                     type="number"
                     v-model.number="item.cantidad"
                     min="1"
@@ -180,20 +180,20 @@
     </div>
 
     <!-- MODAL DE COBRO -->
-    <div 
-      v-if="mostrarModalCobro" 
+    <div
+      v-if="mostrarModalCobro"
       class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
     >
       <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col transition-all">
-        
+
         <!-- Modal Header -->
         <div class="p-5 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
           <div class="flex items-center gap-3">
             <i class="bi bi-wallet2 text-xl text-slate-200"></i>
             <h3 class="font-bold text-lg text-white tracking-tight">Procesar Cobro</h3>
           </div>
-          <button 
-            @click="cerrarModalCobro" 
+          <button
+            @click="cerrarModalCobro"
             class="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition cursor-pointer flex items-center justify-center"
           >
             <i class="bi bi-x-lg text-lg"></i>
@@ -202,7 +202,7 @@
 
         <!-- Modal Body -->
         <div class="p-6 flex flex-col gap-5">
-          
+
           <!-- Resumen de Total -->
           <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center shadow-inner">
             <span class="text-xs font-extrabold uppercase tracking-wider text-slate-500 block mb-1">Monto Total</span>
@@ -230,8 +230,8 @@
           </div>
 
           <!-- Desglose de Cambio -->
-          <div 
-            class="p-4 rounded-xl border flex items-center justify-between transition-colors" 
+          <div
+            class="p-4 rounded-xl border flex items-center justify-between transition-colors"
             :class="cambioCalculado >= 0 ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-rose-50 border-rose-200 text-rose-900'"
           >
             <span class="text-xs font-extrabold uppercase tracking-wider">Cambio a Entregar</span>
@@ -248,7 +248,7 @@
           >
             Cancelar
           </button>
-          
+
           <button
             @click="confirmarYRegistrarVenta"
             :disabled="guardandoVenta || efectivoRecibido < totalCalculado"
@@ -284,6 +284,9 @@ const efectivoRecibido = ref(0)
 const carrito = ref([])
 const mostrarModalCobro = ref(false)
 const cajaAbierta = ref(false)
+
+// Nombre que sale arriba del ticket (cámbialo por el de tu minisúper)
+const nombreNegocio = 'La Económica'
 
 const cargarCatalogo = async () => {
   try {
@@ -339,7 +342,7 @@ const abrirModalCobro = async () => {
 
   efectivoRecibido.value = null
   mostrarModalCobro.value = true
-  
+
   nextTick(() => {
     if (inputEfectivoModal.value) {
       inputEfectivoModal.value.focus()
@@ -426,7 +429,7 @@ const inyectarProducto = (producto) => {
       codigo_barras: producto.codigo_barras,
       precio_venta: Number(producto.precio_venta),
       cantidad: 1,
-      stock_maximo: stockDisponible 
+      stock_maximo: stockDisponible
     })
   }
 }
@@ -461,6 +464,102 @@ const resetearVenta = () => {
   enfocarEscaner()
 }
 
+// Evita que un nombre con símbolos rompa el ticket
+const limpiarTexto = (texto) => {
+  return String(texto ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+}
+
+// Abre el ticket de 80 mm y lo manda a imprimir
+const imprimirTicket = (datos) => {
+  const fecha = new Date(datos.fecha)
+  const fechaTexto = isNaN(fecha.getTime()) ? '' : fecha.toLocaleDateString()
+  const horaTexto = isNaN(fecha.getTime())
+    ? ''
+    : fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: true })
+
+  let filas = ''
+  datos.items.forEach((item) => {
+    filas += `
+      <div class="producto">${limpiarTexto(item.nombre)}</div>
+      <div class="linea">
+        <span>${item.cantidad} x $${Number(item.precio_venta).toFixed(2)}</span>
+        <span>$${(item.precio_venta * item.cantidad).toFixed(2)}</span>
+      </div>
+    `
+  })
+
+  const lineaFactura = datos.factura ? `<div>Factura: ${limpiarTexto(datos.factura)}</div>` : ''
+  const lineaVendedor = datos.vendedor ? `<div>Atendió: ${limpiarTexto(datos.vendedor)}</div>` : ''
+
+  const html = `
+    <html>
+      <head>
+        <title>Ticket</title>
+        <style>
+          @page { size: 80mm auto; margin: 0; }
+          body {
+            width: 72mm;
+            margin: 0 auto;
+            padding: 4mm 0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #000;
+          }
+          .centro { text-align: center; }
+          .negocio { font-size: 16px; font-weight: bold; }
+          .separador { border-top: 1px dashed #000; margin: 6px 0; }
+          .linea { display: flex; justify-content: space-between; }
+          .producto { font-weight: bold; margin-top: 4px; }
+          .total { font-size: 15px; font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        <div class="centro negocio">${limpiarTexto(nombreNegocio)}</div>
+        <div class="centro">Ticket de venta</div>
+        <div class="separador"></div>
+
+        ${lineaFactura}
+        <div>Fecha: ${fechaTexto}</div>
+        <div>Hora: ${horaTexto}</div>
+        <div>Cliente: ${limpiarTexto(datos.cliente)}</div>
+        ${lineaVendedor}
+        <div class="separador"></div>
+
+        ${filas}
+
+        <div class="separador"></div>
+        <div class="linea total"><span>TOTAL</span><span>$${Number(datos.total).toFixed(2)}</span></div>
+        <div class="linea"><span>Recibido</span><span>$${Number(datos.recibido).toFixed(2)}</span></div>
+        <div class="linea"><span>Vuelto</span><span>$${Number(datos.vuelto).toFixed(2)}</span></div>
+        <div class="separador"></div>
+
+        <div class="centro">¡Gracias por su compra!</div>
+      </body>
+    </html>
+  `
+
+  const ventana = window.open('', '_blank', 'width=400,height=600')
+  if (!ventana) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Ventana bloqueada',
+      text: 'El navegador bloqueó la ventana del ticket. Permite las ventanas emergentes e intenta de nuevo.',
+      confirmButtonColor: '#0f172a'
+    })
+    return
+  }
+  ventana.document.write(html)
+  ventana.document.close()
+  ventana.focus()
+  setTimeout(() => {
+    ventana.print()
+    ventana.close()
+  }, 300)
+}
+
 const confirmarYRegistrarVenta = async () => {
   if (carrito.value.length === 0) return
 
@@ -493,21 +592,49 @@ const confirmarYRegistrarVenta = async () => {
     }))
   }
 
+  // Guardamos una copia de lo vendido antes de limpiar el carrito (para el ticket)
+  const copiaItems = carrito.value.map(item => ({
+    nombre: item.nombre,
+    cantidad: item.cantidad,
+    precio_venta: item.precio_venta
+  }))
+  const cambioDeEstaVenta = cambioCalculado.value
+
   try {
-    await createVenta(datosVenta)
-    
+    const res = await createVenta(datosVenta)
+    const ventaGuardada = res?.data?.venta || res?.data || res || {}
+
     mostrarModalCobro.value = false
 
-    await Swal.fire({
+    const datosTicket = {
+      factura: ventaGuardada.factura || (ventaGuardada.id ? `#${ventaGuardada.id}` : ''),
+      fecha: ventaGuardada.fecha_venta || ventaGuardada.created_at || new Date(),
+      cliente: datosVenta.cliente,
+      vendedor: ventaGuardada.usuario?.nombre || ventaGuardada.usuario?.name || '',
+      items: copiaItems,
+      total: datosVenta.total,
+      recibido: datosVenta.dinero_recibido,
+      vuelto: ventaGuardada.vuelto ?? cambioDeEstaVenta
+    }
+
+    const respuesta = await Swal.fire({
       icon: 'success',
       title: '¡Venta realizada!',
-      text: `Cambio a entregar: $${cambioCalculado.value.toFixed(2)}`,
+      text: `Cambio a entregar: $${cambioDeEstaVenta.toFixed(2)}`,
       showConfirmButton: true,
-      confirmButtonColor: '#0f172a'
+      confirmButtonText: 'Listo',
+      confirmButtonColor: '#0f172a',
+      showDenyButton: true,
+      denyButtonText: 'Imprimir ticket',
+      denyButtonColor: '#475569'
     })
 
+    if (respuesta.isDenied) {
+      imprimirTicket(datosTicket)
+    }
+
     resetearVenta()
-    await cargarCatalogo() 
+    await cargarCatalogo()
   } catch (error) {
     console.error(error)
 

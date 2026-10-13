@@ -192,6 +192,11 @@ class ProductoController extends Controller
         ], 200);
     }
 
+    /**
+     * Borrado LÓGICO: el producto deja de aparecer en el catálogo, pero sigue
+     * existiendo en la base de datos para que las compras y ventas anteriores
+     * conserven su detalle.
+     */
     public function destroy($id)
     {
         $producto = Producto::find($id);
@@ -208,7 +213,16 @@ class ProductoController extends Controller
             ], 403);
         }
 
-        $producto->delete();
+        DB::transaction(function () use ($producto) {
+            // Se libera el nombre y el código de barras para poder crear otro
+            // producto igual más adelante (ambos campos son únicos).
+            $sufijo = " (eliminado #{$producto->id})";
+            $producto->nombre = mb_substr($producto->nombre, 0, 100 - mb_strlen($sufijo)) . $sufijo;
+            $producto->codigo_barras = null;
+            $producto->save();
+
+            $producto->delete(); // SoftDeletes: solo marca deleted_at
+        });
 
         return response()->json([
             'message' => 'Producto eliminado con éxito'
