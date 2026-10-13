@@ -1,6 +1,6 @@
 <template>
   <div class="p-6 max-w-[1600px] mx-auto min-h-screen flex flex-col gap-5">
-    <!-- Header principal del POS -->
+    <!-- Header principal -->
     <div class="flex items-center justify-between bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
       <div class="flex items-center gap-3">
         <div class="p-3 bg-slate-900 text-white rounded-xl shadow-sm">
@@ -23,7 +23,7 @@
       </div>
     </div>
 
-    <!-- Aviso: caja cerrada -->
+    <!-- Alerta de caja cerrada -->
     <div
       v-if="!cajaAbierta"
       class="flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-2xl"
@@ -35,14 +35,14 @@
       </div>
     </div>
 
-    <!-- Grid principal -->
+    <!-- Contenido POS -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-      <!-- Panel de Controles (5 cols) -->
+      <!-- Panel de Controles -->
       <div class="lg:col-span-5 flex flex-col min-w-0">
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-5 w-full box-border">
 
-          <!-- 1. Cliente -->
+          <!-- Cliente -->
           <div class="w-full box-border">
             <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-2">
               Cliente
@@ -56,7 +56,7 @@
             />
           </div>
 
-          <!-- 2. Escáner de Código de Barras -->
+          <!-- Escáner -->
           <div class="w-full box-border">
             <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-2">
               Escáner de Código de Barras
@@ -76,7 +76,7 @@
             </div>
           </div>
 
-          <!-- 3. Búsqueda Manual -->
+          <!-- Búsqueda manual -->
           <div class="w-full box-border pt-3 border-t border-slate-100">
             <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-2">
               Búsqueda Manual
@@ -102,10 +102,10 @@
         </div>
       </div>
 
-      <!-- Tabla del Carrito y Cierre de Venta (7 cols) -->
+      <!-- Carrito de compras -->
       <div class="lg:col-span-7 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col overflow-hidden min-w-0">
 
-        <!-- Listado con altura FIJA -->
+        <!-- Tabla -->
         <div class="h-[340px] overflow-y-auto p-4 custom-scrollbar bg-white flex flex-col">
           <table class="w-full border-collapse">
             <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 text-[11px] font-black uppercase tracking-wider text-slate-500 z-10">
@@ -144,7 +144,6 @@
                 </td>
               </tr>
 
-              <!-- Estado vacío centrado -->
               <tr v-if="carrito.length === 0" class="h-[250px]">
                 <td colspan="5" class="text-center text-slate-400 align-middle">
                   <div class="flex flex-col items-center justify-center h-full">
@@ -157,7 +156,7 @@
           </table>
         </div>
 
-        <!-- Panel de Total y Botón para Abrir Modal -->
+        <!-- Total y Acción -->
         <div class="p-4 bg-slate-50/80 border-t border-slate-200 flex flex-col gap-4">
           <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
             <span class="text-xs font-extrabold uppercase tracking-wider text-slate-500">Total a Cobrar</span>
@@ -180,14 +179,14 @@
 
     </div>
 
-    <!-- MODAL DE COBRO -->
+    <!-- Modal Cobro -->
     <div
       v-if="mostrarModalCobro"
       class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
     >
       <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col transition-all">
 
-        <!-- Modal Header -->
+        <!-- Header Modal -->
         <div class="p-5 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
           <div class="flex items-center gap-3">
             <i class="bi bi-wallet2 text-xl text-slate-200"></i>
@@ -201,16 +200,14 @@
           </button>
         </div>
 
-        <!-- Modal Body -->
+        <!-- Body Modal -->
         <div class="p-6 flex flex-col gap-5">
 
-          <!-- Resumen de Total -->
           <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center shadow-inner">
             <span class="text-xs font-extrabold uppercase tracking-wider text-slate-500 block mb-1">Monto Total</span>
             <span class="text-4xl font-black text-slate-900">${{ totalCalculado.toFixed(2) }}</span>
           </div>
 
-          <!-- Input Efectivo Recibido -->
           <div class="flex flex-col gap-2">
             <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-500">
               Efectivo Recibido
@@ -219,18 +216,17 @@
               <span class="absolute left-4 top-1/2 -translate-y-1/2 font-black text-slate-400 text-xl pointer-events-none">$</span>
               <input
                 ref="inputEfectivoModal"
-                v-model.number="efectivoRecibido"
+                :value="efectivoRecibido"
+                @input="validarEfectivoInput"
                 @keyup.enter="confirmarYRegistrarVenta"
-                type="number"
-                min="0"
-                step="0.01"
+                type="text"
+                inputmode="decimal"
                 placeholder="0.00"
                 class="w-full box-border pl-9 pr-4 py-3 font-black text-2xl text-slate-900 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:bg-white focus:border-slate-800 focus:ring-2 focus:ring-slate-800/10 transition-all"
               />
             </div>
           </div>
 
-          <!-- Desglose de Cambio -->
           <div
             class="p-4 rounded-xl border flex items-center justify-between transition-colors"
             :class="cambioCalculado >= 0 ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-rose-50 border-rose-200 text-rose-900'"
@@ -241,7 +237,7 @@
 
         </div>
 
-        <!-- Modal Footer -->
+        <!-- Footer Modal -->
         <div class="p-5 bg-slate-50 border-t border-slate-200 flex items-center gap-3">
           <button
             @click="cerrarModalCobro"
@@ -252,7 +248,7 @@
 
           <button
             @click="confirmarYRegistrarVenta"
-            :disabled="guardandoVenta || efectivoRecibido < totalCalculado"
+            :disabled="guardandoVenta || (Number(efectivoRecibido) || 0) < totalCalculado"
             class="w-2/3 py-3 px-4 bg-slate-900 hover:bg-slate-800 active:bg-slate-950 disabled:opacity-40 text-white rounded-xl font-bold text-sm shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
           >
             <span v-if="guardandoVenta" class="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
@@ -283,14 +279,13 @@ const inputEfectivoModal = ref(null)
 const nombreCliente = ref('Consumidor Final')
 const codigoInput = ref('')
 const productoManualSeleccionado = ref('')
-const efectivoRecibido = ref(0)
+const efectivoRecibido = ref('')
 const carrito = ref([])
 const mostrarModalCobro = ref(false)
 const cajaAbierta = ref(false)
 
 let temporizador = null
 
-// Nombre que sale arriba del ticket (cámbialo por el de tu minisúper)
 const nombreNegocio = 'La Económica'
 
 watch(codigoInput, (valor) => {
@@ -313,7 +308,7 @@ const sincronizarCarrito = () => {
     item.stock_maximo = stock
 
     if (item.cantidad > stock) {
-      ajustes.push(`${item.nombre}: cantidad ajustada a ${stock}`)
+      ajustes.push(`${item.nombre}: cantidad ajustada a${stock}`)
       item.cantidad = stock
     }
 
@@ -343,7 +338,6 @@ const avisarAjustes = (ajustes) => {
   }).then(() => enfocarEscaner())
 }
 
-// Revisa si hay una caja abierta en el sistema
 const cargarEstadoCaja = async () => {
   try {
     const res = await cajaService.obtenerEstado()
@@ -367,6 +361,25 @@ const cambioCalculado = computed(() => {
   return (Number(efectivoRecibido.value) || 0) - totalCalculado.value
 })
 
+const validarEfectivoInput = (event) => {
+  let val = event.target.value
+
+  val = val.replace(/,/g, '.')
+  val = val.replace(/[^0-9.]/g, '')
+
+  const partes = val.split('.')
+  if (partes.length > 2) {
+    val = partes[0] + '.' + partes.slice(1).join('')
+  }
+
+  if (partes.length >= 2) {
+    val = partes[0] + '.' + partes[1].slice(0, 2)
+  }
+
+  efectivoRecibido.value = val
+  event.target.value = val
+}
+
 const avisarCajaCerrada = () => {
   Swal.fire({
     icon: 'warning',
@@ -379,7 +392,6 @@ const avisarCajaCerrada = () => {
 const abrirModalCobro = async () => {
   if (carrito.value.length === 0) return
 
-  // Volvemos a revisar la caja justo antes de cobrar
   await cargarEstadoCaja()
   if (!cajaAbierta.value) {
     avisarCajaCerrada()
@@ -393,7 +405,7 @@ const abrirModalCobro = async () => {
   }
   if (carrito.value.length === 0) return
 
-  efectivoRecibido.value = null
+  efectivoRecibido.value = ''
   mostrarModalCobro.value = true
 
   nextTick(() => {
@@ -533,13 +545,12 @@ const resetearVenta = () => {
   nombreCliente.value = 'Consumidor Final'
   codigoInput.value = ''
   productoManualSeleccionado.value = ''
-  efectivoRecibido.value = 0
+  efectivoRecibido.value = ''
   carrito.value = []
   mostrarModalCobro.value = false
   enfocarEscaner()
 }
 
-// Evita que un nombre con símbolos rompa el ticket
 const limpiarTexto = (texto) => {
   return String(texto ?? '')
     .replace(/&/g, '&amp;')
@@ -547,7 +558,6 @@ const limpiarTexto = (texto) => {
     .replace(/>/g, '&gt;')
 }
 
-// Abre el ticket de 80 mm y lo manda a imprimir
 const imprimirTicket = (datos) => {
   const fecha = new Date(datos.fecha)
   const fechaTexto = isNaN(fecha.getTime()) ? '' : fecha.toLocaleDateString()
@@ -643,11 +653,13 @@ const confirmarYRegistrarVenta = async () => {
     return
   }
 
-  if (efectivoRecibido.value < totalCalculado.value) {
+  const montoRecibidoNum = Number(efectivoRecibido.value) || 0
+
+  if (montoRecibidoNum < totalCalculado.value) {
     Swal.fire({
       icon: 'warning',
       title: 'Efectivo insuficiente',
-      text: `Faltan $${(totalCalculado.value - efectivoRecibido.value).toFixed(2)} para completar el pago.`,
+      text: `Faltan $${(totalCalculado.value - montoRecibidoNum).toFixed(2)} para completar el pago.`,
       confirmButtonColor: '#0f172a'
     })
     return
@@ -659,7 +671,7 @@ const confirmarYRegistrarVenta = async () => {
   const datosVenta = {
     cliente: nombreCliente.value.trim() || 'Consumidor Final',
     total: totalCalculado.value,
-    dinero_recibido: Number(efectivoRecibido.value),
+    dinero_recibido: montoRecibidoNum,
     productos: carrito.value.map(item => ({
       producto_id: item.producto_id,
       cantidad: item.cantidad,
@@ -667,7 +679,6 @@ const confirmarYRegistrarVenta = async () => {
     }))
   }
 
-  // Guardamos una copia de lo vendido antes de limpiar el carrito (para el ticket)
   const copiaItems = carrito.value.map(item => ({
     nombre: item.nombre,
     cantidad: item.cantidad,
@@ -713,7 +724,6 @@ const confirmarYRegistrarVenta = async () => {
   } catch (error) {
     console.error(error)
 
-    // Si el servidor dice que la caja está cerrada, bloqueamos la pantalla
     if (error.response?.status === 403) {
       cajaAbierta.value = false
       mostrarModalCobro.value = false
