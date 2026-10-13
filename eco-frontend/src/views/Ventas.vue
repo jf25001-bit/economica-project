@@ -107,27 +107,12 @@
         </table>
       </div>
 
-      <div v-if="totalPaginasVentas > 1" class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-        <span class="text-xs text-slate-500 font-medium">
-          Mostrando página <strong class="text-slate-700">{{ paginaActualVentas }}</strong> de <strong class="text-slate-700">{{ totalPaginasVentas }}</strong>
-        </span>
-        <div class="flex items-center gap-1.5">
-          <button
-            @click="paginaAnterior"
-            :disabled="paginaActualVentas === 1"
-            class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100 transition cursor-pointer"
-          >
-            Anterior
-          </button>
-          <button
-            @click="paginaSiguiente"
-            :disabled="paginaActualVentas === totalPaginasVentas"
-            class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100 transition cursor-pointer"
-          >
-            Siguiente
-          </button>
-        </div>
-      </div>
+      <BarraPaginacion
+        v-if="total > 0"
+        v-model:pagina-actual="paginaActual"
+        v-model:por-pagina="porPagina"
+        :total="total"
+      />
     </div>
 
     <!-- Modal de Detalle de Venta Ampliado -->
@@ -276,40 +261,19 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { getVentas } from '@/services/ventaService'
+import BarraPaginacion from '@/components/BarraPaginacion.vue'
+import { usePaginacion } from '@/utils/usePaginacion'
 
 const ventas = ref([])
 const mostrarModalDetalle = ref(false)
 const ventaSeleccionada = ref(null)
 
-const paginaActualVentas = ref(1)
-const porPaginaVentas = ref(10)
+const { paginaActual, porPagina, total, paginados: ventasPaginadas } = usePaginacion(ventas)
 
 // Nombre que sale arriba del ticket (cámbialo por el de tu minisúper)
 const nombreNegocio = 'La Económica'
-
-const ventasPaginadas = computed(() => {
-  const inicio = (paginaActualVentas.value - 1) * porPaginaVentas.value
-  const fin = inicio + porPaginaVentas.value
-  return ventas.value.slice(inicio, fin)
-})
-
-const totalPaginasVentas = computed(() => {
-  return Math.ceil(ventas.value.length / porPaginaVentas.value) || 1
-})
-
-const paginaSiguiente = () => {
-  if (paginaActualVentas.value < totalPaginasVentas.value) {
-    paginaActualVentas.value++
-  }
-}
-
-const paginaAnterior = () => {
-  if (paginaActualVentas.value > 1) {
-    paginaActualVentas.value--
-  }
-}
 
 const consultarVentas = async () => {
   try {

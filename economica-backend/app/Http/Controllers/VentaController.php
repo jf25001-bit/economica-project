@@ -16,14 +16,16 @@ class VentaController extends Controller
 {
     public function index()
     {
-        $ventas = Venta::with(['usuario', 'detalles.producto'])->get();
+        $ventas = Venta::with(['usuario', 'detalles.producto'])
+            ->orderByDesc('fecha_venta')
+            ->orderByDesc('id')
+            ->get();
 
         return response()->json($ventas, 200);
     }
 
     public function store(Request $request)
     {
-        // No se puede vender si no hay una caja abierta
         $caja = Caja::where('estado', 'abierta')->first();
 
         if (!$caja) {
@@ -40,7 +42,6 @@ class VentaController extends Controller
             'productos.*.cantidad' => 'required|integer|min:1',
         ]);
 
-        // Usuario que emite la venta
         $userId = Auth::id() ?? auth('api')->id() ?? $request->input('user_id');
 
         DB::beginTransaction();
@@ -72,19 +73,30 @@ class VentaController extends Controller
                 }
 
                 $cantidadSolicitada = (int) $item['cantidad'];
-                $stockPorLotes = Lote::where('producto_id', $producto->id)
+
+                $lotesConStock = Lote::where('producto_id', $producto->id)
                     ->where('cantidad_actual', '>', 0)
-                    ->sum('cantidad_actual');
-                $stockDisponible = $stockPorLotes > 0
-                    ? $stockPorLotes
+                    ->orderByRaw('fecha_expiracion IS NULL, fecha_expiracion ASC')
+                    ->orderBy('id')
+                    ->lockForUpdate()
+                    ->get();
+
+                $lotesVigentes = $lotesConStock->reject(fn ($lote) => $lote->estaVencido());
+                $hayVencidos = $lotesConStock->count() > $lotesVigentes->count();
+
+                $trabajaConLotes = $lotesConStock->isNotEmpty();
+                $stockDisponible = $trabajaConLotes
+                    ? $lotesVigentes->sum('cantidad_actual')
                     : $producto->stock;
 
                 if ($stockDisponible < $cantidadSolicitada) {
 
                     DB::rollBack();
 
+                    $aviso = $hayVencidos ? ' (sin contar lotes vencidos)' : '';
+
                     return response()->json([
-                        'message' => "Stock insuficiente para el producto: {$producto->nombre}. Disponible: {$stockDisponible}"
+                        'message' => "Stock insuficiente para el producto: {$producto->nombre}. Disponible: {$stockDisponible}{$aviso}"
                     ], 400);
                 }
 
@@ -99,16 +111,10 @@ class VentaController extends Controller
                     'subtotal' => $subtotal
                 ]);
 
-                if ($stockPorLotes > 0) {
+                if ($trabajaConLotes) {
                     $cantidadPendiente = $cantidadSolicitada;
-                    $lotes = Lote::where('producto_id', $producto->id)
-                        ->where('cantidad_actual', '>', 0)
-                        ->orderByRaw('fecha_expiracion IS NULL, fecha_expiracion ASC')
-                        ->orderBy('created_at')
-                        ->lockForUpdate()
-                        ->get();
 
-                    foreach ($lotes as $lote) {
+                    foreach ($lotesVigentes as $lote) {
                         if ($cantidadPendiente <= 0) {
                             break;
                         }
@@ -138,7 +144,6 @@ class VentaController extends Controller
                 'vuelto' => $vuelto
             ]);
 
-            // Sumar la venta al total de la caja abierta
             $caja->increment('total_ventas', $totalVenta);
 
             DB::commit();
@@ -203,6 +208,6 @@ class VentaController extends Controller
 
     public function destroy($id)
     {
-      //
+        //
     }
 }

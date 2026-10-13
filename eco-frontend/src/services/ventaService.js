@@ -1,6 +1,8 @@
 import api from './api'
 
 export const getProductos = async () => {
+
+  await api.get('/lotes').catch(() => {})
   const res = await api.get('/productos')
   return res.data
 }

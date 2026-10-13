@@ -235,24 +235,24 @@
                 <div class="min-w-0">
                   <label class="text-xs font-semibold text-slate-600 block mb-1">Cant. Paquetes</label>
                   <input
-                    v-model.number="d.cantidad"
-                    type="number"
-                    min="1"
-                    step="1"
+                    :value="d.cantidad"
+                    type="text"
+                    inputmode="numeric"
+                    maxlength="6"
                     placeholder="1"
-                    @keydown="soloEnteros"
+                    @input="actualizarEntero(d, 'cantidad', $event)"
                     class="form-force-input h-10 px-3 border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 outline-none focus:border-slate-900"
                   />
                 </div>
                 <div class="min-w-0">
                   <label class="text-xs font-semibold text-slate-600 block mb-1">Unid. por Paquete</label>
                   <input
-                    v-model.number="d.unidades_por_paquete"
-                    type="number"
-                    min="1"
-                    step="1"
+                    :value="d.unidades_por_paquete"
+                    type="text"
+                    inputmode="numeric"
+                    maxlength="6"
                     placeholder="1"
-                    @keydown="soloEnteros"
+                    @input="actualizarEntero(d, 'unidades_por_paquete', $event)"
                     class="form-force-input h-10 px-3 border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 outline-none focus:border-slate-900"
                   />
                 </div>
@@ -261,11 +261,12 @@
                   <div class="relative w-full">
                     <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">$</span>
                     <input
-                      v-model.number="d.precio_compra"
-                      type="number"
-                      step="0.01"
-                      min="0.01"
+                      :value="d.precio_compra"
+                      type="text"
+                      inputmode="decimal"
+                      maxlength="9"
                       placeholder="0.00"
+                      @input="actualizarPrecio(d, $event)"
                       class="form-force-input h-10 pl-7 pr-3 border border-slate-300 rounded-lg text-sm font-bold text-slate-900 outline-none focus:border-slate-900"
                     />
                   </div>
@@ -298,7 +299,7 @@
                 <div>
                   <span class="text-[10px] text-slate-400 font-bold uppercase block tracking-wider">Subtotal Ítem</span>
                   <span class="text-lg font-black text-slate-900">
-                    ${{ ((d.cantidad || 0) * (d.precio_compra || 0)).toFixed(2) }}
+                    ${{ subtotalItem(d).toFixed(2) }}
                   </span>
                 </div>
 
@@ -597,7 +598,7 @@ function abrirModalCrear() {
     proveedor_id: '',
     cantidad: 1,
     unidades_por_paquete: 1,
-    precio_compra: 0,
+    precio_compra: '',
     codigo_lote: '',
     fecha_expiracion: ''
   }]
@@ -620,9 +621,9 @@ function abrirEditar(compra) {
         producto_nombre: det.producto?.nombre || '',
         proveedor_id: det.proveedor_id || '',
         proveedor_nombre: det.proveedor?.nombre_proveedor || det.proveedor?.nombre || '',
-        cantidad: det.cantidad || 1,
-        unidades_por_paquete: det.unidades_por_paquete || 1,
-        precio_compra: Number(det.precio_compra || 0),
+        cantidad: Math.max(1, Math.round(Number(det.cantidad)) || 1),
+        unidades_por_paquete: Math.max(1, Math.round(Number(det.unidades_por_paquete)) || 1),
+        precio_compra: Number(det.precio_compra || 0).toFixed(2),
         codigo_lote: lote ? lote.codigo_lote : (det.codigo_lote || ''),
         fecha_expiracion: lote && lote.fecha_expiracion ? lote.fecha_expiracion.substring(0, 10) : (det.fecha_expiracion ? det.fecha_expiracion.substring(0, 10) : '')
       }
@@ -633,7 +634,7 @@ function abrirEditar(compra) {
       proveedor_id: '',
       cantidad: 1,
       unidades_por_paquete: 1,
-      precio_compra: 0,
+      precio_compra: '',
       codigo_lote: '',
       fecha_expiracion: ''
     }]
@@ -648,7 +649,7 @@ function add() {
     proveedor_id: '',
     cantidad: 1,
     unidades_por_paquete: 1,
-    precio_compra: 0,
+    precio_compra: '',
     codigo_lote: '',
     fecha_expiracion: ''
   })
@@ -663,8 +664,10 @@ function cerrar() {
   modal.value = false
 }
 
+const subtotalItem = (d) => (Number(d.cantidad) || 0) * (Number(d.precio_compra) || 0)
+
 const totalCompraNueva = computed(() => {
-  return detalles.value.reduce((acc, d) => acc + ((d.cantidad || 0) * (d.precio_compra || 0)), 0).toFixed(2)
+  return detalles.value.reduce((acc, d) => acc + subtotalItem(d), 0).toFixed(2)
 })
 
 function abrirSelector(i) {
@@ -705,9 +708,16 @@ function getProductoNombre(id) {
   return prod ? prod.nombre : ''
 }
 
-// Bloquea teclas que generan decimales o signos en los campos de cantidad
-const soloEnteros = (e) => {
-  if (['.', ',', 'e', 'E', '+', '-'].includes(e.key)) e.preventDefault()
+const actualizarEntero = (d, campo, e) => {
+  const limpio = e.target.value.replace(/\D/g, '')
+  d[campo] = limpio === '' ? '' : parseInt(limpio, 10)
+  e.target.value = d[campo]
+}
+
+const actualizarPrecio = (d, e) => {
+  const [entero, ...resto] = e.target.value.replace(/[^\d.]/g, '').split('.')
+  d.precio_compra = resto.length ? `${entero}.${resto.join('').slice(0, 2)}` : entero
+  e.target.value = d.precio_compra
 }
 
 async function guardar() {

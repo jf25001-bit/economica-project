@@ -68,6 +68,7 @@
                 :disabled="!cajaAbierta"
                 @keyup.enter="agregarPorCodigo"
                 type="text"
+                inputmode="numeric"
                 placeholder="Escanee el producto aquí..."
                 class="w-full max-w-full box-border pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:bg-white focus:border-slate-800 focus:ring-2 focus:ring-slate-800/10 text-base font-mono text-slate-800 transition-all disabled:opacity-50"
               />
@@ -125,11 +126,11 @@
                 <td class="p-3.5 text-slate-600 font-medium align-middle">${{ Number(item.precio_venta).toFixed(2) }}</td>
                 <td class="p-3.5 align-middle">
                   <input
-                    type="number"
-                    v-model.number="item.cantidad"
-                    min="1"
-                    :max="item.stock_maximo"
-                    @input="validarCantidadInput(index)"
+                    type="text"
+                    inputmode="numeric"
+                    :value="item.cantidad"
+                    @input="validarCantidadInput(index, $event)"
+                    @blur="restaurarCantidad(index, $event)"
                     class="w-full max-w-full box-border px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-center focus:outline-none focus:bg-white focus:border-slate-800 focus:ring-2 focus:ring-slate-800/10 font-bold text-slate-800"
                   />
                 </td>
@@ -267,10 +268,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import Swal from 'sweetalert2'
 import { getProductos, createVenta } from '@/services/ventaService'
 import { cajaService } from '@/services/cajaService'
+
+const INTERVALO_REFRESCO = 30000
 
 const productosCatalogo = ref([])
 const guardandoVenta = ref(false)
@@ -285,16 +288,59 @@ const carrito = ref([])
 const mostrarModalCobro = ref(false)
 const cajaAbierta = ref(false)
 
+let temporizador = null
+
 // Nombre que sale arriba del ticket (cámbialo por el de tu minisúper)
 const nombreNegocio = 'La Económica'
+
+watch(codigoInput, (valor) => {
+  const limpio = String(valor ?? '').replace(/\D/g, '')
+  if (limpio !== valor) codigoInput.value = limpio
+})
+
+const sincronizarCarrito = () => {
+  const ajustes = []
+
+  carrito.value = carrito.value.filter(item => {
+    const prod = productosCatalogo.value.find(p => p.id === item.producto_id)
+    const stock = prod ? Number(prod.stock) : 0
+
+    if (stock <= 0) {
+      ajustes.push(`${item.nombre}: sin stock disponible, se quitó del carrito`)
+      return false
+    }
+
+    item.stock_maximo = stock
+
+    if (item.cantidad > stock) {
+      ajustes.push(`${item.nombre}: cantidad ajustada a ${stock}`)
+      item.cantidad = stock
+    }
+
+    return true
+  })
+
+  return ajustes
+}
 
 const cargarCatalogo = async () => {
   try {
     const res = await getProductos()
     productosCatalogo.value = res.data || res || []
+    return sincronizarCarrito()
   } catch (error) {
     console.error('Error cargando catálogo:', error)
+    return []
   }
+}
+
+const avisarAjustes = (ajustes) => {
+  Swal.fire({
+    icon: 'info',
+    title: 'Se actualizó el stock',
+    html: `<div style="font-size:13px;text-align:left">${ajustes.map(limpiarTexto).join('<br>')}</div>`,
+    confirmButtonColor: '#0f172a'
+  }).then(() => enfocarEscaner())
 }
 
 // Revisa si hay una caja abierta en el sistema
@@ -340,6 +386,13 @@ const abrirModalCobro = async () => {
     return
   }
 
+  const ajustes = await cargarCatalogo()
+  if (ajustes.length) {
+    avisarAjustes(ajustes)
+    return
+  }
+  if (carrito.value.length === 0) return
+
   efectivoRecibido.value = null
   mostrarModalCobro.value = true
 
@@ -363,6 +416,14 @@ const manejarTeclasGlobales = (e) => {
       abrirModalCobro()
     }
   }
+}
+
+const refrescarSiVisible = async () => {
+  if (document.visibilityState !== 'visible') return
+  if (mostrarModalCobro.value || guardandoVenta.value) return
+
+  const ajustes = await cargarCatalogo()
+  if (ajustes.length) avisarAjustes(ajustes)
 }
 
 const agregarPorCodigo = () => {
@@ -434,11 +495,17 @@ const inyectarProducto = (producto) => {
   }
 }
 
-const validarCantidadInput = (index) => {
+const validarCantidadInput = (index, event) => {
   const item = carrito.value[index]
-  if (item.cantidad < 1 || isNaN(item.cantidad)) {
-    item.cantidad = 1
-  } else if (item.cantidad > item.stock_maximo) {
+  const limpio = event.target.value.replace(/\D/g, '')
+  const cantidad = parseInt(limpio, 10)
+
+  if (!cantidad) {
+    event.target.value = limpio
+    return
+  }
+
+  if (cantidad > item.stock_maximo) {
     Swal.fire({
       icon: 'warning',
       title: 'Exceso de stock',
@@ -446,7 +513,15 @@ const validarCantidadInput = (index) => {
       confirmButtonColor: '#0f172a'
     })
     item.cantidad = item.stock_maximo
+  } else {
+    item.cantidad = cantidad
   }
+
+  event.target.value = item.cantidad
+}
+
+const restaurarCantidad = (index, event) => {
+  event.target.value = carrito.value[index].cantidad
 }
 
 const eliminarDelCarrito = (idProducto) => {
@@ -644,6 +719,11 @@ const confirmarYRegistrarVenta = async () => {
       mostrarModalCobro.value = false
     }
 
+    if (error.response?.status === 400) {
+      mostrarModalCobro.value = false
+      cargarCatalogo()
+    }
+
     const mensajeError = error.response?.data?.error || error.response?.data?.message || 'Error al procesar'
     Swal.fire({
       icon: 'error',
@@ -662,10 +742,14 @@ onMounted(() => {
   cargarEstadoCaja()
   enfocarEscaner()
   window.addEventListener('keydown', manejarTeclasGlobales)
+  temporizador = setInterval(refrescarSiVisible, INTERVALO_REFRESCO)
+  document.addEventListener('visibilitychange', refrescarSiVisible)
 })
 
 onUnmounted(() => {
   window.removeEventListener('keydown', manejarTeclasGlobales)
+  clearInterval(temporizador)
+  document.removeEventListener('visibilitychange', refrescarSiVisible)
 })
 </script>
 

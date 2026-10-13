@@ -31,4 +31,18 @@ class Lote extends Model
     {
         return $this->belongsTo(DetalleCompra::class, 'detalle_compra_id');
     }
+
+    
+    public static function hoy(): string
+    {
+        return now('America/El_Salvador')->toDateString();
+    }
+
+    
+    public function estaVencido(): bool
+    {
+        $fecha = substr((string) $this->fecha_expiracion, 0, 10);
+
+        return $fecha !== '' && $fecha < self::hoy();
+    }
 }
