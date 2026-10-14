@@ -127,7 +127,12 @@
                       #{{ lote.id }}
                     </span>
                   </td>
-                  <td class="px-4 py-2.5 font-mono text-xs font-bold whitespace-nowrap text-slate-800">{{ lote.codigo_lote || 'Sin lote' }}</td>
+                  <td class="px-4 py-2.5 font-mono text-xs font-bold whitespace-nowrap text-slate-800">
+                    {{ lote.codigo_lote || 'Sin lote' }}
+                    <span v-if="nombreDistinto(lote)" class="block font-sans text-[10px] font-medium text-slate-400">
+                      Registrado como: {{ lote.producto_nombre }}
+                    </span>
+                  </td>
                   <td class="px-4 py-2.5 whitespace-nowrap text-center font-medium text-slate-600">{{ lote.cantidad_inicial }}</td>
                   <td class="px-4 py-2.5 font-black whitespace-nowrap text-center text-slate-900">
                     <span :class="{ 'line-through text-gray-500': lote.estadoVenc === 'vencido' }">{{ lote.cantidad_actual }}</span>
@@ -157,6 +162,9 @@
               <div class="flex items-start justify-between gap-2">
                 <div class="min-w-0">
                   <p class="font-mono text-xs font-bold text-slate-800 break-all m-0">{{ lote.codigo_lote || 'Sin lote' }}</p>
+                  <p v-if="nombreDistinto(lote)" class="text-[10px] font-medium text-slate-400 break-words m-0 mt-0.5">
+                    Registrado como: {{ lote.producto_nombre }}
+                  </p>
                   <span class="inline-block mt-1 rounded-full bg-[#5B80B0]/10 px-2 py-0.5 text-[11px] font-semibold text-[#5B80B0]">
                     #{{ lote.id }}
                   </span>
@@ -249,6 +257,10 @@ const producto = computed(() => {
   return construirInventario(productos.value, lotes.value)
     .find(p => String(p.id) === String(route.params.id)) || null
 })
+
+const nombreDistinto = (lote) => {
+  return Boolean(lote.producto_nombre) && lote.producto_nombre !== producto.value?.nombre
+}
 
 const lotesVisibles = computed(() => {
   if (!producto.value) return []

@@ -13,12 +13,13 @@ class Venta extends Model
 
     protected $fillable = [
         'user_id',
+        'vendedor_nombre',
         'fecha_venta',
         'cliente',
         'total',
         'dinero_recibido',
         'vuelto'
-    ];
+];
 
     public function usuario()
     {

@@ -183,7 +183,7 @@
                     class="form-force-button h-10 flex items-center justify-between px-3 rounded-lg border border-slate-300 bg-white hover:border-slate-900 text-slate-800 text-left cursor-pointer shadow-sm transition disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed disabled:hover:border-slate-300"
                   >
                     <span class="truncate text-sm font-medium">
-                      {{ getProductoNombre(d.producto_id) || d.producto_nombre || 'Seleccionar producto...' }}
+                      {{ d.producto_nombre || getProductoNombre(d.producto_id) || 'Seleccionar producto...' }}
                     </span>
                     <i class="bi bi-search text-slate-400 text-xs shrink-0 ml-2"></i>
                   </button>
@@ -611,9 +611,9 @@ function abrirEditar(compra) {
         id: det.id,
         detalle_id: det.id,
         producto_id: det.producto_id,
-        producto_nombre: det.producto?.nombre || '',
+        producto_nombre: det.producto_nombre || det.producto?.nombre || '',
         proveedor_id: det.proveedor_id || '',
-        proveedor_nombre: det.proveedor?.nombre_proveedor || det.proveedor?.nombre || '',
+        proveedor_nombre: det.proveedor_nombre || det.proveedor?.nombre_proveedor || det.proveedor?.nombre || '',
         cantidad: Math.max(1, Math.round(Number(det.cantidad)) || 1),
         unidades_por_paquete: Math.max(1, Math.round(Number(det.unidades_por_paquete)) || 1),
         precio_compra: Number(det.precio_compra || 0).toFixed(2),

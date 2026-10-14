@@ -7,6 +7,7 @@ use App\Models\DetalleVenta;
 use App\Models\Producto;
 use App\Models\Lote;
 use App\Models\Caja;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
@@ -48,8 +49,12 @@ class VentaController extends Controller
 
         try {
 
+            $idUsuario = $userId ?? $request->user()?->id;
+            $usuario = $idUsuario ? User::find($idUsuario) : null;
+
             $venta = Venta::create([
-                'user_id' => $userId ?? $request->user()?->id,
+                'user_id' => $idUsuario,
+                'vendedor_nombre' => $usuario?->nombre ?? $usuario?->name ?? $usuario?->username,
                 'fecha_venta' => $request->fecha_venta ? \Carbon\Carbon::parse($request->fecha_venta)->setTimeFrom(now()) : now(),
                 'cliente' => $request->input('cliente', 'Consumidor Final'),
                 'total' => 0,
@@ -115,6 +120,8 @@ class VentaController extends Controller
                 DetalleVenta::create([
                     'venta_id' => $venta->id,
                     'producto_id' => $producto->id,
+                    'producto_nombre' => $producto->nombre,
+                    'producto_codigo_barras' => $producto->codigo_barras,
                     'cantidad' => $cantidadSolicitada,
                     'precio_unitario' => $producto->precio_venta,
                     'subtotal' => $subtotal

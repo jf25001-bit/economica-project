@@ -83,7 +83,7 @@ class LoteController extends Controller
             $estabaDescontado = $lote->vencido_descontado_at !== null;
 
             $lote->update(
-                $request->all()
+                $request->except(['producto_nombre', 'producto_codigo_barras'])
             );
 
             if ($estabaDescontado && !$this->estaVencido($lote->fecha_expiracion)) {

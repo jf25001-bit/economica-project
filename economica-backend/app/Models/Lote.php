@@ -14,8 +14,10 @@ class Lote extends Model
         'fecha_expiracion',
         'cantidad_inicial',
         'cantidad_actual',
-        'producto_id'
-    ];
+        'producto_id',
+        'producto_nombre',
+        'producto_codigo_barras'
+];
 
     protected $casts = [
         'vencido_descontado_at' => 'datetime',

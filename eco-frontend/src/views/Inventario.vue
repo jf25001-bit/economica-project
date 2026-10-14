@@ -332,7 +332,11 @@ const inventarioFiltrado = computed(() => {
       item.codigo.toLowerCase().includes(query) ||
       item.nombre.toLowerCase().includes(query) ||
       item.categoria.toLowerCase().includes(query) ||
-      item.lotes.some(lote => (lote.codigo_lote || '').toLowerCase().includes(query))
+      item.lotes.some(lote =>
+        (lote.codigo_lote || '').toLowerCase().includes(query) ||
+        (lote.producto_nombre || '').toLowerCase().includes(query) ||
+        (lote.producto_codigo_barras || '').toLowerCase().includes(query)
+      )
     )
   })
 

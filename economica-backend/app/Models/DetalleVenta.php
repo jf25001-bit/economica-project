@@ -16,8 +16,10 @@ class DetalleVenta extends Model
         'precio_unitario',
         'subtotal',
         'venta_id',
-        'producto_id'
-    ];
+        'producto_id',
+        'producto_nombre',
+        'producto_codigo_barras'
+];
 
     public function venta()
     {

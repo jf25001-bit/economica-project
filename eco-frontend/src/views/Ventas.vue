@@ -210,7 +210,7 @@
                     class="hover:bg-slate-50/50"
                   >
                     <td class="px-4 py-3 font-bold text-slate-800">
-                      {{ det.producto?.nombre || 'Producto Desconocido' }}
+                      {{ det.producto_nombre || det.producto?.nombre || 'Producto Desconocido' }}
                     </td>
                     <td class="px-4 py-3 text-center font-bold text-slate-600">
                       {{ det.cantidad }}
@@ -303,6 +303,7 @@ const formatearHoraSolo = (fechaRaw) => {
 
 // Nombre del usuario que emitió la venta
 const nombreVendedor = (venta) => {
+  if (venta?.vendedor_nombre) return venta.vendedor_nombre
   const u = venta?.usuario
   if (!u) return 'Sin registro'
   return u.nombre || u.name || u.username || `Usuario #${venta.user_id}`
@@ -335,7 +336,7 @@ const imprimirTicket = (venta) => {
 
   let filas = ''
   detalles.forEach((det) => {
-    const nombre = limpiarTexto(det.producto?.nombre || 'Producto')
+    const nombre = limpiarTexto(det.producto_nombre || det.producto?.nombre || 'Producto')
     filas += `
       <div class="producto">${nombre}</div>
       <div class="linea">

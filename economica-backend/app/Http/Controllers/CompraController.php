@@ -6,6 +6,7 @@ use App\Models\Compra;
 use App\Models\DetalleCompra;
 use App\Models\Lote;
 use App\Models\Producto;
+use App\Models\Proveedor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -75,13 +76,16 @@ class CompraController extends Controller
                 $totalGeneral += $subtotal;
 
                 $detalle = DetalleCompra::create([
-                    'compra_id'            => $compra->id,
-                    'producto_id'          => $producto->id,
-                    'proveedor_id'         => $item['proveedor_id'],
-                    'cantidad'             => $paquetesComprados,
-                    'unidades_por_paquete' => $unidadesPorPaquete,
-                    'precio_compra'        => $precioPaquete,
-                    'subtotal'             => $subtotal
+                    'compra_id'              => $compra->id,
+                    'producto_id'            => $producto->id,
+                    'producto_nombre'        => $producto->nombre,
+                    'producto_codigo_barras' => $producto->codigo_barras,
+                    'proveedor_id'           => $item['proveedor_id'],
+                    'proveedor_nombre'       => $this->nombreProveedor($item['proveedor_id']),
+                    'cantidad'               => $paquetesComprados,
+                    'unidades_por_paquete'   => $unidadesPorPaquete,
+                    'precio_compra'          => $precioPaquete,
+                    'subtotal'               => $subtotal
                 ]);
 
                 $codigoLote = !empty($item['codigo_lote'])
@@ -89,12 +93,14 @@ class CompraController extends Controller
                     : 'LOTE-C' . $compra->id . '-P' . $producto->id;
 
                 Lote::create([
-                    'detalle_compra_id' => $detalle->id,
-                    'producto_id'       => $producto->id,
-                    'codigo_lote'       => $codigoLote,
-                    'fecha_expiracion'  => $item['fecha_expiracion'] ?? null,
-                    'cantidad_inicial'  => $unidadesTotales,
-                    'cantidad_actual'   => $unidadesTotales
+                    'detalle_compra_id'      => $detalle->id,
+                    'producto_id'            => $producto->id,
+                    'producto_nombre'        => $producto->nombre,
+                    'producto_codigo_barras' => $producto->codigo_barras,
+                    'codigo_lote'            => $codigoLote,
+                    'fecha_expiracion'       => $item['fecha_expiracion'] ?? null,
+                    'cantidad_inicial'       => $unidadesTotales,
+                    'cantidad_actual'        => $unidadesTotales
                 ]);
 
                 $producto->increment('stock', $unidadesTotales);
@@ -194,8 +200,13 @@ class CompraController extends Controller
                     Producto::where('id', $detalle->producto_id)->increment('stock', $ajusteStock);
                 }
 
+                $proveedorNombre = (int) $det['proveedor_id'] === (int) $detalle->proveedor_id && $detalle->proveedor_nombre
+                    ? $detalle->proveedor_nombre
+                    : $this->nombreProveedor($det['proveedor_id']);
+
                 $detalle->update([
                     'proveedor_id'         => $det['proveedor_id'],
+                    'proveedor_nombre'     => $proveedorNombre,
                     'cantidad'             => $paquetes,
                     'unidades_por_paquete' => $unidPorPaquete,
                     'precio_compra'        => $precioPaquete,
@@ -229,6 +240,13 @@ class CompraController extends Controller
                 'message' => 'Compra no encontrada'
             ], 404);
         }
+    }
+
+    private function nombreProveedor($id): ?string
+    {
+        $proveedor = Proveedor::find($id);
+
+        return $proveedor?->nombre_proveedor ?? $proveedor?->nombre;
     }
 
     private function mensajesValidacion(): array
