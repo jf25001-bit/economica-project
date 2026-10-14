@@ -54,7 +54,7 @@ class VentaController extends Controller
 
             $venta = Venta::create([
                 'user_id' => $idUsuario,
-                'vendedor_nombre' => $usuario?->nombre ?? $usuario?->name ?? $usuario?->username,
+                'vendedor_nombre' => $this->nombreCompletoUsuario($usuario),
                 'fecha_venta' => $request->fecha_venta ? \Carbon\Carbon::parse($request->fecha_venta)->setTimeFrom(now()) : now(),
                 'cliente' => $request->input('cliente', 'Consumidor Final'),
                 'total' => 0,
@@ -225,5 +225,19 @@ class VentaController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    private function nombreCompletoUsuario(?User $usuario): ?string
+    {
+        if (!$usuario) {
+            return null;
+        }
+
+        $partes = array_filter([
+            $usuario->nombre ?? $usuario->name ?? $usuario->username,
+            $usuario->apellido ?? $usuario->apellidos ?? $usuario->last_name,
+        ]);
+
+        return $partes ? implode(' ', $partes) : null;
     }
 }

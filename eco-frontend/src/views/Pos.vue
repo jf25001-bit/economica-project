@@ -268,6 +268,7 @@ import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import Swal from 'sweetalert2'
 import { getProductos, createVenta } from '@/services/ventaService'
 import { cajaService } from '@/services/cajaService'
+import { nombreCompleto } from '@/utils/ticketVenta'
 
 const INTERVALO_REFRESCO = 30000
 
@@ -618,7 +619,7 @@ const imprimirTicket = (datos) => {
         <div class="separador"></div>
         <div class="linea total"><span>TOTAL</span><span>$${Number(datos.total).toFixed(2)}</span></div>
         <div class="linea"><span>Recibido</span><span>$${Number(datos.recibido).toFixed(2)}</span></div>
-        <div class="linea"><span>Vuelto</span><span>$${Number(datos.vuelto).toFixed(2)}</span></div>
+        <div class="linea"><span>Cambio</span><span>$${Number(datos.vuelto).toFixed(2)}</span></div>
         <div class="separador"></div>
 
         <div class="centro">¡Gracias por su compra!</div>
@@ -696,7 +697,7 @@ const confirmarYRegistrarVenta = async () => {
       factura: ventaGuardada.factura || (ventaGuardada.id ? `#${ventaGuardada.id}` : ''),
       fecha: ventaGuardada.fecha_venta || ventaGuardada.created_at || new Date(),
       cliente: datosVenta.cliente,
-      vendedor: ventaGuardada.usuario?.nombre || ventaGuardada.usuario?.name || '',
+      vendedor: ventaGuardada.vendedor_nombre || nombreCompleto(ventaGuardada.usuario),
       items: copiaItems,
       total: datosVenta.total,
       recibido: datosVenta.dinero_recibido,
