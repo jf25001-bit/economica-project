@@ -1,9 +1,9 @@
 <template>
-  <div class="min-h-screen bg-slate-50/50 p-4 sm:p-6 md:p-8 w-full max-w-full overflow-x-hidden box-border">
+  <div class="min-h-screen bg-slate-50/50 p-3 sm:p-6 md:p-8 w-full max-w-full overflow-x-hidden box-border">
 
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8 w-full">
       <div class="min-w-0 flex-1">
-        <h1 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-800 tracking-tight truncate">Proveedores</h1>
+        <h1 class="text-xl sm:text-3xl md:text-4xl font-black text-slate-800 tracking-tight truncate">Proveedores</h1>
         <p class="text-slate-500 text-xs sm:text-sm font-medium mt-1">
           Gestión de proveedores y asignación de catálogo de productos
         </p>
@@ -11,7 +11,7 @@
 
       <button
         @click="abrirNuevoProveedor"
-        class="inline-flex items-center justify-center gap-2 bg-[#2B3A4A] hover:bg-[#1F2B37] text-white font-bold px-5 py-2.5 sm:px-6 sm:py-3 rounded-2xl shadow-lg shadow-[#2B3A4A]/20 transition-all active:scale-95 cursor-pointer text-sm sm:text-base w-full sm:w-auto shrink-0"
+        class="inline-flex items-center justify-center gap-2 bg-[#2B3A4A] hover:bg-[#1F2B37] text-white font-bold px-4 py-2.5 sm:px-6 sm:py-3 rounded-2xl shadow-lg shadow-[#2B3A4A]/20 transition-all active:scale-95 cursor-pointer text-xs sm:text-base w-full sm:w-auto shrink-0"
       >
         <i class="bi bi-person-plus-fill text-lg"></i>
         <span>Nuevo Proveedor</span>
@@ -27,7 +27,7 @@
           v-model="filtroProveedor"
           type="text"
           placeholder="Buscar proveedor por nombre, teléfono o dirección..."
-          class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium box-border"
+          class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 text-xs sm:text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium box-border"
         />
       </div>
     </div>
@@ -36,46 +36,49 @@
       <div class="overflow-x-auto w-full">
         <table class="w-full min-w-[650px] table-fixed">
           <thead>
-            <tr class="bg-slate-100/70 border-b border-slate-200 text-slate-700 text-xs font-black uppercase tracking-wider">
-              <th class="px-4 py-3 sm:px-6 sm:py-4 text-left w-16">ID</th>
-              <th class="px-4 py-3 sm:px-6 sm:py-4 text-left w-1/4">Nombre</th>
-              <th class="px-4 py-3 sm:px-6 sm:py-4 text-left w-28">Teléfono</th>
-              <th class="px-4 py-3 sm:px-6 sm:py-4 text-left w-1/4">Dirección</th>
-              <th class="px-4 py-3 sm:px-6 sm:py-4 text-left">Productos Suministrados</th>
-              <th class="px-4 py-3 sm:px-6 sm:py-4 text-right w-24">Acciones</th>
+            <tr class="bg-slate-100/70 border-b border-slate-200 text-slate-700 text-[10px] sm:text-xs font-black uppercase tracking-wider">
+              <th class="px-3 py-3 sm:px-6 sm:py-4 text-left w-16">ID</th>
+              <th class="px-3 py-3 sm:px-6 sm:py-4 text-left w-1/4">Nombre</th>
+              <th class="px-3 py-3 sm:px-6 sm:py-4 text-left w-28">Teléfono</th>
+              <th class="px-3 py-3 sm:px-6 sm:py-4 text-left w-1/4">Dirección</th>
+              <th class="px-3 py-3 sm:px-6 sm:py-4 text-left">Productos Suministrados</th>
+              <th class="px-3 py-3 sm:px-6 sm:py-4 text-right w-24">Acciones</th>
             </tr>
           </thead>
 
           <tbody class="divide-y divide-slate-100">
             <tr v-for="proveedor in proveedoresPaginados" :key="proveedor.id" class="hover:bg-slate-50/80 transition-colors">
 
-              <td class="px-4 py-3 sm:px-6 sm:py-4">
+              <td class="px-3 py-3 sm:px-6 sm:py-4 text-xs sm:text-sm">
                 <span class="inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
                   #{{ proveedor.id }}
                 </span>
               </td>
 
-              <td class="px-4 py-3 sm:px-6 sm:py-4 font-bold text-slate-800">
+              <td class="px-3 py-3 sm:px-6 sm:py-4 font-bold text-slate-800 text-xs sm:text-sm">
                 <div class="flex items-center gap-2 min-w-0">
                   <i class="bi bi-truck text-slate-400 text-base shrink-0"></i>
                   <span class="truncate block" :title="proveedor.nombre_proveedor">{{ proveedor.nombre_proveedor }}</span>
                 </div>
               </td>
 
-              <td class="px-4 py-3 sm:px-6 sm:py-4 text-slate-600 text-sm font-medium whitespace-nowrap">
+              <td class="px-3 py-3 sm:px-6 sm:py-4 text-slate-600 text-xs sm:text-sm font-medium whitespace-nowrap">
                 {{ proveedor.telefono }}
               </td>
 
-              <td class="px-4 py-3 sm:px-6 sm:py-4 text-slate-600 text-sm font-medium">
+              <td class="px-3 py-3 sm:px-6 sm:py-4 text-slate-600 text-xs sm:text-sm font-medium">
                 <p class="line-clamp-2 break-words" :title="proveedor.direccion">{{ proveedor.direccion }}</p>
               </td>
 
-              <td class="px-4 py-3 sm:px-6 sm:py-4">
+              <td class="px-3 py-3 sm:px-6 sm:py-4">
                 <div class="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto pr-1">
                   <span
                     v-for="prod in proveedor.productos"
                     :key="prod.id"
-                    class="inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-xs font-bold bg-sky-50 text-sky-700 border border-sky-200/60 max-w-full truncate"
+                    :class="[
+                      'inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-xs font-bold border max-w-full truncate',
+                      prod.anulado ? 'bg-gray-200/70 text-gray-500 border-gray-300 line-through' : 'bg-sky-50 text-sky-700 border-sky-200/60'
+                    ]"
                   >
                     <i class="bi bi-box-seam-fill mr-1 text-[10px] shrink-0"></i>
                     <span class="truncate">{{ prod.nombre || prod.nombre_producto }}</span>
@@ -86,7 +89,7 @@
                 </div>
               </td>
 
-              <td class="px-4 py-3 sm:px-6 sm:py-4">
+              <td class="px-3 py-3 sm:px-6 sm:py-4">
                 <div class="flex items-center justify-end gap-1.5 sm:gap-2">
                   <button
                     @click="editarProveedor(proveedor)"
@@ -118,10 +121,10 @@
         </table>
       </div>
 
-      <Paginacion
-        :current-page="paginaActual"
-        :total-pages="totalPaginas"
-        @update:current-page="paginaActual = $event"
+      <BarraPaginacion
+        v-model:pagina-actual="paginaActualProveedores"
+        v-model:por-pagina="porPaginaProveedores"
+        :total="proveedoresFiltrados.length"
       />
     </div>
 
@@ -157,7 +160,7 @@
                 v-model="nombre"
                 type="text"
                 placeholder="Ingrese el nombre"
-                class="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium box-border"
+                class="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs sm:text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium box-border"
               />
             </div>
 
@@ -169,7 +172,7 @@
                 maxlength="8"
                 placeholder="Ej: 77778888"
                 @input="telefono = telefono.replace(/[^0-9]/g, '')"
-                class="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium box-border"
+                class="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs sm:text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium box-border"
               />
             </div>
           </div>
@@ -180,7 +183,7 @@
               v-model="direccion"
               rows="2"
               placeholder="Ingrese la dirección completa"
-              class="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium resize-none box-border"
+              class="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs sm:text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium resize-none box-border"
             ></textarea>
           </div>
 
@@ -230,17 +233,17 @@
       </div>
     </div>
 
-    <div v-if="mostrarBuscadorProductos" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto">
-      <div class="bg-white rounded-2xl sm:rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-slate-100 box-border my-auto">
+    <div v-if="mostrarBuscadorProductos" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto">
+      <div class="bg-white rounded-2xl sm:rounded-3xl w-full max-w-4xl max-h-[94vh] flex flex-col overflow-hidden shadow-2xl border border-slate-100 box-border my-auto">
 
-        <div class="bg-[#2B3A4A] text-white px-5 py-4 sm:px-6 sm:py-5 flex justify-between items-center shrink-0 w-full box-border">
+        <div class="bg-[#2B3A4A] text-white px-4 py-3.5 sm:px-6 sm:py-5 flex justify-between items-center shrink-0 w-full box-border">
           <div class="flex items-center gap-3 min-w-0 pr-2">
             <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/10 flex items-center justify-center text-sky-300 shrink-0">
               <i class="bi bi-boxes text-lg sm:text-xl"></i>
             </div>
             <div class="min-w-0">
-              <h3 class="text-base sm:text-lg font-extrabold leading-none truncate">Asignar Productos</h3>
-              <p class="text-sky-200/80 text-[11px] sm:text-xs mt-1 truncate">Marque los productos suministrados por este proveedor</p>
+              <h3 class="text-sm sm:text-lg font-extrabold leading-none truncate">Asignar Productos</h3>
+              <p class="text-sky-200/80 text-[10px] sm:text-xs mt-1 truncate">Marque los productos suministrados por este proveedor</p>
             </div>
           </div>
 
@@ -253,60 +256,92 @@
           </button>
         </div>
 
-        <div class="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1 w-full box-border">
-          <div class="relative w-full">
-            <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
-              <i class="bi bi-search text-base"></i>
-            </span>
-            <input
-              v-model="filtroProducto"
-              type="text"
-              placeholder="Buscar por nombre o código..."
-              class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium box-border"
-            />
+        <div class="p-3 sm:p-6 space-y-3 sm:space-y-4 overflow-y-auto flex-1 w-full box-border">
+          <div class="flex flex-col sm:flex-row gap-2.5 sm:gap-3 w-full items-stretch sm:items-center">
+            <div class="relative flex-1 min-w-0">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
+                <i class="bi bi-search text-base"></i>
+              </span>
+              <input
+                v-model="filtroProducto"
+                type="text"
+                placeholder="Buscar por nombre o código..."
+                class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 text-xs sm:text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium box-border"
+              />
+            </div>
+
+            <label class="inline-flex items-center gap-2 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer text-xs sm:text-sm font-semibold text-slate-700 select-none shrink-0">
+              <input
+                type="checkbox"
+                v-model="mostrarAnulados"
+                class="w-4 h-4 rounded border-slate-300 text-[#2B3A4A] focus:ring-[#2B3A4A]/20 accent-[#2B3A4A]"
+              />
+              <span>Mostrar anulados</span>
+            </label>
           </div>
 
-          <div class="max-h-[280px] sm:max-h-[320px] overflow-y-auto border border-slate-200 rounded-2xl p-2 sm:p-3 bg-slate-50/50 w-full box-border">
-            <div v-if="productosFiltrados.length > 0" class="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
-              <label
-                v-for="producto in productosFiltrados"
-                :key="producto.id"
-                class="flex items-center gap-3 p-2.5 sm:p-3 bg-white border border-slate-200 rounded-xl hover:border-slate-300 cursor-pointer transition select-none shadow-xs min-w-0 box-border"
-              >
-                <input
-                  type="checkbox"
-                  :value="producto.id"
-                  v-model="productosSeleccionados"
-                  class="w-4 h-4 rounded border-slate-300 text-[#2B3A4A] focus:ring-[#2B3A4A]/20 accent-[#2B3A4A] shrink-0"
-                />
-                <div class="min-w-0 flex-1">
-                  <p class="text-xs font-bold text-slate-800 truncate" :title="producto.nombre || producto.nombre_producto">
-                    {{ producto.nombre || producto.nombre_producto }}
-                  </p>
-                  <p v-if="producto.codigo_barras" class="text-[10px] text-slate-400 font-mono mt-0.5 truncate">
-                    SKU: {{ producto.codigo_barras }}
-                  </p>
-                </div>
-              </label>
+          <div class="border border-slate-200 rounded-2xl bg-slate-50/50 w-full box-border flex flex-col justify-between">
+            <div class="p-2 sm:p-4 min-h-[260px]">
+              <div v-if="productosPaginados.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 w-full">
+                <label
+                  v-for="producto in productosPaginados"
+                  :key="producto.id"
+                  :class="[
+                    'flex items-center gap-3 p-2.5 sm:p-3.5 border rounded-xl transition select-none shadow-xs min-w-0 box-border',
+                    producto.anulado ? 'bg-gray-200/60 border-gray-300 cursor-not-allowed opacity-80' : 'bg-white border-slate-200 hover:border-slate-300 cursor-pointer'
+                  ]"
+                >
+                  <input
+                    type="checkbox"
+                    :value="producto.id"
+                    v-model="productosSeleccionados"
+                    :disabled="producto.anulado"
+                    class="w-4 h-4 rounded border-slate-300 text-[#2B3A4A] focus:ring-[#2B3A4A]/20 accent-[#2B3A4A] shrink-0 disabled:cursor-not-allowed"
+                  />
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-1.5 min-w-0">
+                      <p
+                        :class="[
+                          'text-xs font-bold truncate',
+                          producto.anulado ? 'text-gray-500 line-through' : 'text-slate-800'
+                        ]"
+                        :title="producto.nombre || producto.nombre_producto"
+                      >
+                        {{ producto.nombre || producto.nombre_producto }}
+                      </p>
+                      <span v-if="producto.anulado" class="rounded-full bg-gray-800 text-white px-1.5 py-0.2 text-[9px] font-bold shrink-0">Anulado</span>
+                    </div>
+                    <p v-if="producto.codigo_barras" class="text-[10px] text-slate-400 font-mono mt-0.5 truncate">
+                      SKU: {{ producto.codigo_barras }}
+                    </p>
+                  </div>
+                </label>
+              </div>
+
+              <div v-else class="text-center py-10 sm:py-16 text-slate-400">
+                <i class="bi bi-box-seam text-2xl sm:text-3xl block mb-1 opacity-50"></i>
+                <p class="text-xs italic">No se encontraron productos coincidentes</p>
+              </div>
             </div>
 
-            <div v-else class="text-center py-10 sm:py-12 text-slate-400">
-              <i class="bi bi-box-seam text-2xl sm:text-3xl block mb-1 opacity-50"></i>
-              <p class="text-xs italic">No se encontraron productos coincidentes</p>
-            </div>
+            <BarraPaginacion
+              v-model:pagina-actual="paginaActualProductos"
+              v-model:por-pagina="porPaginaProductos"
+              :total="productosFiltrados.length"
+            />
           </div>
 
           <button
             type="button"
             @click="irAProductos"
-            class="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-800 text-[11px] font-bold transition cursor-pointer"
+            class="w-full flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-800 text-xs font-bold transition cursor-pointer"
           >
             <i class="bi bi-box-seam"></i>
             <span>¿No encuentras el producto? Agregar producto</span>
           </button>
         </div>
 
-        <div class="flex justify-between items-center p-4 sm:p-5 bg-slate-50 border-t border-slate-100 shrink-0 w-full box-border">
+        <div class="flex justify-between items-center p-3.5 sm:p-5 bg-slate-50 border-t border-slate-100 shrink-0 w-full box-border">
           <span class="text-xs font-bold text-slate-500">
             Seleccionados: <span class="text-[#2B3A4A] text-xs sm:text-sm font-extrabold">{{ productosSeleccionados.length }}</span>
           </span>
@@ -327,10 +362,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Swal from 'sweetalert2'
-import Paginacion from '@/components/Paginacion.vue'
+import BarraPaginacion from '@/components/BarraPaginacion.vue'
+import { usePaginacion } from '@/utils/usePaginacion'
 import {
   getProveedores,
   getProductos,
@@ -358,6 +394,7 @@ const proveedores = ref([])
 const catalogoProductos = ref([])
 const filtroProveedor = ref('')
 const filtroProducto = ref('')
+const mostrarAnulados = ref(false)
 
 const proveedoresFiltrados = computed(() => {
   if (!filtroProveedor.value.trim()) return proveedores.value
@@ -371,29 +408,40 @@ const proveedoresFiltrados = computed(() => {
 })
 
 const productosFiltrados = computed(() => {
-  if (!filtroProducto.value.trim()) return catalogoProductos.value
-  const query = filtroProducto.value.toLowerCase().trim()
-  return catalogoProductos.value.filter(p => {
-    const nombreProd = (p.nombre || p.nombre_producto || '').toLowerCase()
-    const sku = (p.codigo_barras || '').toLowerCase()
-    return nombreProd.includes(query) || sku.includes(query)
-  })
+  let lista = catalogoProductos.value
+
+  if (!mostrarAnulados.value) {
+    lista = lista.filter(p => !p.anulado)
+  }
+
+  if (filtroProducto.value.trim()) {
+    const query = filtroProducto.value.toLowerCase().trim()
+    lista = lista.filter(p => {
+      const nombreProd = (p.nombre || p.nombre_producto || '').toLowerCase()
+      const sku = (p.codigo_barras || '').toLowerCase()
+      return nombreProd.includes(query) || sku.includes(query)
+    })
+  }
+
+  return lista
 })
 
-const paginaActual = ref(1)
-const porPagina = 8
-
-const totalPaginas = computed(() =>
-  Math.max(1, Math.ceil(proveedoresFiltrados.value.length / porPagina))
-)
-
-const proveedoresPaginados = computed(() => {
-  const inicio = (paginaActual.value - 1) * porPagina
-  return proveedoresFiltrados.value.slice(inicio, inicio + porPagina)
+const {
+  paginaActual: paginaActualProveedores,
+  porPagina: porPaginaProveedores,
+  paginados: proveedoresPaginados
+} = usePaginacion(proveedoresFiltrados, {
+  porPaginaInicial: 10,
+  reiniciarCon: [filtroProveedor]
 })
 
-watch(filtroProveedor, () => {
-  paginaActual.value = 1
+const {
+  paginaActual: paginaActualProductos,
+  porPagina: porPaginaProductos,
+  paginados: productosPaginados
+} = usePaginacion(productosFiltrados, {
+  porPaginaInicial: 10,
+  reiniciarCon: [filtroProducto, mostrarAnulados]
 })
 
 let cargaInicial = null
@@ -456,6 +504,7 @@ async function abrirBuscadorProductos() {
   }
 
   filtroProducto.value = ''
+  mostrarAnulados.value = false
   mostrarBuscadorProductos.value = true
 }
 
@@ -470,6 +519,7 @@ function abrirNuevoProveedor() {
   direccion.value = ''
   productosSeleccionados.value = []
   filtroProducto.value = ''
+  mostrarAnulados.value = false
   mostrarModal.value = true
 }
 
@@ -551,6 +601,7 @@ function editarProveedor(proveedor) {
     : []
 
   filtroProducto.value = ''
+  mostrarAnulados.value = false
 }
 
 async function eliminarProveedor(id) {
@@ -570,10 +621,16 @@ async function eliminarProveedor(id) {
   try {
     await deleteProveedor(id)
     await cargarProveedores()
-    Swal.fire({ icon: 'success', title: 'Proveedor eliminado', timer: 1500, showConfirmButton: false })
+    Swal.fn?.fire ? Swal.fire({ icon: 'success', title: 'Proveedor eliminado', timer: 1500, showConfirmButton: false }) : null
   } catch (error) {
     console.error(error)
-    Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo eliminar el proveedor', confirmButtonColor: '#2B3A4A' })
+    const mensajeError = error.response?.data?.message || 'No se pudo eliminar el proveedor porque tiene productos afiliados.'
+    Swal.fire({
+      icon: 'error',
+      title: 'Acción denegada',
+      text: mensajeError,
+      confirmButtonColor: '#2B3A4A'
+    })
   }
 }
 
@@ -586,5 +643,6 @@ function cerrarModal() {
   direccion.value = ''
   productosSeleccionados.value = []
   filtroProducto.value = ''
+  mostrarAnulados.value = false
 }
 </script>

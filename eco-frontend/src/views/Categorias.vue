@@ -77,7 +77,7 @@
                   </button>
 
                   <button
-                    @click="eliminarCategoria(cat.id)"
+                    @click="eliminarCategoria(cat)"
                     class="w-9 h-9 flex items-center justify-center rounded-xl bg-red-50 text-red-600 hover:bg-red-500 hover:text-white transition cursor-pointer"
                     title="Eliminar Categoría"
                   >
@@ -161,7 +161,7 @@
                   class="bg-slate-100 text-slate-700 border border-slate-200 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2"
                 >
                   {{ sub.nombre }}
-                  <button @click="eliminarSubBD(sub.id, i)" class="text-red-500 hover:text-red-700 cursor-pointer">
+                  <button @click="eliminarSubBD(sub, i)" class="text-red-500 hover:text-red-700 cursor-pointer" title="Eliminar Subcategoría">
                     <i class="bi bi-x-circle-fill"></i>
                   </button>
                 </span>
@@ -324,12 +324,25 @@ function agregarSub() {
   nuevaSub.value = ''
 }
 
-async function eliminarSubBD(subId, index) {
+async function eliminarSubBD(sub, index) {
   try {
-    await deleteSubcategoria(subId)
+    await deleteSubcategoria(sub.id)
     subExistentes.value.splice(index, 1)
+    Swal.fire({
+      icon: 'success',
+      title: 'Subcategoría eliminada',
+      timer: 1500,
+      showConfirmButton: false
+    })
   } catch (error) {
     console.error(error)
+    const mensajeError = error?.response?.data?.message || 'No se puede eliminar la subcategoría porque tiene productos afiliados.'
+    Swal.fire({
+      title: 'Acción denegada',
+      text: mensajeError,
+      icon: 'error',
+      confirmButtonColor: '#2B3A4A'
+    })
   }
 }
 
@@ -409,7 +422,7 @@ async function guardar() {
   }
 }
 
-async function eliminarCategoria(catId) {
+async function eliminarCategoria(cat) {
   const result = await Swal.fire({
     title: '¿Eliminar categoría?',
     text: 'Esta acción no se puede deshacer',
@@ -424,7 +437,7 @@ async function eliminarCategoria(catId) {
   if (!result.isConfirmed) return
 
   try {
-    await deleteCategoria(catId)
+    await deleteCategoria(cat.id)
     await cargar()
     await Swal.fire({
       icon: 'success',
@@ -433,9 +446,11 @@ async function eliminarCategoria(catId) {
       showConfirmButton: false
     })
   } catch (error) {
+    console.error(error)
+    const mensajeError = error?.response?.data?.message || 'No se pudo eliminar la categoría porque tiene productos afiliados.'
     Swal.fire({
-      title: 'Error',
-      text: 'No se pudo eliminar la categoría',
+      title: 'Acción denegada',
+      text: mensajeError,
       icon: 'error',
       confirmButtonColor: '#2B3A4A'
     })

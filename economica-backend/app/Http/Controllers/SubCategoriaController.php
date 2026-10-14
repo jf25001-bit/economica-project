@@ -80,10 +80,16 @@ class SubCategoriaController extends Controller
     
     public function destroy($id)
     {
-        $subcategoria = SubCategoria::find($id);
+        $subcategoria = SubCategoria::with('productos')->find($id);
 
         if (!$subcategoria) {
             return response()->json(['message' => 'Subcategoría no encontrada'], 404);
+        }
+
+        if ($subcategoria->productos()->count() > 0) {
+            return response()->json([
+                'message' => "No se puede eliminar la subcategoría \"{$subcategoria->nombre}\" porque tiene productos afiliados."
+            ], 422);
         }
 
         $subcategoria->delete();

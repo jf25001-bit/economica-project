@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\DB;
 
 class ProveedorController extends Controller
 {
@@ -112,7 +113,7 @@ class ProveedorController extends Controller
     public function update(Request $request, string $id)
     {
         try {
-            $proveedor = Proveedor::findOrFail($id);
+            $proveedor = Proveedor::with('productos')->findOrFail($id);
 
             $request->validate([
                 'nombre_proveedor' => [
@@ -128,6 +129,29 @@ class ProveedorController extends Controller
                 'productos.*' => 'exists:productos,id'
             ]);
 
+            // Validar si hay compras hechas con productos que se quieren remover
+            if ($request->has('productos')) {
+                $nuevosProductosIds = collect($request->productos);
+                $productosActualesIds = $proveedor->productos->pluck('id');
+
+                // Detectar qué productos se quieren quitar
+                $productosQuitados = $productosActualesIds->diff($nuevosProductosIds);
+
+                if ($productosQuitados->isNotEmpty()) {
+                    // Verificar si alguno de esos productos quitados tiene compras registradas con este proveedor en detalle_compras
+                    $tieneCompras = DB::table('detalle_compras')
+                        ->where('proveedor_id', $proveedor->id)
+                        ->whereIn('producto_id', $productosQuitados)
+                        ->exists();
+
+                    if ($tieneCompras) {
+                        return response()->json([
+                            'message' => 'No se pueden desvincular productos que ya tienen órdenes de compra registradas con este proveedor.'
+                        ], 422);
+                    }
+                }
+            }
+
             // 1. Actualizar los datos del proveedor
             $proveedor->update([
                 'nombre_proveedor' => $request->nombre_proveedor,
@@ -135,7 +159,7 @@ class ProveedorController extends Controller
                 'direccion' => $request->direccion
             ]);
 
-            // 2. Actualizar las relaciones en la tabla pivote
+            // 2. Sincronizar los productos actualizados
             if ($request->has('productos')) {
                 $proveedor->productos()->sync($request->productos);
             }
@@ -147,7 +171,7 @@ class ProveedorController extends Controller
                 'proveedor' => $proveedor
             ], 200);
 
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error al actualizar el proveedor',
                 'error' => $e->getMessage()
@@ -161,10 +185,15 @@ class ProveedorController extends Controller
     public function destroy(string $id)
     {
         try {
-            $proveedor = Proveedor::findOrFail($id);
+            $proveedor = Proveedor::with('productos')->findOrFail($id);
 
-            // Desvincular productos de la tabla pivote antes de eliminar
-            $proveedor->productos()->detach();
+            // Validar si tiene productos afiliados
+            if ($proveedor->productos()->count() > 0) {
+                return response()->json([
+                    'message' => "No se puede eliminar el proveedor \"{$proveedor->nombre_proveedor}\" porque tiene productos afiliados."
+                ], 422);
+            }
+
             $proveedor->delete();
 
             return response()->json([

@@ -94,13 +94,11 @@ export const ordenarLotesFifo = (lista) => {
 const sumarCantidad = (lista) => lista.reduce((total, l) => total + l.cantidad_actual, 0)
 
 export const construirInventario = (productos, lotes) => {
-  const anulados = new Set(productos.filter(p => p.anulado).map(p => Number(p.id)))
   const grupos = {}
 
   for (const lote of lotes) {
     const cantidadActual = Number(lote.cantidad_actual) || 0
     if (!lote.producto_id) continue
-    if (cantidadActual <= 0 && !anulados.has(Number(lote.producto_id))) continue
     if (!grupos[lote.producto_id]) grupos[lote.producto_id] = []
 
     grupos[lote.producto_id].push({

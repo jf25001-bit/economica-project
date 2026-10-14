@@ -116,7 +116,6 @@
       </div>
     </div>
 
-    <!-- MODAL DE COMPRA (ancho) -->
     <div v-if="modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
       <div class="modal-card-box bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-h-[92vh] flex flex-col overflow-hidden">
 
@@ -142,7 +141,6 @@
 
         <div class="modal-body-scroll p-5 sm:p-6 overflow-y-auto overflow-x-hidden flex-1 space-y-5 bg-slate-50/50">
 
-          <!-- Fecha y total, lado a lado -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="p-4 border border-slate-200 rounded-xl bg-white shadow-sm">
               <label class="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-1.5">Fecha de Compra</label>
@@ -175,7 +173,6 @@
                 <span v-if="d.detalle_id" class="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-mono">ID Registro: #{{ d.detalle_id }}</span>
               </div>
 
-              <!-- Fila 1: Producto | Proveedor -->
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="min-w-0">
                   <label class="text-xs font-semibold text-slate-600 block mb-1">Producto</label>
@@ -230,7 +227,6 @@
                 </div>
               </div>
 
-              <!-- Fila 2: cantidades, precio, lote y expiración -->
               <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 pt-3 border-t border-slate-100">
                 <div class="min-w-0">
                   <label class="text-xs font-semibold text-slate-600 block mb-1">Cant. Paquetes</label>
@@ -294,7 +290,6 @@
                 </div>
               </div>
 
-              <!-- Subtotal y eliminar -->
               <div class="pt-3 border-t border-slate-200 flex items-center justify-between bg-slate-50 -mx-5 -mb-5 px-5 py-3.5 rounded-b-xl">
                 <div>
                   <span class="text-[10px] text-slate-400 font-bold uppercase block tracking-wider">Subtotal Ítem</span>
@@ -480,7 +475,6 @@ const cargarProveedores = async () => {
   }
 }
 
-// ---------- Borrador de la compra (se conserva al ir a crear proveedor/producto) ----------
 const CLAVE_BORRADOR = 'borrador_compra'
 
 const guardarBorrador = () => {
@@ -562,7 +556,7 @@ const irAProveedores = (i) => {
 async function iniciarNuevaCompra() {
   if (cargaInicial) await cargaInicial
 
-  if (productos.value.length === 0) {
+  if (productos.value.filter(p => !p.anulado).length === 0) {
     const ir = await avisoConAccion({
       icon: 'warning',
       title: 'Aún no hay productos',
@@ -573,7 +567,7 @@ async function iniciarNuevaCompra() {
     return
   }
 
-  const hayProductoAfiliado = productos.value.some(p => obtenerProveedoresDelProducto(p.id).length > 0)
+  const hayProductoAfiliado = productos.value.filter(p => !p.anulado).some(p => obtenerProveedoresDelProducto(p.id).length > 0)
 
   if (!hayProductoAfiliado) {
     const ir = await avisoConAccion({
@@ -617,7 +611,6 @@ function abrirEditar(compra) {
         id: det.id,
         detalle_id: det.id,
         producto_id: det.producto_id,
-        // Nombres guardados para mostrarlos aunque el producto ya no esté en el catálogo
         producto_nombre: det.producto?.nombre || '',
         proveedor_id: det.proveedor_id || '',
         proveedor_nombre: det.proveedor?.nombre_proveedor || det.proveedor?.nombre || '',
@@ -699,7 +692,9 @@ function seleccionarProducto(p) {
 const productosFiltrados = computed(() => {
   if (!Array.isArray(productos.value)) return []
   const query = busqueda.value.toLowerCase().trim()
-  return productos.value.filter(p => (p.nombre || '').toLowerCase().includes(query))
+  return productos.value
+    .filter(p => !p.anulado)
+    .filter(p => (p.nombre || '').toLowerCase().includes(query))
 })
 
 function getProductoNombre(id) {
@@ -794,7 +789,6 @@ async function guardar() {
 </script>
 
 <style scoped>
-/* Modal ancho: antes estaba limitado a 580px */
 .modal-card-box {
   width: 100% !important;
   max-width: 1100px !important;
