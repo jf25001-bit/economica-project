@@ -160,6 +160,7 @@
                 v-model="nombre"
                 type="text"
                 placeholder="Ingrese el nombre"
+                @input="nombre = nombre.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, '')"
                 class="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs sm:text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium box-border"
               />
             </div>
@@ -536,6 +537,11 @@ async function guardarProveedor() {
     return
   }
 
+  if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(nombre.value)) {
+    Swal.fire({ icon: 'warning', title: 'Nombre inválido', text: 'El nombre solo debe contener letras', confirmButtonColor: '#2B3A4A' })
+    return
+  }
+
   if (!telefono.value.trim()) {
     Swal.fire({ icon: 'warning', title: 'Campo requerido', text: 'Ingrese el teléfono', confirmButtonColor: '#2B3A4A' })
     return
@@ -559,7 +565,7 @@ async function guardarProveedor() {
   guardando.value = true
 
   const data = {
-    nombre_proveedor: nombre.value,
+    nombre_proveedor: nombre.value.trim(),
     telefono: telefono.value,
     direccion: direccion.value,
     productos: productosSeleccionados.value
@@ -621,7 +627,7 @@ async function eliminarProveedor(id) {
   try {
     await deleteProveedor(id)
     await cargarProveedores()
-    Swal.fn?.fire ? Swal.fire({ icon: 'success', title: 'Proveedor eliminado', timer: 1500, showConfirmButton: false }) : null
+    Swal.fire({ icon: 'success', title: 'Proveedor eliminado', timer: 1500, showConfirmButton: false })
   } catch (error) {
     console.error(error)
     const mensajeError = error.response?.data?.message || 'No se pudo eliminar el proveedor porque tiene productos afiliados.'

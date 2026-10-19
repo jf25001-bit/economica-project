@@ -33,6 +33,9 @@ class CompraController extends Controller
 
     public function store(Request $request)
     {
+        // Fecha de hoy según la hora de El Salvador: no se aceptan productos ya caducados
+        $hoy = now('America/El_Salvador')->toDateString();
+
         $request->validate([
             'fecha_compra' => 'nullable|date',
             'detalles' => 'required|array|min:1',
@@ -42,7 +45,7 @@ class CompraController extends Controller
             'detalles.*.unidades_por_paquete' => 'nullable|integer|min:1|max:100000',
             'detalles.*.precio_compra' => 'required|numeric|gt:0',
             'detalles.*.codigo_lote' => 'nullable|string|max:100',
-            'detalles.*.fecha_expiracion' => 'nullable|date'
+            'detalles.*.fecha_expiracion' => 'nullable|date|after_or_equal:' . $hoy
         ], $this->mensajesValidacion());
 
         DB::beginTransaction();
@@ -126,101 +129,73 @@ class CompraController extends Controller
         }
     }
 
-    public function update(Request $request, $id)
+    /**
+     * Anula una compra: revierte el stock que sumó y deja sus lotes en 0.
+     * Una compra no se puede editar, solo anular.
+     */
+    public function anular($id)
     {
-        $request->validate([
-            'detalles' => 'required|array|min:1',
-            'detalles.*.detalle_id' => 'required|integer',
-            'detalles.*.proveedor_id' => 'required|exists:proveedores,id',
-            'detalles.*.cantidad' => 'required|integer|min:1|max:100000',
-            'detalles.*.unidades_por_paquete' => 'required|integer|min:1|max:100000',
-            'detalles.*.precio_compra' => 'required|numeric|gt:0',
-            'detalles.*.fecha_expiracion' => 'nullable|date',
-        ], $this->mensajesValidacion());
+        return DB::transaction(function () use ($id) {
+            $compra = Compra::with('detalles')->lockForUpdate()->findOrFail($id);
 
-        return DB::transaction(function () use ($request, $id) {
-            $compra = Compra::with('detalles.lotes')->findOrFail($id);
+            if ($compra->anulado) {
+                throw ValidationException::withMessages([
+                    'compra' => 'Esta compra ya está anulada.',
+                ]);
+            }
 
-            foreach ($request->detalles as $i => $det) {
-                $detalle = $compra->detalles->firstWhere('id', (int) $det['detalle_id']);
+            $lotes = Lote::whereIn('detalle_compra_id', $compra->detalles->pluck('id'))
+                ->lockForUpdate()
+                ->get();
 
-                if (!$detalle) {
+            // producto_id => unidades que hay que restar del stock
+            $aDescontar = [];
+
+            foreach ($lotes as $lote) {
+                $descontadas = (float) $lote->cantidad_inicial - (float) $lote->cantidad_actual;
+
+                // Si ya salió mercadería de este lote (ventas, mermas, ajustes), no se puede anular
+                if ($descontadas > 0.00001) {
                     throw ValidationException::withMessages([
-                        "detalles.$i.detalle_id" => 'Uno de los ítems no pertenece a esta compra.',
+                        'compra' => "No se puede anular: del lote {$lote->codigo_lote} ({$lote->producto_nombre}) ya se han descontado {$descontadas} unidades.",
                     ]);
                 }
 
-                if (isset($det['producto_id']) && (int) $det['producto_id'] !== (int) $detalle->producto_id) {
-                    throw ValidationException::withMessages([
-                        "detalles.$i.producto_id" => 'No se puede cambiar el producto de una compra ya registrada.',
-                    ]);
+                // Si el lote ya venció y se descontó del stock automáticamente, no se descuenta dos veces
+                if ($lote->vencido_descontado_at === null) {
+                    $aDescontar[$lote->producto_id] = ($aDescontar[$lote->producto_id] ?? 0) + (float) $lote->cantidad_actual;
                 }
 
-                $paquetes = (int) $det['cantidad'];
-                $unidPorPaquete = (int) $det['unidades_por_paquete'];
-                $precioPaquete = (float) $det['precio_compra'];
+                // El lote queda en 0 para que no se venda ni se vuelva a procesar como vencido
+                $lote->cantidad_actual = 0;
+                $lote->save();
+            }
 
-                $unidadesNuevas = $paquetes * $unidPorPaquete;
-                $unidadesAnteriores = $detalle->cantidad * $detalle->unidades_por_paquete;
-                $diferencia = $unidadesNuevas - $unidadesAnteriores;
-                $ajusteStock = $diferencia;
+            foreach ($compra->detalles->pluck('producto_id')->unique() as $productoId) {
+                $producto = Producto::lockForUpdate()->findOrFail($productoId);
+                $unidades = $aDescontar[$productoId] ?? 0;
 
-                $lote = $detalle->lotes->first();
-
-                if ($lote) {
-                    $vendidas = $lote->cantidad_inicial - $lote->cantidad_actual;
-
-                    if ($unidadesNuevas < $vendidas) {
+                if ($unidades > 0) {
+                    if ((float) $producto->stock + 0.00001 < $unidades) {
                         throw ValidationException::withMessages([
-                            "detalles.$i.cantidad" => "No puedes dejar este ítem en $unidadesNuevas unidades: del lote ya se han descontado $vendidas.",
+                            'compra' => "No se puede anular: el stock actual de {$producto->nombre} ({$producto->stock}) es menor a las {$unidades} unidades que ingresó esta compra.",
                         ]);
                     }
 
-                    $nuevaFecha = $det['fecha_expiracion'] ?? null;
-                    $estabaDescontado = $lote->vencido_descontado_at !== null;
-                    $seguiraVencido = $nuevaFecha !== null
-                        && substr($nuevaFecha, 0, 10) < now('America/El_Salvador')->toDateString();
-                    $cantidadAntes = (float) $lote->cantidad_actual;
-                    $cantidadDespues = $cantidadAntes + $diferencia;
-
-                    if ($estabaDescontado && $seguiraVencido) {
-                        $ajusteStock = 0;
-                    } elseif ($estabaDescontado) {
-                        $ajusteStock = $cantidadDespues;
-                        $lote->vencido_descontado_at = null;
-                    }
-
-                    $lote->fecha_expiracion = $nuevaFecha;
-                    $lote->cantidad_inicial = $unidadesNuevas;
-                    $lote->cantidad_actual = $cantidadDespues;
-                    $lote->save();
+                    $producto->decrement('stock', $unidades);
                 }
 
-                if (abs($ajusteStock) > 0.00001) {
-                    Producto::where('id', $detalle->producto_id)->increment('stock', $ajusteStock);
-                }
-
-                $proveedorNombre = (int) $det['proveedor_id'] === (int) $detalle->proveedor_id && $detalle->proveedor_nombre
-                    ? $detalle->proveedor_nombre
-                    : $this->nombreProveedor($det['proveedor_id']);
-
-                $detalle->update([
-                    'proveedor_id'         => $det['proveedor_id'],
-                    'proveedor_nombre'     => $proveedorNombre,
-                    'cantidad'             => $paquetes,
-                    'unidades_por_paquete' => $unidPorPaquete,
-                    'precio_compra'        => $precioPaquete,
-                    'subtotal'             => $paquetes * $precioPaquete,
-                ]);
-
-                Producto::findOrFail($detalle->producto_id)->recalcularPrecios();
+                $producto->recalcularPrecios();
             }
 
-            $compra->update(['total' => $compra->detalles()->sum('subtotal')]);
+            $compra->update([
+                'anulado'    => true,
+                'anulado_at' => now(),
+            ]);
 
             return response()->json([
-                'message' => 'Orden de compra actualizada con éxito',
-                'compra'  => $compra->fresh('detalles.producto', 'detalles.proveedor', 'detalles.lotes')
+                'message' => 'Compra anulada e inventario ajustado correctamente',
+                'compra'  => $compra->fresh('detalles.producto', 'detalles.proveedor', 'detalles.lotes'),
             ], 200);
         });
     }
@@ -260,6 +235,7 @@ class CompraController extends Controller
             'detalles.*.unidades_por_paquete.max' => 'Las unidades por paquete son demasiado grandes.',
             'detalles.*.precio_compra.numeric' => 'El precio del paquete debe ser un número.',
             'detalles.*.precio_compra.gt' => 'El precio del paquete debe ser mayor a 0.',
+            'detalles.*.fecha_expiracion.after_or_equal' => 'La fecha de expiración no puede ser anterior a hoy. No se pueden comprar productos caducados.',
         ];
     }
 }

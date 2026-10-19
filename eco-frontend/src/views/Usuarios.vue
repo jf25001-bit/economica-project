@@ -201,6 +201,7 @@
               v-model="form[campo.key]"
               :type="campo.type"
               :placeholder="campo.placeholder"
+              :maxlength="campo.maxlength"
               @input="campo.filtro && filtrarCampo(campo.key, campo.filtro)"
               class="w-full max-w-full px-3.5 py-2.5 sm:px-4 sm:py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium box-border"
             />
@@ -299,7 +300,7 @@ const camposForm = [
   { key: 'name', label: 'Nombre', placeholder: 'Ej. Juan', type: 'text', filtro: 'letras' },
   { key: 'apellido', label: 'Apellido', placeholder: 'Ej. Pérez', type: 'text', filtro: 'letras' },
   { key: 'email', label: 'Correo Electrónico', placeholder: 'correo@ejemplo.com', type: 'email', filtro: null },
-  { key: 'telefono', label: 'Teléfono', placeholder: 'Ej. 70000000', type: 'text', filtro: 'numeros' }
+  { key: 'telefono', label: 'Teléfono', placeholder: 'Ej. 70000000', type: 'text', filtro: 'numeros', maxlength: 8 }
 ]
 
 const formVacio = () => ({
@@ -339,7 +340,7 @@ const filtrarCampo = (key, tipo) => {
   if (tipo === 'letras') {
     form.value[key] = form.value[key].replace(/[^a-zA-ZÀ-ÿ\s]/g, '')
   } else if (tipo === 'numeros') {
-    form.value[key] = form.value[key].replace(/[^0-9]/g, '')
+    form.value[key] = form.value[key].replace(/[^0-9]/g, '').slice(0, 8)
   }
 }
 
@@ -416,6 +417,11 @@ const validar = () => {
 
   if (!form.value.email) {
     errores.value.email = 'El correo electrónico es obligatorio'
+    ok = false
+  }
+
+  if (form.value.telefono && form.value.telefono.length !== 8) {
+    errores.value.telefono = 'El teléfono debe tener 8 dígitos'
     ok = false
   }
 

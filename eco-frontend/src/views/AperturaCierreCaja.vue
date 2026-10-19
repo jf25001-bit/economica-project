@@ -126,8 +126,8 @@
               <div class="relative">
                 <select v-model="formApertura.turno" class="w-full p-3.5 pr-10 bg-slate-900/90 border border-slate-800 rounded-xl text-xs font-bold text-white focus:outline-none focus:border-sky-500 appearance-none cursor-pointer">
                   <option value="unico">Turno Único (jornada completa)</option>
-                  <option value="manana">Turno Mañana (12:00 a.m. – 11:59 a.m.)</option>
-                  <option value="tarde">Turno Tarde (12:00 p.m. – 11:59 p.m.)</option>
+                  <option value="manana">Turno Mañana </option>
+                  <option value="tarde">Turno Tarde </option>
                 </select>
                 <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
               </div>
@@ -238,7 +238,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import Swal from 'sweetalert2'
 import { cajaService } from '@/services/cajaService'
 
@@ -293,6 +293,46 @@ const formatoFecha = (fechaStr) => {
   }
 }
 
+// ---------- Cierre automático al terminar el día ----------
+let reloj = null
+let cerrandoAuto = false
+
+const fechaDe = (valor) => {
+  const d = valor ? new Date(valor) : new Date()
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`
+}
+
+const esDeOtroDia = (fechaApertura) => fechaDe(fechaApertura) !== fechaDe()
+
+const cerrarPorFinDeDia = async () => {
+  if (cerrandoAuto) return
+  cerrandoAuto = true
+  try {
+    await Swal.fire({
+      icon: 'info',
+      title: 'Caja cerrada automáticamente',
+      text: 'Se cierra la caja porque terminó el día.',
+      confirmButtonText: 'Entendido',
+      confirmButtonColor: '#0284c7',
+      background: '#0f172a',
+      color: '#fff'
+    })
+    await cajaService.cerrarCaja({ monto_cierre: montoEsperado.value })
+    await consultarEstado()
+  } catch (e) {
+    console.error('No se pudo cerrar la caja automáticamente:', e)
+  } finally {
+    cerrandoAuto = false
+  }
+}
+
+const revisarFinDeDia = () => {
+  if (cajaAbierta.value && cajaInfo.value && esDeOtroDia(cajaInfo.value.fecha_apertura)) {
+    cerrarPorFinDeDia()
+  }
+}
+// ----------------------------------------------------------
+
 const consultarEstado = async () => {
   cargandoEstado.value = true
   try {
@@ -306,6 +346,12 @@ const consultarEstado = async () => {
       const apertura = parseFloat(data.caja.monto_apertura || 0)
       const ventas = parseFloat(data.caja.total_ventas || 0)
       formCierre.value.monto_cierre = apertura + ventas
+
+      // Si la caja quedó abierta de un día anterior, se cierra sola
+      if (esDeOtroDia(data.caja.fecha_apertura)) {
+        cerrarPorFinDeDia()
+        return
+      }
     } else {
       cajaAbierta.value = false
       cajaInfo.value = null
@@ -448,5 +494,9 @@ const ejecutarCierre = async () => {
 
 onMounted(() => {
   consultarEstado()
+  // Revisa cada 30 segundos si ya cambió el día
+  reloj = setInterval(revisarFinDeDia, 30000)
 })
+
+onUnmounted(() => clearInterval(reloj))
 </script>

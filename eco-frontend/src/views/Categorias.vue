@@ -137,6 +137,7 @@
               v-model="nombre"
               type="text"
               placeholder="Ej. Bebidas, Alimentos, etc."
+              @input="nombre = nombre.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, '')"
               class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium"
             />
           </div>
@@ -171,6 +172,7 @@
                 <input
                   v-model="nuevaSub"
                   @keyup.enter="agregarSub"
+                  @input="nuevaSub = nuevaSub.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, '')"
                   placeholder="Nombre de subcategoría..."
                   class="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-[#2B3A4A] focus:ring-2 focus:ring-[#2B3A4A]/20 transition-all font-medium"
                 />
@@ -353,6 +355,16 @@ async function guardar() {
       icon: 'warning',
       title: 'Campo requerido',
       text: 'El nombre de la categoría es obligatorio',
+      confirmButtonColor: '#2B3A4A'
+    })
+    return
+  }
+
+  if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(nombre.value)) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Nombre inválido',
+      text: 'El nombre de la categoría solo debe contener letras',
       confirmButtonColor: '#2B3A4A'
     })
     return

@@ -41,6 +41,7 @@
                     <th class="px-6 py-4">ID Orden</th>
                     <th class="px-6 py-4">Fecha</th>
                     <th class="px-6 py-4">Total ($)</th>
+                    <th class="px-6 py-4">Estado</th>
                     <th class="px-6 py-4 text-right">Acciones</th>
                   </tr>
                 </thead>
@@ -48,19 +49,39 @@
                   <tr v-for="c in comprasPaginadas" :key="c.id" class="hover:bg-slate-50/80 text-sm transition">
                     <td class="px-6 py-4 font-mono font-bold text-slate-900">#{{ c.id }}</td>
                     <td class="px-6 py-4 text-slate-500 text-xs">{{ c.fecha_compra ?? '—' }}</td>
-                    <td class="px-6 py-4 font-bold text-slate-900">${{ Number(c.total ?? 0).toFixed(2) }}</td>
-                    <td class="px-6 py-4 text-right">
-                      <button
-                        @click="abrirEditar(c)"
-                        class="bg-slate-100 text-slate-700 p-2 rounded-lg hover:bg-slate-900 hover:text-white transition cursor-pointer inline-flex items-center justify-center border border-slate-300"
-                        title="Editar Compra"
+                    <td class="px-6 py-4 font-bold text-slate-900" :class="{ 'line-through text-slate-400': c.anulado }">${{ Number(c.total ?? 0).toFixed(2) }}</td>
+                    <td class="px-6 py-4">
+                      <span
+                        :class="c.anulado
+                          ? 'bg-rose-50 text-rose-700 border-rose-200'
+                          : 'bg-emerald-50 text-emerald-700 border-emerald-200'"
+                        class="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md border"
                       >
-                        <i class="bi bi-pencil"></i>
-                      </button>
+                        {{ c.anulado ? 'Anulada' : 'Activa' }}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                      <div class="inline-flex items-center gap-2">
+                        <button
+                          @click="verDetalles(c)"
+                          class="bg-slate-100 text-slate-700 p-2 rounded-lg hover:bg-slate-900 hover:text-white transition cursor-pointer inline-flex items-center justify-center border border-slate-300"
+                          title="Ver detalles"
+                        >
+                          <i class="bi bi-eye"></i>
+                        </button>
+                        <button
+                          v-if="!c.anulado"
+                          @click="anular(c)"
+                          class="bg-rose-50 text-rose-700 p-2 rounded-lg hover:bg-rose-600 hover:text-white transition cursor-pointer inline-flex items-center justify-center border border-rose-200"
+                          title="Anular compra"
+                        >
+                          <i class="bi bi-slash-circle"></i>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                   <tr v-if="compras.length === 0">
-                    <td colspan="4" class="text-center py-20 text-slate-400 italic">No hay compras registradas.</td>
+                    <td colspan="5" class="text-center py-20 text-slate-400 italic">No hay compras registradas.</td>
                   </tr>
                 </tbody>
               </table>
@@ -143,15 +164,13 @@
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="p-4 border border-slate-200 rounded-xl bg-white shadow-sm">
-              <label class="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-1.5">Fecha de Compra</label>
+              <label class="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-1.5">Fecha de Compra (automática)</label>
               <input
                 v-model="fechaCompraNueva"
                 type="date"
-                :readonly="modoEdicion"
-                :class="[
-                  'form-force-input h-10 px-3 py-2 border rounded-lg text-sm font-medium outline-none',
-                  modoEdicion ? 'bg-slate-100 text-slate-500 border-slate-200 cursor-not-allowed' : 'bg-white text-slate-800 border-slate-300 focus:border-slate-900'
-                ]"
+                readonly
+                tabindex="-1"
+                class="form-force-input h-10 px-3 py-2 border rounded-lg text-sm font-medium outline-none bg-slate-100 text-slate-500 border-slate-200 cursor-not-allowed"
               />
             </div>
             <div class="p-4 border border-slate-200 rounded-xl bg-white shadow-sm flex items-center justify-between">
@@ -285,6 +304,7 @@
                   <input
                     v-model="d.fecha_expiracion"
                     type="date"
+                    :min="modoEdicion ? undefined : fechaMinimaExpiracion"
                     class="form-force-input h-10 px-3 border border-slate-300 rounded-lg text-sm bg-white text-slate-700 outline-none focus:border-slate-900"
                   />
                 </div>
@@ -348,6 +368,80 @@
       </div>
     </div>
 
+    <div v-if="modalDetalle && compraDetalle" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
+      <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+        <div class="px-6 py-4 flex justify-between items-center border-b border-slate-200 bg-slate-900 text-white shrink-0">
+          <div>
+            <h3 class="font-bold text-base">Compra #{{ compraDetalle.id }}</h3>
+            <p class="text-xs text-slate-300">
+              {{ compraDetalle.fecha_compra ? String(compraDetalle.fecha_compra).substring(0, 10) : '—' }}
+              · {{ compraDetalle.anulado ? 'Anulada' : 'Activa' }}
+            </p>
+          </div>
+          <button
+            class="w-8 h-8 rounded-lg bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 flex items-center justify-center transition cursor-pointer shrink-0"
+            @click="modalDetalle = false"
+          >
+            <i class="bi bi-x-lg text-xs"></i>
+          </button>
+        </div>
+
+        <div class="p-5 overflow-y-auto flex-1 bg-slate-50/50">
+          <ul v-if="(compraDetalle.detalles || []).length > 0" class="space-y-3">
+            <li
+              v-for="(det, idx) in compraDetalle.detalles"
+              :key="det.id || idx"
+              class="p-4 bg-white border border-slate-200 rounded-xl shadow-sm"
+            >
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <p class="font-bold text-slate-900 text-sm truncate">{{ nombreProductoDetalle(det) }}</p>
+                  <p class="text-xs text-slate-500">Proveedor: {{ nombreProveedorDetalle(det) }}</p>
+                </div>
+                <span class="text-sm font-black text-slate-900 shrink-0">${{ subtotalDetalle(det).toFixed(2) }}</span>
+              </div>
+              <dl class="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2 text-xs">
+                <div>
+                  <dt class="text-slate-400 font-semibold uppercase text-[10px] tracking-wider">Paquetes</dt>
+                  <dd class="text-slate-800 font-semibold">{{ Number(det.cantidad) || 0 }}</dd>
+                </div>
+                <div>
+                  <dt class="text-slate-400 font-semibold uppercase text-[10px] tracking-wider">Unid. x paquete</dt>
+                  <dd class="text-slate-800 font-semibold">{{ Number(det.unidades_por_paquete) || 1 }}</dd>
+                </div>
+                <div>
+                  <dt class="text-slate-400 font-semibold uppercase text-[10px] tracking-wider">Precio paquete</dt>
+                  <dd class="text-slate-800 font-semibold">${{ Number(det.precio_compra || 0).toFixed(2) }}</dd>
+                </div>
+                <div>
+                  <dt class="text-slate-400 font-semibold uppercase text-[10px] tracking-wider">Lote</dt>
+                  <dd class="text-slate-800 font-semibold font-mono">{{ loteDetalle(det).codigo || '—' }}</dd>
+                </div>
+                <div>
+                  <dt class="text-slate-400 font-semibold uppercase text-[10px] tracking-wider">Expiración</dt>
+                  <dd class="text-slate-800 font-semibold">{{ loteDetalle(det).expiracion || '—' }}</dd>
+                </div>
+              </dl>
+            </li>
+          </ul>
+          <p v-else class="text-center py-10 text-sm text-slate-400 italic">Esta compra no tiene detalles.</p>
+        </div>
+
+        <div class="px-6 py-3.5 bg-white border-t border-slate-200 flex items-center justify-between shrink-0">
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-500 font-medium">Total:</span>
+            <span class="text-xl font-black text-slate-900">${{ Number(compraDetalle.total ?? 0).toFixed(2) }}</span>
+          </div>
+          <button
+            @click="modalDetalle = false"
+            class="px-4 py-2 border border-slate-300 rounded-xl text-xs font-bold text-slate-600 bg-white hover:bg-slate-100 transition cursor-pointer"
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div v-if="modalProductos" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden">
         <div class="px-5 py-3.5 border-b border-slate-200 flex justify-between items-center bg-slate-900 text-white">
@@ -402,7 +496,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getCompras, createCompra, updateCompra } from '../services/compraService'
+import { getCompras, createCompra, anularCompra } from '../services/compraService'
 import { getProductos } from '../services/productoService'
 import { getProveedores } from '../services/proveedorService'
 import { avisoConAccion } from '@/utils/avisos'
@@ -410,6 +504,15 @@ import { alertaError, alertaAdvertencia, alertaExito, mensajesDeError } from '@/
 
 const route = useRoute()
 const router = useRouter()
+
+// Fecha de hoy en formato AAAA-MM-DD (según la hora local del equipo)
+function fechaHoy() {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+// Fecha mínima de expiración: hoy (no se pueden comprar productos caducados)
+const fechaMinimaExpiracion = fechaHoy()
 
 const compras = ref([])
 const productos = ref([])
@@ -420,7 +523,10 @@ const cargando = ref(false)
 const detalles = ref([])
 const indexProducto = ref(null)
 const busqueda = ref('')
-const fechaCompraNueva = ref(new Date().toISOString().split('T')[0])
+const fechaCompraNueva = ref(fechaHoy())
+
+const modalDetalle = ref(false)
+const compraDetalle = ref(null)
 
 const modoEdicion = ref(false)
 const compraIdEdicion = ref(null)
@@ -498,7 +604,7 @@ const restaurarBorrador = () => {
 
     modoEdicion.value = false
     compraIdEdicion.value = null
-    fechaCompraNueva.value = borrador.fecha || new Date().toISOString().split('T')[0]
+    fechaCompraNueva.value = fechaHoy()
     detalles.value = borrador.detalles
     modal.value = true
     return true
@@ -586,7 +692,7 @@ async function iniciarNuevaCompra() {
 function abrirModalCrear() {
   modoEdicion.value = false
   compraIdEdicion.value = null
-  fechaCompraNueva.value = new Date().toISOString().split('T')[0]
+  fechaCompraNueva.value = fechaHoy()
   detalles.value = [{
     producto_id: '',
     proveedor_id: '',
@@ -599,41 +705,46 @@ function abrirModalCrear() {
   modal.value = true
 }
 
-function abrirEditar(compra) {
-  modoEdicion.value = true
-  compraIdEdicion.value = compra.id
-  fechaCompraNueva.value = compra.fecha_compra ? compra.fecha_compra.substring(0, 10) : new Date().toISOString().split('T')[0]
+function verDetalles(compra) {
+  compraDetalle.value = compra
+  modalDetalle.value = true
+}
 
-  if (compra.detalles && compra.detalles.length > 0) {
-    detalles.value = compra.detalles.map(det => {
-      const lote = det.lotes && det.lotes.length > 0 ? det.lotes[0] : null
-      return {
-        id: det.id,
-        detalle_id: det.id,
-        producto_id: det.producto_id,
-        producto_nombre: det.producto_nombre || det.producto?.nombre || '',
-        proveedor_id: det.proveedor_id || '',
-        proveedor_nombre: det.proveedor_nombre || det.proveedor?.nombre_proveedor || det.proveedor?.nombre || '',
-        cantidad: Math.max(1, Math.round(Number(det.cantidad)) || 1),
-        unidades_por_paquete: Math.max(1, Math.round(Number(det.unidades_por_paquete)) || 1),
-        precio_compra: Number(det.precio_compra || 0).toFixed(2),
-        codigo_lote: lote ? lote.codigo_lote : (det.codigo_lote || ''),
-        fecha_expiracion: lote && lote.fecha_expiracion ? lote.fecha_expiracion.substring(0, 10) : (det.fecha_expiracion ? det.fecha_expiracion.substring(0, 10) : '')
-      }
-    })
-  } else {
-    detalles.value = [{
-      producto_id: '',
-      proveedor_id: '',
-      cantidad: 1,
-      unidades_por_paquete: 1,
-      precio_compra: '',
-      codigo_lote: '',
-      fecha_expiracion: ''
-    }]
+const nombreProductoDetalle = (det) => det.producto_nombre || det.producto?.nombre || getProductoNombre(det.producto_id) || '—'
+
+const nombreProveedorDetalle = (det) =>
+  det.proveedor_nombre || det.proveedor?.nombre_proveedor || det.proveedor?.nombre || '—'
+
+const subtotalDetalle = (det) => (Number(det.cantidad) || 0) * (Number(det.precio_compra) || 0)
+
+function loteDetalle(det) {
+  const lote = det.lotes && det.lotes.length > 0 ? det.lotes[0] : null
+  const codigo = lote ? lote.codigo_lote : det.codigo_lote
+  const exp = lote ? lote.fecha_expiracion : det.fecha_expiracion
+  return { codigo: codigo || '', expiracion: exp ? String(exp).substring(0, 10) : '' }
+}
+
+async function anular(compra) {
+  const confirmado = await avisoConAccion({
+    icon: 'warning',
+    title: `¿Anular la compra #${compra.id}?`,
+    text: 'Esta acción no se puede deshacer y el inventario se ajustará.',
+    boton: 'Sí, anular'
+  })
+  if (!confirmado) return
+
+  try {
+    await anularCompra(compra.id)
+    await cargar()
+    await cargarProductos()
+    alertaExito('Compra anulada', 'El inventario se actualizó correctamente.')
+  } catch (error) {
+    console.error(error)
+    alertaError(
+      'No se pudo anular la compra',
+      mensajesDeError(error, 'Error al procesar la solicitud.')
+    )
   }
-
-  modal.value = true
 }
 
 function add() {
@@ -720,6 +831,8 @@ async function guardar() {
     return alertaAdvertencia('Falta un producto', 'Debes agregar al menos un producto a la orden.')
   }
 
+  const hoy = fechaHoy()
+
   for (const [i, d] of detalles.value.entries()) {
     const n = i + 1
 
@@ -741,12 +854,21 @@ async function guardar() {
     if (!(Number(d.precio_compra) > 0)) {
       return alertaAdvertencia(`Revisa el ítem #${n}`, 'El precio del paquete debe ser mayor a 0.')
     }
+    // No se permite registrar productos ya caducados (solo al crear la compra,
+    // para no bloquear la edición de compras antiguas cuyo lote ya venció)
+    if (!modoEdicion.value && d.fecha_expiracion && d.fecha_expiracion < hoy) {
+      return alertaAdvertencia(
+        `Revisa el ítem #${n}`,
+        'La fecha de expiración no puede ser anterior a hoy. No se pueden comprar productos caducados.'
+      )
+    }
   }
 
   cargando.value = true
   try {
     const payload = {
-      fecha_compra: fechaCompraNueva.value,
+      // Al crear, la fecha siempre es la de hoy (no se puede manipular)
+      fecha_compra: modoEdicion.value ? fechaCompraNueva.value : fechaHoy(),
       detalles: detalles.value.map(d => ({
         id: d.detalle_id || d.id || undefined,
         detalle_id: d.detalle_id || d.id || undefined,
@@ -760,22 +882,13 @@ async function guardar() {
       }))
     }
 
-    const esEdicion = modoEdicion.value
-
-    if (esEdicion) {
-      await updateCompra(compraIdEdicion.value, payload)
-    } else {
-      await createCompra(payload)
-    }
+    await createCompra(payload)
 
     await cargar()
     await cargarProductos()
     cerrar()
 
-    alertaExito(
-      esEdicion ? 'Compra actualizada' : 'Compra registrada',
-      'El inventario se actualizó correctamente.'
-    )
+    alertaExito('Compra registrada', 'El inventario se actualizó correctamente.')
   } catch (error) {
     console.error(error)
     alertaError(

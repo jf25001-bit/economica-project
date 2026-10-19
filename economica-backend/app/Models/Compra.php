@@ -13,7 +13,14 @@ class Compra extends Model
 
     protected $fillable = [
         'fecha_compra',
-        'total'
+        'total',
+        'anulado',
+        'anulado_at'
+    ];
+
+    protected $casts = [
+        'anulado'    => 'boolean',
+        'anulado_at' => 'datetime',
     ];
 
     public function detalles()

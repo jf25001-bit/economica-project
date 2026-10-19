@@ -19,3 +19,8 @@
     const response = await api.delete(`/compras/${id}`)
     return response.data
   }
+
+  export const anularCompra = async (id) => {
+  const response = await api.patch(`/compras/${id}/anular`)
+  return response.data
+}
