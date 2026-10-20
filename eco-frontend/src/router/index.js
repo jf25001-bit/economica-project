@@ -55,7 +55,11 @@ const routes = [
   {
     path: '/productos/anulados',
     name: 'ProductosAnulados',
-    component: () => import('@/views/ProductosAnulados.vue')
+    component: () => import('@/views/ProductosAnulados.vue'),
+    meta: {
+      requiresAuth: true,
+      allowedRoles: ['Administrador', 'Cajero']
+    }
   },
   {
     path: '/control-cajas',
@@ -81,7 +85,7 @@ const routes = [
     component: Ventas,
     meta: {
       requiresAuth: true,
-      allowedRoles: ['Administrador']
+      allowedRoles: ['Administrador', 'Cajero']
     }
   },
 
@@ -156,6 +160,11 @@ const routes = [
       requiresCaja: true,
       allowedRoles: ['Administrador', 'Cajero']
     }
+  },
+
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/login'
   }
 ]
 
@@ -164,8 +173,29 @@ const router = createRouter({
   routes
 })
 
+const limpiarSesion = () => {
+  localStorage.removeItem('token')
+  localStorage.removeItem('user')
+}
+
+const tokenVigente = (token) => {
+  try {
+    const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+    const { exp } = JSON.parse(atob(payload))
+    return !exp || exp * 1000 > Date.now()
+  } catch (error) {
+    return false
+  }
+}
+
 router.beforeEach(async (to) => {
-  const token = localStorage.getItem('token')
+  let token = localStorage.getItem('token')
+
+  if (token && !tokenVigente(token)) {
+    limpiarSesion()
+    token = null
+  }
+
   let user = null
 
   try {
@@ -179,13 +209,8 @@ router.beforeEach(async (to) => {
 
   const rol = String(user?.rol?.nombre || user?.rol || '').trim().toLowerCase()
 
-  if (to.path === '/') {
-    if (!token) return '/login'
-    return rol === 'cajero' ? '/pos' : '/dashboard'
-  }
-
   if (to.meta.requiresAuth && !token) {
-    return to.path === '/login' ? true : '/login'
+    return '/login'
   }
 
   if (to.path === '/login' && token) {
@@ -205,7 +230,7 @@ router.beforeEach(async (to) => {
   }
 
   if (rol === 'cajero') {
-    const rutasPermitidas = ['/pos', '/productos', '/inventario']
+    const rutasPermitidas = ['/pos', '/productos', '/inventario', '/ventas']
     const permitida = rutasPermitidas.some(r => to.path === r || to.path.startsWith(`${r}/`))
     if (!permitida) {
       return '/pos'

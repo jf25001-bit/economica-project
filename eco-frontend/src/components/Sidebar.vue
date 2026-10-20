@@ -5,7 +5,6 @@
       isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full shadow-none'
     ]"
   >
-    <!-- Logo -->
     <div
       class="h-[73px] px-5 flex items-center justify-start transition-all duration-300 border-b border-slate-800/60 shrink-0"
     >
@@ -21,10 +20,8 @@
       </router-link>
     </div>
 
-    <!-- Menú por secciones desplegables -->
     <nav class="flex-1 py-3 px-3 overflow-y-auto custom-scrollbar space-y-2">
       <div v-for="seccion in menuFiltrado" :key="seccion.titulo">
-        <!-- Título de sección clickeable -->
         <button
           v-if="seccion.titulo !== 'General'"
           @click="toggleSeccion(seccion.titulo)"
@@ -39,7 +36,6 @@
           ></i>
         </button>
 
-        <!-- Items con animación de despliegue -->
         <div
           :class="[
             'grid transition-all duration-300 ease-in-out',
@@ -74,7 +70,6 @@
       </div>
     </nav>
 
-    <!-- Acciones Inferiores -->
     <div class="p-3 border-t border-slate-800/60 shrink-0">
       <button
         @click="cerrarSesion"
@@ -140,7 +135,6 @@ const menu = [
   }
 ]
 
-// Secciones desplegables: guarda cuáles están abiertas
 const seccionesAbiertas = ref({})
 
 const toggleSeccion = (titulo) => {
@@ -161,7 +155,7 @@ const rolActual = computed(() => {
   return String(rawRol).trim().toLowerCase()
 })
 
-const rutasCajero = ['/pos', '/productos', '/inventario']
+const rutasCajero = ['/pos', '/ventas', '/productos', '/inventario']
 
 const menuFiltrado = computed(() => {
   if (rolActual.value === 'cajero') {
@@ -175,7 +169,6 @@ const menuFiltrado = computed(() => {
   return menu
 })
 
-// Abre automáticamente la sección de la página actual
 watch(
   () => route.path,
   (ruta) => {
@@ -187,7 +180,6 @@ watch(
   { immediate: true }
 )
 
-// Ruta a la que va el logo: el cajero no tiene dashboard, va al punto de venta
 const rutaInicio = computed(() => {
   return rolActual.value === 'cajero' ? '/pos' : '/dashboard'
 })
@@ -206,7 +198,6 @@ const cerrarSesion = async () => {
     color: '#ffffff'
   })
 
-  // Si dio Cancelar (o cerró el aviso), NO se cierra la sesión
   if (!confirmacion.isConfirmed) return
 
   try {
@@ -219,7 +210,6 @@ const cerrarSesion = async () => {
   } catch (e) {
     console.error('Error al cerrar sesión en el servidor:', e)
   } finally {
-    // Aquí solo se llega si el usuario confirmó
     localStorage.clear()
     router.push('/login')
   }
