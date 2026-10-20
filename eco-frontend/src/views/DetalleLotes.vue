@@ -120,22 +120,42 @@
                 <tr
                   v-for="lote in lotesPaginados"
                   :key="lote.id"
-                  :class="['text-slate-700 hover:bg-slate-50/70', ESTADOS_LOTE[lote.estadoVenc]?.fila]"
+                  :class="esVencido(lote) ? 'bg-slate-100' : ['text-slate-700 hover:bg-slate-50/70', ESTADOS_LOTE[lote.estadoVenc]?.fila]"
                 >
                   <td class="px-4 py-2.5 whitespace-nowrap">
-                    <span class="rounded-full bg-[#5B80B0]/10 px-2 py-0.5 text-xs font-semibold text-[#5B80B0]">
+                    <span
+                      :class="esVencido(lote)
+                        ? 'bg-slate-200 text-slate-300 line-through'
+                        : 'bg-[#5B80B0]/10 text-[#5B80B0]'"
+                      class="rounded-full px-2 py-0.5 text-xs font-semibold"
+                    >
                       #{{ lote.id }}
                     </span>
                   </td>
-                  <td class="px-4 py-2.5 font-mono text-xs font-bold whitespace-nowrap text-slate-800">
+                  <td
+                    :class="esVencido(lote) ? 'text-slate-300 line-through' : 'text-slate-800'"
+                    class="px-4 py-2.5 font-mono text-xs font-bold whitespace-nowrap"
+                  >
                     {{ lote.codigo_lote || 'Sin lote' }}
-                    <span v-if="nombreDistinto(lote)" class="block font-sans text-[10px] font-medium text-slate-400">
+                    <span
+                      v-if="nombreDistinto(lote)"
+                      :class="esVencido(lote) ? 'text-slate-300' : 'text-slate-400'"
+                      class="block font-sans text-[10px] font-medium"
+                    >
                       Registrado como: {{ lote.producto_nombre }}
                     </span>
                   </td>
-                  <td class="px-4 py-2.5 whitespace-nowrap text-center font-medium text-slate-600">{{ lote.cantidad_inicial }}</td>
-                  <td class="px-4 py-2.5 font-black whitespace-nowrap text-center text-slate-900">
-                    <span :class="{ 'line-through text-gray-500': lote.estadoVenc === 'vencido' }">{{ lote.cantidad_actual }}</span>
+                  <td
+                    :class="esVencido(lote) ? 'text-slate-300 line-through' : 'text-slate-600'"
+                    class="px-4 py-2.5 whitespace-nowrap text-center font-medium"
+                  >
+                    {{ lote.cantidad_inicial }}
+                  </td>
+                  <td
+                    :class="esVencido(lote) ? 'text-slate-300 line-through' : 'text-slate-900'"
+                    class="px-4 py-2.5 font-black whitespace-nowrap text-center"
+                  >
+                    {{ lote.cantidad_actual }}
                   </td>
                   <td class="px-4 py-2.5 whitespace-nowrap text-center">
                     <span
@@ -147,7 +167,12 @@
                     </span>
                     <span v-else class="text-slate-400">{{ lote.estadoVenc === 'vigente' ? 'Vigente' : '—' }}</span>
                   </td>
-                  <td class="px-4 py-2.5 whitespace-nowrap text-right text-slate-500">{{ formatearFecha(lote.fecha_expiracion) }}</td>
+                  <td
+                    :class="esVencido(lote) ? 'text-slate-300 line-through' : 'text-slate-500'"
+                    class="px-4 py-2.5 whitespace-nowrap text-right"
+                  >
+                    {{ formatearFecha(lote.fecha_expiracion) }}
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -157,15 +182,30 @@
             <div
               v-for="lote in lotesPaginados"
               :key="lote.id"
-              :class="['min-w-0 rounded-xl border border-slate-200 p-4 flex flex-col gap-3', ESTADOS_LOTE[lote.estadoVenc]?.fila || 'bg-white']"
+              :class="esVencido(lote) ? 'bg-slate-100' : (ESTADOS_LOTE[lote.estadoVenc]?.fila || 'bg-white')"
+              class="min-w-0 rounded-xl border border-slate-200 p-4 flex flex-col gap-3"
             >
               <div class="flex items-start justify-between gap-2">
                 <div class="min-w-0">
-                  <p class="font-mono text-xs font-bold text-slate-800 break-all m-0">{{ lote.codigo_lote || 'Sin lote' }}</p>
-                  <p v-if="nombreDistinto(lote)" class="text-[10px] font-medium text-slate-400 break-words m-0 mt-0.5">
+                  <p
+                    :class="esVencido(lote) ? 'text-slate-300 line-through' : 'text-slate-800'"
+                    class="font-mono text-xs font-bold break-all m-0"
+                  >
+                    {{ lote.codigo_lote || 'Sin lote' }}
+                  </p>
+                  <p
+                    v-if="nombreDistinto(lote)"
+                    :class="esVencido(lote) ? 'text-slate-300' : 'text-slate-400'"
+                    class="text-[10px] font-medium break-words m-0 mt-0.5"
+                  >
                     Registrado como: {{ lote.producto_nombre }}
                   </p>
-                  <span class="inline-block mt-1 rounded-full bg-[#5B80B0]/10 px-2 py-0.5 text-[11px] font-semibold text-[#5B80B0]">
+                  <span
+                    :class="esVencido(lote)
+                      ? 'bg-slate-200 text-slate-300 line-through'
+                      : 'bg-[#5B80B0]/10 text-[#5B80B0]'"
+                    class="inline-block mt-1 rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                  >
                     #{{ lote.id }}
                   </span>
                 </div>
@@ -182,20 +222,30 @@
               <div class="grid grid-cols-3 gap-2 text-center bg-white/70 rounded-lg p-2 border border-slate-100">
                 <div class="min-w-0">
                   <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Inicial</span>
-                  <span class="block text-sm font-bold text-slate-700">{{ lote.cantidad_inicial }}</span>
+                  <span
+                    :class="esVencido(lote) ? 'text-slate-300 line-through' : 'text-slate-700'"
+                    class="block text-sm font-bold"
+                  >
+                    {{ lote.cantidad_inicial }}
+                  </span>
                 </div>
                 <div class="min-w-0">
                   <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Actual</span>
                   <span
-                    class="block text-sm font-black text-slate-900"
-                    :class="{ 'line-through text-gray-500': lote.estadoVenc === 'vencido' }"
+                    :class="esVencido(lote) ? 'text-slate-300 line-through' : 'text-slate-900'"
+                    class="block text-sm font-black"
                   >
                     {{ lote.cantidad_actual }}
                   </span>
                 </div>
                 <div class="min-w-0">
                   <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Vence</span>
-                  <span class="block text-xs font-semibold text-slate-600">{{ formatearFecha(lote.fecha_expiracion) }}</span>
+                  <span
+                    :class="esVencido(lote) ? 'text-slate-300 line-through' : 'text-slate-600'"
+                    class="block text-xs font-semibold"
+                  >
+                    {{ formatearFecha(lote.fecha_expiracion) }}
+                  </span>
                 </div>
               </div>
             </div>
@@ -262,11 +312,12 @@ const nombreDistinto = (lote) => {
   return Boolean(lote.producto_nombre) && lote.producto_nombre !== producto.value?.nombre
 }
 
+const esVencido = (lote) => lote.estadoVenc === 'vencido'
+
 const lotesVisibles = computed(() => {
   if (!producto.value) return []
   const lista = producto.value.lotes
 
-  // Vencidos: primero el que venció hace menos días
   if (filtro.value === 'vencidos') {
     return lista
       .filter(l => l.estadoVenc === 'vencido')

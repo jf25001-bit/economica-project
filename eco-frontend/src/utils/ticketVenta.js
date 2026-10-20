@@ -40,7 +40,7 @@ const limpiarTexto = (texto) => {
     .replace(/>/g, '&gt;')
 }
 
-// Abre el ticket de 80 mm y lo manda a imprimir
+// Abre el ticket Ultra Compacto para impresoras de 58(48)mm y lo manda a imprimir
 export const imprimirTicket = (venta) => {
   if (!venta) return
 
@@ -64,21 +64,30 @@ export const imprimirTicket = (venta) => {
       <head>
         <title>Ticket ${limpiarTexto(venta.factura || venta.id)}</title>
         <style>
-          @page { size: 80mm auto; margin: 0; }
+          @page {
+            size: 58mm auto;
+            margin: 0mm; /* Elimina margenes por defecto de la impresora */
+          }
+          * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+          }
           body {
-            width: 72mm;
+            width: 38mm; /* Ancho ultra compacto para 58(48)mm */
             margin: 0 auto;
-            padding: 4mm 0;
+            padding: 2mm 0;
             font-family: 'Courier New', monospace;
-            font-size: 12px;
+            font-size: 8px; /* Letra ultra compacta */
+            line-height: 1.1;
             color: #000;
           }
           .centro { text-align: center; }
-          .negocio { font-size: 16px; font-weight: bold; }
-          .separador { border-top: 1px dashed #000; margin: 6px 0; }
-          .linea { display: flex; justify-content: space-between; }
-          .producto { font-weight: bold; margin-top: 4px; }
-          .total { font-size: 15px; font-weight: bold; }
+          .negocio { font-size: 10px; font-weight: bold; }
+          .separador { border-top: 1px dashed #000; margin: 3px 0; }
+          .linea { display: flex; justify-content: space-between; width: 100%; }
+          .producto { font-weight: bold; margin-top: 2px; word-break: break-all; }
+          .total { font-size: 9px; font-weight: bold; }
         </style>
       </head>
       <body>

@@ -308,17 +308,17 @@ const cerrarPorFinDeDia = async () => {
   if (cerrandoAuto) return
   cerrandoAuto = true
   try {
-    await Swal.fire({
+    await cajaService.cerrarCaja({ monto_cierre: montoEsperado.value, automatico: true })
+    await consultarEstado()
+    Swal.fire({
       icon: 'info',
       title: 'Caja cerrada automáticamente',
-      text: 'Se cierra la caja porque terminó el día.',
+      text: 'La caja se cerró porque cambió el día.',
       confirmButtonText: 'Entendido',
       confirmButtonColor: '#0284c7',
       background: '#0f172a',
       color: '#fff'
     })
-    await cajaService.cerrarCaja({ monto_cierre: montoEsperado.value })
-    await consultarEstado()
   } catch (e) {
     console.error('No se pudo cerrar la caja automáticamente:', e)
   } finally {
@@ -331,7 +331,6 @@ const revisarFinDeDia = () => {
     cerrarPorFinDeDia()
   }
 }
-// ----------------------------------------------------------
 
 const consultarEstado = async () => {
   cargandoEstado.value = true
@@ -347,7 +346,6 @@ const consultarEstado = async () => {
       const ventas = parseFloat(data.caja.total_ventas || 0)
       formCierre.value.monto_cierre = apertura + ventas
 
-      // Si la caja quedó abierta de un día anterior, se cierra sola
       if (esDeOtroDia(data.caja.fecha_apertura)) {
         cerrarPorFinDeDia()
         return
@@ -393,7 +391,6 @@ const consultarEstado = async () => {
 const ejecutarApertura = async () => {
   procesando.value = true
   try {
-    // 1. Verificar si existen cajas activas en el sistema
     const activas = await cajaService.obtenerCajasActivasGlobales()
 
     if (activas && activas.length > 0) {
@@ -412,7 +409,6 @@ const ejecutarApertura = async () => {
       return
     }
 
-    // 2. Extraer el ID real del usuario desde localStorage dinámicamente
     let userId = null
     const posiblesKeys = ['user', 'usuario', 'authUser', 'auth']
 
@@ -429,7 +425,6 @@ const ejecutarApertura = async () => {
       }
     }
 
-    // 3. Formar payload dinámico (solo incluye user_id si se detectó)
     const datosEnvio = {
       ...formApertura.value,
       ...(userId ? { user_id: userId } : {})
@@ -494,7 +489,6 @@ const ejecutarCierre = async () => {
 
 onMounted(() => {
   consultarEstado()
-  // Revisa cada 30 segundos si ya cambió el día
   reloj = setInterval(revisarFinDeDia, 30000)
 })
 

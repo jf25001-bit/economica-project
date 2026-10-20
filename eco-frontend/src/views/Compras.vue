@@ -24,8 +24,8 @@
         </div>
       </div>
 
-      <div class="content-layout-flex flex flex-col xl:flex-row gap-5 items-start w-full">
-        <div class="left-content-panel w-full xl:flex-1 xl:min-w-0 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 min-h-[calc(100vh-13rem)] flex flex-col">
+      <div class="w-full">
+        <div class="w-full bg-white rounded-2xl shadow-sm border border-slate-200 p-6 min-h-[calc(100vh-13rem)] flex flex-col">
           <div class="section-header-row flex flex-wrap gap-3 justify-between items-center mb-6">
             <div class="title-block">
               <h2 class="text-xl font-bold text-slate-900">Órdenes de Compra</h2>
@@ -49,6 +49,37 @@
                 ></span>
               </span>
               Mostrar anuladas ({{ totalAnuladas }})
+            </button>
+          </div>
+
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-5 flex flex-wrap items-center gap-4">
+            <div class="flex items-center gap-2 text-sm font-bold text-slate-700">
+              <i class="bi bi-funnel-fill text-slate-500 text-base"></i>
+              <span>Filtrar fecha:</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-medium text-slate-600">Desde</span>
+              <input
+                v-model="fechaInicio"
+                type="date"
+                class="h-10 px-3 border border-slate-300 rounded-xl text-sm bg-white text-slate-800 outline-none focus:border-slate-900 shadow-sm"
+              />
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-medium text-slate-600">Hasta</span>
+              <input
+                v-model="fechaFin"
+                type="date"
+                class="h-10 px-3 border border-slate-300 rounded-xl text-sm bg-white text-slate-800 outline-none focus:border-slate-900 shadow-sm"
+              />
+            </div>
+            <button
+              v-if="fechaInicio || fechaFin"
+              @click="limpiarFiltroFecha"
+              class="h-10 px-4 rounded-xl border border-rose-200 bg-rose-50 text-xs text-rose-700 hover:bg-rose-100 font-bold transition cursor-pointer flex items-center gap-1.5 shadow-sm"
+            >
+              <i class="bi bi-x-circle-fill text-sm"></i>
+              Limpiar filtro
             </button>
           </div>
 
@@ -161,20 +192,6 @@
                   <i class="bi bi-chevron-right text-xs"></i>
                 </button>
               </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="right-widgets-panel w-full xl:w-[260px] xl:shrink-0">
-          <div class="bg-white rounded-2xl shadow-sm p-4 border border-slate-200 space-y-2">
-            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Resumen</h2>
-            <div class="flex justify-between items-center p-3 bg-slate-50 border border-slate-200 rounded-xl">
-              <span class="text-xs text-slate-600">Compras activas</span>
-              <span class="text-lg font-bold text-slate-900">{{ totalActivas }}</span>
-            </div>
-            <div class="flex justify-between items-center p-3 bg-slate-50 border border-slate-200 rounded-xl">
-              <span class="text-xs text-slate-600">Compras anuladas</span>
-              <span class="text-lg font-bold text-slate-400">{{ totalAnuladas }}</span>
             </div>
           </div>
         </div>
@@ -554,6 +571,9 @@ const indexProducto = ref(null)
 const busqueda = ref('')
 const fechaCompraNueva = ref(fechaHoy())
 
+const fechaInicio = ref('')
+const fechaFin = ref('')
+
 const modalDetalle = ref(false)
 const compraDetalle = ref(null)
 
@@ -562,12 +582,34 @@ const mostrarAnuladas = ref(false)
 const paginaActualCompras = ref(1)
 const porPaginaCompras = ref(8)
 
+function limpiarFiltroFecha() {
+  fechaInicio.value = ''
+  fechaFin.value = ''
+}
+
 const comprasVisibles = computed(() => {
-  return mostrarAnuladas.value ? compras.value : compras.value.filter(c => !c.anulado)
+  let resultado = mostrarAnuladas.value ? compras.value : compras.value.filter(c => !c.anulado)
+
+  if (fechaInicio.value) {
+    resultado = resultado.filter(c => {
+      if (!c.fecha_compra) return false
+      const fecha = String(c.fecha_compra).substring(0, 10)
+      return fecha >= fechaInicio.value
+    })
+  }
+
+  if (fechaFin.value) {
+    resultado = resultado.filter(c => {
+      if (!c.fecha_compra) return false
+      const fecha = String(c.fecha_compra).substring(0, 10)
+      return fecha <= fechaFin.value
+    })
+  }
+
+  return resultado
 })
 
 const totalAnuladas = computed(() => compras.value.filter(c => c.anulado).length)
-const totalActivas = computed(() => compras.value.length - totalAnuladas.value)
 
 const comprasPaginadas = computed(() => {
   const inicio = (paginaActualCompras.value - 1) * porPaginaCompras.value
@@ -587,6 +629,10 @@ const paginasVisibles = computed(() => {
 })
 
 watch(mostrarAnuladas, () => {
+  paginaActualCompras.value = 1
+})
+
+watch([fechaInicio, fechaFin], () => {
   paginaActualCompras.value = 1
 })
 

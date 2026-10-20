@@ -21,8 +21,39 @@
     >
       <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
         <h2 class="text-sm font-extrabold uppercase tracking-wider text-slate-700 m-0">
-          Ventas Registradas
+          Ventas Registradas ({{ ventasFiltradas.length }} registros)
         </h2>
+      </div>
+
+      <div class="bg-slate-50 p-4 border-b border-slate-200 flex flex-wrap items-center gap-4">
+        <div class="flex items-center gap-2 text-sm font-bold text-slate-700">
+          <i class="bi bi-funnel-fill text-slate-500 text-base"></i>
+          <span>Filtrar fecha:</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-medium text-slate-600">Desde</span>
+          <input
+            v-model="fechaInicio"
+            type="date"
+            class="h-10 px-3 border border-slate-300 rounded-xl text-sm bg-white text-slate-800 outline-none focus:border-slate-900 shadow-sm"
+          />
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-medium text-slate-600">Hasta</span>
+          <input
+            v-model="fechaFin"
+            type="date"
+            class="h-10 px-3 border border-slate-300 rounded-xl text-sm bg-white text-slate-800 outline-none focus:border-slate-900 shadow-sm"
+          />
+        </div>
+        <button
+          v-if="fechaInicio || fechaFin"
+          @click="limpiarFiltroFecha"
+          class="h-10 px-4 rounded-xl border border-rose-200 bg-rose-50 text-xs text-rose-700 hover:bg-rose-100 font-bold transition cursor-pointer flex items-center gap-1.5 shadow-sm border-0"
+        >
+          <i class="bi bi-x-circle-fill text-sm"></i>
+          Limpiar filtro
+        </button>
       </div>
 
       <div class="overflow-x-auto w-full">
@@ -81,14 +112,14 @@
                 <div class="flex items-center justify-center gap-2">
                   <button
                     @click="verDetalleVenta(venta)"
-                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-[#2B3A4A] hover:text-white transition cursor-pointer"
+                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-[#2B3A4A] hover:text-white transition cursor-pointer border-0"
                     title="Ver Detalle de Venta"
                   >
                     <i class="bi bi-eye-fill text-sm"></i>
                   </button>
                   <button
                     @click="imprimirTicket(venta)"
-                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-[#2B3A4A] hover:text-white transition cursor-pointer"
+                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-[#2B3A4A] hover:text-white transition cursor-pointer border-0"
                     title="Imprimir Ticket"
                   >
                     <i class="bi bi-printer-fill text-sm"></i>
@@ -97,7 +128,7 @@
               </td>
             </tr>
 
-            <tr v-if="ventas.length === 0">
+            <tr v-if="ventasFiltradas.length === 0">
               <td colspan="9" class="text-center py-12 text-slate-400 font-medium italic border-b border-slate-100">
                 <i class="bi bi-receipt text-3xl block mb-2 text-slate-300"></i>
                 No hay ventas registradas.
@@ -261,7 +292,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { getVentas } from '@/services/ventaService'
 import BarraPaginacion from '@/components/BarraPaginacion.vue'
 import { usePaginacion } from '@/utils/usePaginacion'
@@ -276,7 +307,43 @@ const ventas = ref([])
 const mostrarModalDetalle = ref(false)
 const ventaSeleccionada = ref(null)
 
-const { paginaActual, porPagina, total, paginados: ventasPaginadas } = usePaginacion(ventas)
+const fechaInicio = ref('')
+const fechaFin = ref('')
+
+function limpiarFiltroFecha() {
+  fechaInicio.value = ''
+  fechaFin.value = ''
+}
+
+const ventasFiltradas = computed(() => {
+  let resultado = ventas.value
+
+  if (fechaInicio.value) {
+    resultado = resultado.filter(v => {
+      const f = v.fecha_venta || v.created_at
+      if (!f) return false
+      const fecha = String(f).substring(0, 10)
+      return fecha >= fechaInicio.value
+    })
+  }
+
+  if (fechaFin.value) {
+    resultado = resultado.filter(v => {
+      const f = v.fecha_venta || v.created_at
+      if (!f) return false
+      const fecha = String(f).substring(0, 10)
+      return fecha <= fechaFin.value
+    })
+  }
+
+  return resultado
+})
+
+const { paginaActual, porPagina, total, paginados: ventasPaginadas } = usePaginacion(ventasFiltradas)
+
+watch([fechaInicio, fechaFin], () => {
+  paginaActual.value = 1
+})
 
 const consultarVentas = async () => {
   try {

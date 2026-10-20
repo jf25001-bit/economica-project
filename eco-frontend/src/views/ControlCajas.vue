@@ -77,7 +77,6 @@
               </div>
             </div>
 
-            <!-- Solo se puede forzar el cierre de cajas de OTROS usuarios -->
             <button
               v-if="!esMiCaja(caja)"
               @click="forzarCierre(caja)"
@@ -136,6 +135,7 @@
                 </td>
                 <td class="p-3 font-bold">
                   <span v-if="item.estado !== 'cerrada'" class="text-slate-500">-</span>
+                  <span v-else-if="item.tipo_cierre === 'automatico'" class="text-slate-500">Sin arqueo</span>
                   <span v-else-if="diferencia(item) === 0" class="text-slate-300">$0.00</span>
                   <span v-else-if="diferencia(item) > 0" class="text-emerald-400">
                     +${{ diferencia(item).toFixed(2) }} (sobrante)
@@ -148,6 +148,15 @@
                   <div v-if="item.tipo_cierre === 'forzado'" class="space-y-1">
                     <span class="px-2.5 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[10px] font-bold rounded-md inline-flex items-center gap-1">
                       <i class="bi bi-shield-exclamation"></i> Cierre Forzado por Admin: {{ nombreCerrador(item) }}
+                    </span>
+                    <p v-if="item.observacion" class="text-[10px] text-slate-400 leading-tight">
+                      {{ item.observacion }}
+                    </p>
+                  </div>
+
+                  <div v-else-if="item.tipo_cierre === 'automatico'" class="space-y-1">
+                    <span class="px-2.5 py-1 bg-violet-500/10 text-violet-400 border border-violet-500/30 text-[10px] font-bold rounded-md inline-flex items-center gap-1">
+                      <i class="bi bi-moon-stars-fill"></i> Cierre Automático
                     </span>
                     <p v-if="item.observacion" class="text-[10px] text-slate-400 leading-tight">
                       {{ item.observacion }}
@@ -181,7 +190,6 @@ const vista = ref('activas')
 const cajasActivas = ref([])
 const historial = ref([])
 
-// ID del usuario que tiene la sesión iniciada
 const miId = (() => {
   try {
     return JSON.parse(localStorage.getItem('user'))?.id ?? null
@@ -203,12 +211,10 @@ const nombreCerrador = (item) => {
 const etiquetaTurno = (t) =>
   ({ unico: 'Turno Único', manana: 'Turno Mañana', tarde: 'Turno Tarde' }[t] || 'Turno Único')
 
-// Monto que debería haber en caja: apertura + ventas
 const montoEsperado = (item) => {
   return Number(item.monto_apertura || 0) + Number(item.total_ventas || 0)
 }
 
-// Diferencia entre lo contado al cierre y lo esperado
 const diferencia = (item) => {
   return Number((Number(item.monto_cierre || 0) - montoEsperado(item)).toFixed(2))
 }
