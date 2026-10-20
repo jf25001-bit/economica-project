@@ -22,7 +22,7 @@ class DetalleCompra extends Model
         'producto_nombre',
         'producto_codigo_barras',
         'proveedor_nombre'
-];
+    ];
 
     public function compra()
     {

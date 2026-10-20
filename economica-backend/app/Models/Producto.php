@@ -86,7 +86,10 @@ class Producto extends Model
             return $valorTotal / $unidades;
         }
 
-        $ultimo = DetalleCompra::where('producto_id', $this->id)->latest('id')->first();
+        $ultimo = DetalleCompra::where('producto_id', $this->id)
+            ->whereHas('compra', fn ($q) => $q->where('anulado', false))
+            ->latest('id')
+            ->first();
 
         if ($ultimo) {
             return ((float) $ultimo->precio_compra) / max(1, (int) $ultimo->unidades_por_paquete);

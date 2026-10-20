@@ -26,45 +26,85 @@
 
       <div class="content-layout-flex flex flex-col xl:flex-row gap-5 items-start w-full">
         <div class="left-content-panel w-full xl:flex-1 xl:min-w-0 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 min-h-[calc(100vh-13rem)] flex flex-col">
-          <div class="section-header-row flex justify-between items-center mb-6">
+          <div class="section-header-row flex flex-wrap gap-3 justify-between items-center mb-6">
             <div class="title-block">
               <h2 class="text-xl font-bold text-slate-900">Órdenes de Compra</h2>
-              <p class="text-sm text-slate-500">Listado general ({{ compras.length }} registros)</p>
+              <p class="text-sm text-slate-500">Listado general ({{ comprasVisibles.length }} registros)</p>
             </div>
+
+            <button
+              type="button"
+              role="switch"
+              :aria-checked="mostrarAnuladas"
+              @click="mostrarAnuladas = !mostrarAnuladas"
+              class="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 cursor-pointer"
+            >
+              <span
+                :class="mostrarAnuladas ? 'bg-slate-900' : 'bg-slate-300'"
+                class="relative inline-block h-5 w-9 rounded-full transition-colors"
+              >
+                <span
+                  :class="mostrarAnuladas ? 'translate-x-4' : 'translate-x-0'"
+                  class="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform"
+                ></span>
+              </span>
+              Mostrar anuladas ({{ totalAnuladas }})
+            </button>
           </div>
 
           <div class="table-card-wrapper border border-slate-200 rounded-xl overflow-hidden flex-1 bg-white flex flex-col justify-between">
-            <div class="overflow-x-auto">
-              <table class="w-full text-left border-collapse">
+            <div class="overflow-x-auto w-full">
+              <table class="w-full text-left border-collapse min-w-[500px]">
                 <thead class="bg-slate-50 border-b border-slate-200">
                   <tr class="text-slate-500 text-xs font-semibold uppercase tracking-wider">
-                    <th class="px-6 py-4">ID Orden</th>
-                    <th class="px-6 py-4">Fecha</th>
-                    <th class="px-6 py-4">Total ($)</th>
-                    <th class="px-6 py-4">Estado</th>
-                    <th class="px-6 py-4 text-right">Acciones</th>
+                    <th class="px-4 lg:px-6 py-4">ID Orden</th>
+                    <th class="px-4 lg:px-6 py-4">Fecha</th>
+                    <th class="px-4 lg:px-6 py-4">Total ($)</th>
+                    <th class="px-4 lg:px-6 py-4">Estado</th>
+                    <th class="px-4 lg:px-6 py-4 text-right">Acciones</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
-                  <tr v-for="c in comprasPaginadas" :key="c.id" class="hover:bg-slate-50/80 text-sm transition">
-                    <td class="px-6 py-4 font-mono font-bold text-slate-900">#{{ c.id }}</td>
-                    <td class="px-6 py-4 text-slate-500 text-xs">{{ c.fecha_compra ?? '—' }}</td>
-                    <td class="px-6 py-4 font-bold text-slate-900" :class="{ 'line-through text-slate-400': c.anulado }">${{ Number(c.total ?? 0).toFixed(2) }}</td>
-                    <td class="px-6 py-4">
+                  <tr
+                    v-for="c in comprasPaginadas"
+                    :key="c.id"
+                    :class="c.anulado ? 'bg-slate-100' : 'hover:bg-slate-50/80'"
+                    class="text-sm transition"
+                  >
+                    <td
+                      :class="c.anulado ? 'text-slate-300 line-through' : 'text-slate-900'"
+                      class="px-4 lg:px-6 py-4 font-mono font-bold whitespace-nowrap"
+                    >
+                      #{{ c.id }}
+                    </td>
+                    <td
+                      :class="c.anulado ? 'text-slate-300 line-through' : 'text-slate-500'"
+                      class="px-4 lg:px-6 py-4 text-xs whitespace-nowrap"
+                    >
+                      {{ c.fecha_compra ?? '—' }}
+                    </td>
+                    <td
+                      :class="c.anulado ? 'text-slate-300 line-through' : 'text-slate-900'"
+                      class="px-4 lg:px-6 py-4 font-bold whitespace-nowrap"
+                    >
+                      ${{ Number(c.total ?? 0).toFixed(2) }}
+                    </td>
+                    <td class="px-4 lg:px-6 py-4 whitespace-nowrap">
                       <span
                         :class="c.anulado
-                          ? 'bg-rose-50 text-rose-700 border-rose-200'
+                          ? 'bg-slate-200 text-slate-400 border-slate-300 line-through'
                           : 'bg-emerald-50 text-emerald-700 border-emerald-200'"
-                        class="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md border"
+                        class="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md border inline-block"
                       >
                         {{ c.anulado ? 'Anulada' : 'Activa' }}
                       </span>
                     </td>
-                    <td class="px-6 py-4 text-right">
+                    <td class="px-4 lg:px-6 py-4 text-right whitespace-nowrap">
                       <div class="inline-flex items-center gap-2">
                         <button
                           @click="verDetalles(c)"
-                          class="bg-slate-100 text-slate-700 p-2 rounded-lg hover:bg-slate-900 hover:text-white transition cursor-pointer inline-flex items-center justify-center border border-slate-300"
+                          :disabled="c.anulado"
+                          class="bg-slate-100 text-slate-700 p-2 rounded-lg hover:bg-slate-900 hover:text-white transition cursor-pointer inline-flex items-center justify-center border border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-slate-100 disabled:hover:text-slate-700"
                           title="Ver detalles"
                         >
                           <i class="bi bi-eye"></i>
@@ -80,15 +120,15 @@
                       </div>
                     </td>
                   </tr>
-                  <tr v-if="compras.length === 0">
-                    <td colspan="5" class="text-center py-20 text-slate-400 italic">No hay compras registradas.</td>
+                  <tr v-if="comprasVisibles.length === 0">
+                    <td colspan="5" class="text-center py-20 text-slate-400 italic">No hay compras para mostrar.</td>
                   </tr>
                 </tbody>
               </table>
             </div>
 
             <div v-if="totalPaginasCompras > 1" class="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-end shrink-0">
-              <div class="flex items-center gap-1.5">
+              <div class="flex items-center gap-1.5 flex-wrap justify-end">
                 <button
                   @click="paginaActualCompras--"
                   :disabled="paginaActualCompras === 1"
@@ -126,11 +166,15 @@
         </div>
 
         <div class="right-widgets-panel w-full xl:w-[260px] xl:shrink-0">
-          <div class="bg-white rounded-2xl shadow-sm p-4 border border-slate-200">
+          <div class="bg-white rounded-2xl shadow-sm p-4 border border-slate-200 space-y-2">
             <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Resumen</h2>
             <div class="flex justify-between items-center p-3 bg-slate-50 border border-slate-200 rounded-xl">
-              <span class="text-xs text-slate-600">Total Compras</span>
-              <span class="text-lg font-bold text-slate-900">{{ compras.length }}</span>
+              <span class="text-xs text-slate-600">Compras activas</span>
+              <span class="text-lg font-bold text-slate-900">{{ totalActivas }}</span>
+            </div>
+            <div class="flex justify-between items-center p-3 bg-slate-50 border border-slate-200 rounded-xl">
+              <span class="text-xs text-slate-600">Compras anuladas</span>
+              <span class="text-lg font-bold text-slate-400">{{ totalAnuladas }}</span>
             </div>
           </div>
         </div>
@@ -143,12 +187,10 @@
         <div class="px-6 py-4 flex justify-between items-center border-b border-slate-200 bg-slate-900 text-white shrink-0">
           <div class="flex items-center gap-3">
             <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-white border border-slate-700 shrink-0">
-              <i :class="modoEdicion ? 'bi bi-pencil-square' : 'bi bi-bag-plus-fill'" class="text-lg"></i>
+              <i class="bi bi-bag-plus-fill text-lg"></i>
             </div>
             <div>
-              <h3 class="font-bold text-white text-base">
-                {{ modoEdicion ? `Editar Orden de Compra #${compraIdEdicion}` : 'Registrar Nueva Orden de Compra' }}
-              </h3>
+              <h3 class="font-bold text-white text-base">Registrar Nueva Orden de Compra</h3>
               <p class="text-xs text-slate-300">Detalla los ítems, precios y datos de lote correspondientes</p>
             </div>
           </div>
@@ -189,7 +231,6 @@
             >
               <div class="flex items-center justify-between border-b border-slate-100 pb-2">
                 <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Ítem #{{ i + 1 }}</span>
-                <span v-if="d.detalle_id" class="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-mono">ID Registro: #{{ d.detalle_id }}</span>
               </div>
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -198,11 +239,10 @@
                   <button
                     type="button"
                     @click="abrirSelector(i)"
-                    :disabled="modoEdicion"
-                    class="form-force-button h-10 flex items-center justify-between px-3 rounded-lg border border-slate-300 bg-white hover:border-slate-900 text-slate-800 text-left cursor-pointer shadow-sm transition disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed disabled:hover:border-slate-300"
+                    class="form-force-button h-10 flex items-center justify-between px-3 rounded-lg border border-slate-300 bg-white hover:border-slate-900 text-slate-800 text-left cursor-pointer shadow-sm transition"
                   >
                     <span class="truncate text-sm font-medium">
-                      {{ d.producto_nombre || getProductoNombre(d.producto_id) || 'Seleccionar producto...' }}
+                      {{ getProductoNombre(d.producto_id) || 'Seleccionar producto...' }}
                     </span>
                     <i class="bi bi-search text-slate-400 text-xs shrink-0 ml-2"></i>
                   </button>
@@ -216,12 +256,6 @@
                     class="form-force-input h-10 px-3 border border-slate-300 rounded-lg text-sm bg-white text-slate-800 outline-none focus:border-slate-900 disabled:bg-slate-100 disabled:text-slate-400"
                   >
                     <option value="">-- Seleccionar Proveedor --</option>
-                    <option
-                      v-if="d.proveedor_id && !obtenerProveedoresDelProducto(d.producto_id).some(p => String(p.id) === String(d.proveedor_id))"
-                      :value="d.proveedor_id"
-                    >
-                      {{ d.proveedor_nombre || `Proveedor #${d.proveedor_id}` }}
-                    </option>
                     <option
                       v-for="prov in obtenerProveedoresDelProducto(d.producto_id)"
                       :key="prov.id"
@@ -246,7 +280,7 @@
                 </div>
               </div>
 
-              <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 pt-3 border-t border-slate-100">
+              <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 pt-3 border-t border-slate-100">
                 <div class="min-w-0">
                   <label class="text-xs font-semibold text-slate-600 block mb-1">Cant. Paquetes</label>
                   <input
@@ -287,25 +321,25 @@
                   </div>
                 </div>
                 <div class="min-w-0">
-                  <label class="text-xs font-semibold text-slate-600 block mb-1">Código de Lote</label>
-                  <input
-                    v-model="d.codigo_lote"
-                    type="text"
-                    :readonly="modoEdicion"
-                    placeholder="Ej: LOTE-123"
-                    :class="[
-                      'form-force-input h-10 px-3 border rounded-lg text-sm outline-none',
-                      modoEdicion ? 'bg-slate-100 text-slate-500 border-slate-200 cursor-not-allowed' : 'bg-white text-slate-800 border-slate-300 focus:border-slate-900'
-                    ]"
-                  />
-                </div>
-                <div class="min-w-0 col-span-2 lg:col-span-1">
                   <label class="text-xs font-semibold text-slate-600 block mb-1">Fecha Expiración</label>
                   <input
                     v-model="d.fecha_expiracion"
                     type="date"
-                    :min="modoEdicion ? undefined : fechaMinimaExpiracion"
+                    :min="fechaMinimaExpiracion"
                     class="form-force-input h-10 px-3 border border-slate-300 rounded-lg text-sm bg-white text-slate-700 outline-none focus:border-slate-900"
+                  />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 pt-2">
+                <div class="min-w-0">
+                  <label class="text-xs font-semibold text-slate-600 block mb-1">Código de Lote</label>
+                  <input
+                    v-model="d.codigo_lote"
+                    type="text"
+                    maxlength="20"
+                    placeholder="Ej: LOTE-123"
+                    class="form-force-input h-10 px-3 border border-slate-300 rounded-lg text-sm bg-white text-slate-800 outline-none focus:border-slate-900"
                   />
                 </div>
               </div>
@@ -319,7 +353,6 @@
                 </div>
 
                 <button
-                  v-if="!modoEdicion"
                   type="button"
                   @click="remove(i)"
                   class="h-9 px-3.5 inline-flex items-center justify-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 transition cursor-pointer text-xs font-bold"
@@ -333,7 +366,6 @@
           </div>
 
           <button
-            v-if="!modoEdicion"
             @click="add"
             type="button"
             class="w-full py-3.5 rounded-xl border-2 border-dashed border-slate-300 bg-white hover:bg-slate-100 hover:border-slate-800 text-xs font-bold text-slate-800 transition flex items-center justify-center gap-2 cursor-pointer shadow-sm"
@@ -361,7 +393,7 @@
               class="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-xs font-bold text-white shadow-md transition flex items-center gap-1.5 cursor-pointer active:bg-slate-950"
             >
               <i v-if="!cargando" class="bi bi-check-lg text-sm"></i>
-              {{ cargando ? 'Guardando...' : (modoEdicion ? 'Actualizar Compra' : 'Guardar Compra') }}
+              {{ cargando ? 'Guardando...' : 'Guardar Compra' }}
             </button>
           </div>
         </div>
@@ -375,7 +407,6 @@
             <h3 class="font-bold text-base">Compra #{{ compraDetalle.id }}</h3>
             <p class="text-xs text-slate-300">
               {{ compraDetalle.fecha_compra ? String(compraDetalle.fecha_compra).substring(0, 10) : '—' }}
-              · {{ compraDetalle.anulado ? 'Anulada' : 'Activa' }}
             </p>
           </div>
           <button
@@ -400,7 +431,7 @@
                 </div>
                 <span class="text-sm font-black text-slate-900 shrink-0">${{ subtotalDetalle(det).toFixed(2) }}</span>
               </div>
-              <dl class="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2 text-xs">
+              <dl class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 text-xs">
                 <div>
                   <dt class="text-slate-400 font-semibold uppercase text-[10px] tracking-wider">Paquetes</dt>
                   <dd class="text-slate-800 font-semibold">{{ Number(det.cantidad) || 0 }}</dd>
@@ -413,11 +444,11 @@
                   <dt class="text-slate-400 font-semibold uppercase text-[10px] tracking-wider">Precio paquete</dt>
                   <dd class="text-slate-800 font-semibold">${{ Number(det.precio_compra || 0).toFixed(2) }}</dd>
                 </div>
-                <div>
+                <div class="sm:col-span-3">
                   <dt class="text-slate-400 font-semibold uppercase text-[10px] tracking-wider">Lote</dt>
-                  <dd class="text-slate-800 font-semibold font-mono">{{ loteDetalle(det).codigo || '—' }}</dd>
+                  <dd class="text-slate-800 font-semibold font-mono break-all">{{ loteDetalle(det).codigo || '—' }}</dd>
                 </div>
-                <div>
+                <div class="sm:col-span-3">
                   <dt class="text-slate-400 font-semibold uppercase text-[10px] tracking-wider">Expiración</dt>
                   <dd class="text-slate-800 font-semibold">{{ loteDetalle(det).expiracion || '—' }}</dd>
                 </div>
@@ -494,7 +525,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getCompras, createCompra, anularCompra } from '../services/compraService'
 import { getProductos } from '../services/productoService'
@@ -505,13 +536,11 @@ import { alertaError, alertaAdvertencia, alertaExito, mensajesDeError } from '@/
 const route = useRoute()
 const router = useRouter()
 
-// Fecha de hoy en formato AAAA-MM-DD (según la hora local del equipo)
 function fechaHoy() {
   const d = new Date()
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-// Fecha mínima de expiración: hoy (no se pueden comprar productos caducados)
 const fechaMinimaExpiracion = fechaHoy()
 
 const compras = ref([])
@@ -528,19 +557,25 @@ const fechaCompraNueva = ref(fechaHoy())
 const modalDetalle = ref(false)
 const compraDetalle = ref(null)
 
-const modoEdicion = ref(false)
-const compraIdEdicion = ref(null)
+const mostrarAnuladas = ref(false)
 
 const paginaActualCompras = ref(1)
 const porPaginaCompras = ref(8)
 
+const comprasVisibles = computed(() => {
+  return mostrarAnuladas.value ? compras.value : compras.value.filter(c => !c.anulado)
+})
+
+const totalAnuladas = computed(() => compras.value.filter(c => c.anulado).length)
+const totalActivas = computed(() => compras.value.length - totalAnuladas.value)
+
 const comprasPaginadas = computed(() => {
   const inicio = (paginaActualCompras.value - 1) * porPaginaCompras.value
-  return compras.value.slice(inicio, inicio + porPaginaCompras.value)
+  return comprasVisibles.value.slice(inicio, inicio + porPaginaCompras.value)
 })
 
 const totalPaginasCompras = computed(() => {
-  return Math.ceil(compras.value.length / porPaginaCompras.value) || 1
+  return Math.ceil(comprasVisibles.value.length / porPaginaCompras.value) || 1
 })
 
 const paginasVisibles = computed(() => {
@@ -549,6 +584,14 @@ const paginasVisibles = computed(() => {
     paginas.push(i)
   }
   return paginas
+})
+
+watch(mostrarAnuladas, () => {
+  paginaActualCompras.value = 1
+})
+
+watch(totalPaginasCompras, (total) => {
+  if (paginaActualCompras.value > total) paginaActualCompras.value = total
 })
 
 const cargar = async () => {
@@ -602,8 +645,6 @@ const restaurarBorrador = () => {
     const borrador = JSON.parse(raw)
     if (!Array.isArray(borrador.detalles) || borrador.detalles.length === 0) return false
 
-    modoEdicion.value = false
-    compraIdEdicion.value = null
     fechaCompraNueva.value = fechaHoy()
     detalles.value = borrador.detalles
     modal.value = true
@@ -645,12 +686,12 @@ function obtenerProveedoresDelProducto(productoId) {
 }
 
 const irAProductos = () => {
-  if (modal.value && !modoEdicion.value) guardarBorrador()
+  if (modal.value) guardarBorrador()
   router.push({ path: '/productos', query: { nuevo: 1 } })
 }
 
 const irAProveedores = (i) => {
-  if (modal.value && !modoEdicion.value) guardarBorrador()
+  if (modal.value) guardarBorrador()
 
   const productoId = detalles.value[i]?.producto_id
   router.push({
@@ -690,8 +731,6 @@ async function iniciarNuevaCompra() {
 }
 
 function abrirModalCrear() {
-  modoEdicion.value = false
-  compraIdEdicion.value = null
   fechaCompraNueva.value = fechaHoy()
   detalles.value = [{
     producto_id: '',
@@ -706,6 +745,7 @@ function abrirModalCrear() {
 }
 
 function verDetalles(compra) {
+  if (compra.anulado) return
   compraDetalle.value = compra
   modalDetalle.value = true
 }
@@ -719,16 +759,17 @@ const subtotalDetalle = (det) => (Number(det.cantidad) || 0) * (Number(det.preci
 
 function loteDetalle(det) {
   const lote = det.lotes && det.lotes.length > 0 ? det.lotes[0] : null
-  const codigo = lote ? lote.codigo_lote : det.codigo_lote
-  const exp = lote ? lote.fecha_expiracion : det.fecha_expiracion
-  return { codigo: codigo || '', expiracion: exp ? String(exp).substring(0, 10) : '' }
+  return {
+    codigo: lote?.codigo_lote || '',
+    expiracion: lote?.fecha_expiracion ? String(lote.fecha_expiracion).substring(0, 10) : ''
+  }
 }
 
 async function anular(compra) {
   const confirmado = await avisoConAccion({
     icon: 'warning',
     title: `¿Anular la compra #${compra.id}?`,
-    text: 'Esta acción no se puede deshacer y el inventario se ajustará.',
+    text: 'Se eliminarán los lotes de esta compra y se descontará su stock. Esta acción no se puede deshacer.',
     boton: 'Sí, anular'
   })
   if (!confirmado) return
@@ -775,7 +816,6 @@ const totalCompraNueva = computed(() => {
 })
 
 function abrirSelector(i) {
-  if (modoEdicion.value) return
   indexProducto.value = i
   modalProductos.value = true
 }
@@ -854,9 +894,7 @@ async function guardar() {
     if (!(Number(d.precio_compra) > 0)) {
       return alertaAdvertencia(`Revisa el ítem #${n}`, 'El precio del paquete debe ser mayor a 0.')
     }
-    // No se permite registrar productos ya caducados (solo al crear la compra,
-    // para no bloquear la edición de compras antiguas cuyo lote ya venció)
-    if (!modoEdicion.value && d.fecha_expiracion && d.fecha_expiracion < hoy) {
+    if (d.fecha_expiracion && d.fecha_expiracion < hoy) {
       return alertaAdvertencia(
         `Revisa el ítem #${n}`,
         'La fecha de expiración no puede ser anterior a hoy. No se pueden comprar productos caducados.'
@@ -867,11 +905,8 @@ async function guardar() {
   cargando.value = true
   try {
     const payload = {
-      // Al crear, la fecha siempre es la de hoy (no se puede manipular)
-      fecha_compra: modoEdicion.value ? fechaCompraNueva.value : fechaHoy(),
+      fecha_compra: fechaHoy(),
       detalles: detalles.value.map(d => ({
-        id: d.detalle_id || d.id || undefined,
-        detalle_id: d.detalle_id || d.id || undefined,
         producto_id: Number(d.producto_id),
         proveedor_id: Number(d.proveedor_id),
         cantidad: Number(d.cantidad),

@@ -18,7 +18,6 @@ use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\UnidadMedidaController;
 use App\Http\Controllers\CajaController;
 
-// Públicas
 Route::get('/saludo', function () {
     return response()->json(['mensaje' => 'Hola desde Laravel']);
 });
@@ -28,7 +27,6 @@ Route::prefix('auth')->group(function () {
     Route::post('login', [AuthController::class, 'login']);
 });
 
-// Protegidas (JWT)
 Route::middleware('auth:api')->group(function () {
 
     Route::prefix('auth')->group(function () {
@@ -51,7 +49,8 @@ Route::middleware('auth:api')->group(function () {
     });
 
     Route::apiResource('ventas', VentaController::class);
-    Route::apiResource('compras', CompraController::class);
+    Route::patch('compras/{id}/anular', [CompraController::class, 'anular']);
+    Route::apiResource('compras', CompraController::class)->only(['index', 'store', 'show']);
     Route::apiResource('usuarios', UserController::class);
     Route::apiResource('roles', RolController::class);
     Route::apiResource('categorias', CategoriaController::class);

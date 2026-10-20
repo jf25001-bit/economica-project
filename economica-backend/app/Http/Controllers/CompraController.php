@@ -33,7 +33,6 @@ class CompraController extends Controller
 
     public function store(Request $request)
     {
-        // Fecha de hoy según la hora de El Salvador: no se aceptan productos ya caducados
         $hoy = now('America/El_Salvador')->toDateString();
 
         $request->validate([
@@ -129,10 +128,6 @@ class CompraController extends Controller
         }
     }
 
-    /**
-     * Anula una compra: revierte el stock que sumó y deja sus lotes en 0.
-     * Una compra no se puede editar, solo anular.
-     */
     public function anular($id)
     {
         return DB::transaction(function () use ($id) {
@@ -148,27 +143,24 @@ class CompraController extends Controller
                 ->lockForUpdate()
                 ->get();
 
-            // producto_id => unidades que hay que restar del stock
+            foreach ($lotes as $lote) {
+                $diferencia = abs((float) $lote->cantidad_inicial - (float) $lote->cantidad_actual);
+
+                if ($diferencia > 0.00001) {
+                    throw ValidationException::withMessages([
+                        'compra' => "No se puede anular: del lote {$lote->codigo_lote} ({$lote->producto_nombre}) ya se vendieron o descontaron unidades.",
+                    ]);
+                }
+            }
+
             $aDescontar = [];
 
             foreach ($lotes as $lote) {
-                $descontadas = (float) $lote->cantidad_inicial - (float) $lote->cantidad_actual;
-
-                // Si ya salió mercadería de este lote (ventas, mermas, ajustes), no se puede anular
-                if ($descontadas > 0.00001) {
-                    throw ValidationException::withMessages([
-                        'compra' => "No se puede anular: del lote {$lote->codigo_lote} ({$lote->producto_nombre}) ya se han descontado {$descontadas} unidades.",
-                    ]);
-                }
-
-                // Si el lote ya venció y se descontó del stock automáticamente, no se descuenta dos veces
                 if ($lote->vencido_descontado_at === null) {
                     $aDescontar[$lote->producto_id] = ($aDescontar[$lote->producto_id] ?? 0) + (float) $lote->cantidad_actual;
                 }
 
-                // El lote queda en 0 para que no se venda ni se vuelva a procesar como vencido
-                $lote->cantidad_actual = 0;
-                $lote->save();
+                $lote->delete();
             }
 
             foreach ($compra->detalles->pluck('producto_id')->unique() as $productoId) {
