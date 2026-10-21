@@ -9,11 +9,13 @@ use Carbon\Carbon;
 
 class CajaController extends Controller
 {
+    private const ZONA = 'America/El_Salvador';
+
     // Horarios de los turnos (hora inicio incluida, hora fin excluida)
     private const TURNOS = [
+        'unico'  => ['inicio' => 0,  'fin' => 12, 'texto' => 'Único (jornada completa, solo antes de las 12:00 p.m.)'],
         'manana' => ['inicio' => 0,  'fin' => 12, 'texto' => 'Mañana (12:00 a.m. a 11:59 a.m.)'],
         'tarde'  => ['inicio' => 12, 'fin' => 24, 'texto' => 'Tarde (12:00 p.m. a 11:59 p.m.)'],
-        // 'unico' no tiene restricción de horario
     ];
 
     private function usuarioActual()
@@ -30,11 +32,12 @@ class CajaController extends Controller
 
     private function nombreDe($user)
     {
-        return $user->nombre ?? $user->name ?? ('Usuario #' . ($user->id ?? '?'));
+        $nombre = trim(($user->nombre ?? $user->name ?? '') . ' ' . ($user->apellido ?? ''));
+        return $nombre !== '' ? $nombre : 'Usuario #' . ($user->id ?? '?');
     }
 
     /**
-     * Estado de la caja DEL USUARIO autenticado.
+     * Estado de la caja del usuario autenticado
      */
     public function estadoActual(Request $request)
     {
@@ -61,7 +64,7 @@ class CajaController extends Controller
     }
 
     /**
-     * Abrir caja (solo administrador), validando turno y que no haya otra abierta.
+     * Apertura de caja
      */
     public function abrir(Request $request)
     {
@@ -79,8 +82,7 @@ class CajaController extends Controller
 
         // Validación de horario del turno
         if (isset(self::TURNOS[$turno])) {
-            // Hora de El Salvador fija, sin depender de config/app.php
-            $ahora = Carbon::now('America/El_Salvador');
+            $ahora = Carbon::now(self::ZONA);
             $hora  = $ahora->hour;
             $t = self::TURNOS[$turno];
             if ($hora < $t['inicio'] || $hora >= $t['fin']) {
@@ -112,7 +114,7 @@ class CajaController extends Controller
     }
 
     /**
-     * Cierre NORMAL: solo la caja propia del usuario autenticado.
+     * Cierre normal y automático (cambio de día) de la caja propia
      */
     public function cerrar(Request $request)
     {
@@ -120,7 +122,10 @@ class CajaController extends Controller
             return response()->json(['message' => 'Solo el administrador puede cerrar la caja.'], 403);
         }
 
-        $request->validate(['monto_cierre' => 'required|numeric|min:0']);
+        $request->validate([
+            'monto_cierre' => 'required|numeric|min:0',
+            'automatico'   => 'nullable|boolean',
+        ]);
 
         $user = $this->usuarioActual();
 
@@ -140,11 +145,21 @@ class CajaController extends Controller
             return response()->json(['message' => 'No tienes ninguna caja abierta para cerrar.'], 400);
         }
 
+        $automatico = $request->boolean('automatico');
+
+        if ($automatico) {
+            $diaApertura = Carbon::parse($caja->fecha_apertura)->setTimezone(self::ZONA)->toDateString();
+            if ($diaApertura === Carbon::now(self::ZONA)->toDateString()) {
+                return response()->json(['message' => 'La caja todavía pertenece al día actual.'], 422);
+            }
+        }
+
         $caja->update([
-            'monto_cierre'   => $request->monto_cierre,
+            'monto_cierre'   => $automatico ? $caja->monto_apertura + $caja->total_ventas : $request->monto_cierre,
             'fecha_cierre'   => Carbon::now(),
             'estado'         => 'cerrada',
-            'tipo_cierre'    => 'normal',
+            'tipo_cierre'    => $automatico ? 'automatico' : 'normal',
+            'observacion'    => $automatico ? 'Cierre automático por cambio de día' : null,
             'cerrado_por_id' => $user->id,
         ]);
 
@@ -152,7 +167,7 @@ class CajaController extends Controller
     }
 
     /**
-     * Cajas abiertas en el sistema (Control de Cajas).
+     * Cajas abiertas (Control de Cajas)
      */
     public function cajasActivas()
     {
@@ -165,7 +180,7 @@ class CajaController extends Controller
     }
 
     /**
-     * Historial completo (Control de Cajas).
+     * Historial completo (Control de Cajas)
      */
     public function historial()
     {
@@ -177,7 +192,7 @@ class CajaController extends Controller
     }
 
     /**
-     * Cierre FORZADO: solo admin, solo sobre cajas de OTROS usuarios.
+     * Cierre forzado sobre cajas de otros usuarios
      */
     public function forzarCierre(Request $request, $id)
     {

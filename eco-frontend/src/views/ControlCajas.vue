@@ -135,7 +135,7 @@
                 </td>
                 <td class="p-3 font-bold">
                   <span v-if="item.estado !== 'cerrada'" class="text-slate-500">-</span>
-                  <span v-else-if="item.tipo_cierre === 'automatico'" class="text-slate-500">Sin arqueo</span>
+                  <span v-else-if="['automatico', 'forzado'].includes(item.tipo_cierre)" class="text-slate-500">No contado</span>
                   <span v-else-if="diferencia(item) === 0" class="text-slate-300">$0.00</span>
                   <span v-else-if="diferencia(item) > 0" class="text-emerald-400">
                     +${{ diferencia(item).toFixed(2) }} (sobrante)
@@ -200,13 +200,11 @@ const miId = (() => {
 
 const esMiCaja = (caja) => miId !== null && caja.user_id === miId
 
-const nombreUsuario = (item) => {
-  return item.usuario?.nombre || item.usuario?.name || `Usuario #${item.user_id}`
-}
+const nombreCompleto = (u) => [u?.nombre || u?.name, u?.apellido].filter(Boolean).join(' ')
 
-const nombreCerrador = (item) => {
-  return item.cerrado_por?.nombre || item.cerrado_por?.name || `Admin #${item.cerrado_por_id}`
-}
+const nombreUsuario = (item) => nombreCompleto(item.usuario) || `Usuario #${item.user_id}`
+
+const nombreCerrador = (item) => nombreCompleto(item.cerrado_por) || `Admin #${item.cerrado_por_id}`
 
 const etiquetaTurno = (t) =>
   ({ unico: 'Turno Único', manana: 'Turno Mañana', tarde: 'Turno Tarde' }[t] || 'Turno Único')

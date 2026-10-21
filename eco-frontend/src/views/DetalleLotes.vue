@@ -56,6 +56,14 @@
       </div>
 
       <div
+        v-if="exito"
+        class="mb-4 flex items-start gap-2.5 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800"
+      >
+        <i class="bi bi-check-circle-fill mt-0.5 shrink-0"></i>
+        <span class="min-w-0 break-words">{{ exito }}</span>
+      </div>
+
+      <div
         v-if="producto.porVencer > 0"
         class="mb-4 flex items-start gap-2.5 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-800"
       >
@@ -104,7 +112,7 @@
 
         <template v-if="lotesPaginados.length">
           <div class="hidden lg:block overflow-x-auto">
-            <table class="w-full min-w-[680px] text-left border-collapse text-xs">
+            <table class="w-full min-w-[760px] text-left border-collapse text-xs">
               <thead class="bg-slate-100 border-b border-slate-200">
                 <tr class="text-[10px] font-black uppercase tracking-wider text-slate-500">
                   <th class="px-4 py-2.5 whitespace-nowrap">ID</th>
@@ -113,6 +121,7 @@
                   <th class="px-4 py-2.5 whitespace-nowrap text-center">Cantidad Actual</th>
                   <th class="px-4 py-2.5 whitespace-nowrap text-center">Estado</th>
                   <th class="px-4 py-2.5 whitespace-nowrap text-right">Vencimiento</th>
+                  <th class="px-4 py-2.5 whitespace-nowrap text-center">Acción</th>
                 </tr>
               </thead>
 
@@ -172,6 +181,18 @@
                     class="px-4 py-2.5 whitespace-nowrap text-right"
                   >
                     {{ formatearFecha(lote.fecha_expiracion) }}
+                  </td>
+                  <td class="px-4 py-2.5 whitespace-nowrap text-center">
+                    <button
+                      v-if="puedeReducir(lote)"
+                      type="button"
+                      class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 text-[11px] font-semibold cursor-pointer transition"
+                      @click="abrirModal(lote)"
+                    >
+                      <i class="bi bi-dash-circle"></i>
+                      Disminuir
+                    </button>
+                    <span v-else class="text-slate-300">—</span>
                   </td>
                 </tr>
               </tbody>
@@ -248,6 +269,16 @@
                   </span>
                 </div>
               </div>
+
+              <button
+                v-if="puedeReducir(lote)"
+                type="button"
+                class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 text-xs font-semibold cursor-pointer transition"
+                @click="abrirModal(lote)"
+              >
+                <i class="bi bi-dash-circle"></i>
+                Disminuir stock
+              </button>
             </div>
           </div>
         </template>
@@ -268,6 +299,14 @@
     <div v-if="error" class="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
       {{ error }}
     </div>
+
+    <ModalReducirLote
+      v-if="loteModal"
+      :lote="loteModal"
+      :nombre-producto="producto?.nombre || ''"
+      @cerrar="cerrarModal"
+      @reducido="alReducir"
+    />
   </div>
 </template>
 
@@ -277,6 +316,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { getProductos } from '@/services/productoService'
 import api from '@/services/api'
 import BarraPaginacion from '@/components/BarraPaginacion.vue'
+import ModalReducirLote from '@/components/ModalReducirLote.vue'
 import { usePaginacion } from '@/utils/usePaginacion'
 import {
   DIAS_ALERTA,
@@ -298,10 +338,13 @@ const productos = ref([])
 const lotes = ref([])
 const cargando = ref(false)
 const error = ref('')
+const exito = ref('')
+const loteModal = ref(null)
 
 const filtro = ref(['por-vencer', 'vencidos'].includes(route.query.filtro) ? route.query.filtro : '')
 
 let temporizador = null
+let temporizadorExito = null
 
 const producto = computed(() => {
   return construirInventario(productos.value, lotes.value)
@@ -313,6 +356,8 @@ const nombreDistinto = (lote) => {
 }
 
 const esVencido = (lote) => lote.estadoVenc === 'vencido'
+
+const puedeReducir = (lote) => Number(lote.cantidad_actual) > 0
 
 const lotesVisibles = computed(() => {
   if (!producto.value) return []
@@ -336,6 +381,26 @@ const mensajeVacio = computed(() => {
   if (filtro.value === 'por-vencer') return 'Ningún lote por vencer.'
   return 'Este producto no tiene lotes vigentes.'
 })
+
+const abrirModal = (lote) => {
+  loteModal.value = lote
+}
+
+const cerrarModal = () => {
+  loteModal.value = null
+}
+
+const mostrarExito = (mensaje) => {
+  exito.value = mensaje
+  clearTimeout(temporizadorExito)
+  temporizadorExito = setTimeout(() => { exito.value = '' }, 4000)
+}
+
+const alReducir = async ({ cantidad, codigo }) => {
+  loteModal.value = null
+  await cargarDatos({ silencioso: true })
+  mostrarExito(`Se disminuyeron ${cantidad} ${cantidad === 1 ? 'unidad' : 'unidades'} del lote ${codigo}.`)
+}
 
 const cargarDatos = async ({ silencioso = false } = {}) => {
   if (!silencioso) cargando.value = true
@@ -361,7 +426,7 @@ const cargarDatos = async ({ silencioso = false } = {}) => {
 }
 
 const refrescarSiVisible = () => {
-  if (document.visibilityState === 'visible') cargarDatos({ silencioso: true })
+  if (document.visibilityState === 'visible' && !loteModal.value) cargarDatos({ silencioso: true })
 }
 
 const volver = () => router.push('/inventario')
@@ -374,6 +439,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   clearInterval(temporizador)
+  clearTimeout(temporizadorExito)
   document.removeEventListener('visibilitychange', refrescarSiVisible)
 })
 </script>

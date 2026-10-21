@@ -6,6 +6,7 @@ use App\Models\Lote;
 use App\Models\Producto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class LoteController extends Controller
 {
@@ -110,6 +111,61 @@ class LoteController extends Controller
 
                 'error' =>
                     $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function reducir(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'cantidad' => 'required|integer|min:1|max:100000'
+        ], [
+            'cantidad.required' => 'Indica la cantidad a disminuir.',
+            'cantidad.integer' => 'La cantidad debe ser un número entero, sin decimales ni letras.',
+            'cantidad.min' => 'La cantidad debe ser al menos 1.',
+            'cantidad.max' => 'La cantidad es demasiado grande.'
+        ]);
+
+        try {
+            return DB::transaction(function () use ($validated, $id) {
+                $lote = Lote::lockForUpdate()->findOrFail($id);
+                $cantidad = (int) $validated['cantidad'];
+                $actual = (float) $lote->cantidad_actual;
+
+                if ($cantidad > $actual) {
+                    throw ValidationException::withMessages([
+                        'cantidad' => ["No puedes disminuir más de lo que hay en el lote ({$actual})."]
+                    ]);
+                }
+
+                $lote->cantidad_actual = $actual - $cantidad;
+                $lote->save();
+
+                $descuentaDelProducto = $lote->vencido_descontado_at === null
+                    && !$this->estaVencido($lote->fecha_expiracion);
+
+                if ($descuentaDelProducto) {
+                    Producto::where('id', $lote->producto_id)
+                        ->update(['stock' => DB::raw("GREATEST(stock - $cantidad, 0)")]);
+                }
+
+                $producto = Producto::find($lote->producto_id);
+
+                if ($producto) {
+                    $producto->recalcularPrecios();
+                }
+
+                return response()->json([
+                    'message' => 'Stock del lote disminuido correctamente',
+                    'data' => $lote->fresh('producto')
+                ], 200);
+            });
+        } catch (ValidationException $e) {
+            throw $e;
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al disminuir el stock del lote',
+                'error' => $e->getMessage()
             ], 500);
         }
     }

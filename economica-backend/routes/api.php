@@ -61,6 +61,7 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('proveedores', ProveedorController::class);
     Route::apiResource('detallecompras', DetalleCompraController::class);
     Route::apiResource('detalleventas', DetalleVentaController::class);
+    Route::patch('lotes/{id}/reducir', [LoteController::class, 'reducir']);
     Route::apiResource('lotes', LoteController::class);
     Route::apiResource('imagenes', ImagenController::class);
     Route::apiResource('unidades-medida', UnidadMedidaController::class);

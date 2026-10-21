@@ -125,12 +125,18 @@
               <label class="block text-slate-400 text-[11px] font-black uppercase tracking-wider mb-2">TURNO LABORAL</label>
               <div class="relative">
                 <select v-model="formApertura.turno" class="w-full p-3.5 pr-10 bg-slate-900/90 border border-slate-800 rounded-xl text-xs font-bold text-white focus:outline-none focus:border-sky-500 appearance-none cursor-pointer">
-                  <option value="unico">Turno Único (jornada completa)</option>
-                  <option value="manana">Turno Mañana </option>
-                  <option value="tarde">Turno Tarde </option>
+                  <option value="unico" :disabled="esTarde">Turno Único (jornada completa)</option>
+                  <option value="manana" :disabled="esTarde">Turno Mañana </option>
+                  <option value="tarde" :disabled="!esTarde">Turno Tarde </option>
                 </select>
                 <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
               </div>
+              <p v-if="esTarde" class="text-[10px] text-amber-400 font-bold mt-2">
+                Desde las 12:00 p.m. solo está disponible el turno tarde.
+              </p>
+              <p v-else class="text-[10px] text-amber-400 font-bold mt-2">
+                El turno tarde estará disponible desde las 12:00 p.m.
+              </p>
             </div>
           </div>
 
@@ -141,10 +147,11 @@
             <div class="relative">
               <span class="absolute left-4 top-1/2 -translate-y-1/2 text-sky-400 font-bold text-base">$</span>
               <input
-                v-model.number="formApertura.monto_apertura"
-                type="number"
-                step="0.01"
-                min="0"
+                v-model="formApertura.monto_apertura"
+                @input="formApertura.monto_apertura = recortarDecimales(formApertura.monto_apertura)"
+                @blur="formApertura.monto_apertura = aDosDecimales(formApertura.monto_apertura)"
+                type="text"
+                inputmode="decimal"
                 required
                 placeholder="0.00"
                 class="w-full p-3.5 pl-8 pr-20 bg-slate-900/90 border border-sky-500/80 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-sky-500/30 transition-all text-base placeholder-slate-600"
@@ -195,10 +202,11 @@
             <div class="relative">
               <span class="absolute left-4 top-1/2 -translate-y-1/2 text-rose-400 font-bold text-base">$</span>
               <input
-                v-model.number="formCierre.monto_cierre"
-                type="number"
-                step="0.01"
-                min="0"
+                v-model="formCierre.monto_cierre"
+                @input="formCierre.monto_cierre = recortarDecimales(formCierre.monto_cierre)"
+                @blur="formCierre.monto_cierre = aDosDecimales(formCierre.monto_cierre)"
+                type="text"
+                inputmode="decimal"
                 required
                 placeholder="0.00"
                 class="w-full p-3.5 pl-8 pr-20 bg-slate-900/90 border border-rose-500/80 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-rose-500/30 transition-all text-base placeholder-slate-600"
@@ -238,7 +246,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import Swal from 'sweetalert2'
 import { cajaService } from '@/services/cajaService'
 
@@ -249,14 +257,24 @@ const cargandoEstado = ref(true)
 const procesando = ref(false)
 
 const formApertura = ref({
-  monto_apertura: 0,
+  monto_apertura: '0.00',
   caja_id: '1',
   turno: 'unico'
 })
 
 const formCierre = ref({
-  monto_cierre: 0
+  monto_cierre: '0.00'
 })
+
+const horaSV = () =>
+  Number(new Intl.DateTimeFormat('en-US', { timeZone: 'America/El_Salvador', hour: 'numeric', hour12: false }).format(new Date())) % 24
+
+const hora = ref(horaSV())
+const esTarde = computed(() => hora.value >= 12)
+
+watch(esTarde, (tarde) => {
+  formApertura.value.turno = tarde ? 'tarde' : 'unico'
+}, { immediate: true })
 
 const etiquetaTurno = (t) =>
   ({ unico: 'Turno Único', manana: 'Turno Mañana', tarde: 'Turno Tarde' }[t] || 'Turno Único')
@@ -264,17 +282,26 @@ const etiquetaTurno = (t) =>
 const montoEsperado = computed(() => {
   const apertura = parseFloat(cajaInfo.value?.monto_apertura || 0)
   const ventas = parseFloat(cajaInfo.value?.total_ventas || 0)
-  return apertura + ventas
+  return Number((apertura + ventas).toFixed(2))
 })
 
 const diferencia = computed(() => {
-  return parseFloat(formCierre.value.monto_cierre || 0) - montoEsperado.value
+  return Number((parseFloat(formCierre.value.monto_cierre || 0) - montoEsperado.value).toFixed(2))
 })
 
 const formatoMonto = (valor) => {
   const num = parseFloat(valor || 0)
   return num.toFixed(2)
 }
+
+const recortarDecimales = (valor) => {
+  const limpio = String(valor).replace(/[^\d.]/g, '')
+  const [entero, ...resto] = limpio.split('.')
+  if (!resto.length) return entero
+  return `${entero}.${resto.join('').slice(0, 2)}`
+}
+
+const aDosDecimales = (valor) => (Number(valor) || 0).toFixed(2)
 
 const formatoFecha = (fechaStr) => {
   if (!fechaStr) return 'Hoy'
@@ -344,7 +371,7 @@ const consultarEstado = async () => {
 
       const apertura = parseFloat(data.caja.monto_apertura || 0)
       const ventas = parseFloat(data.caja.total_ventas || 0)
-      formCierre.value.monto_cierre = apertura + ventas
+      formCierre.value.monto_cierre = (apertura + ventas).toFixed(2)
 
       if (esDeOtroDia(data.caja.fecha_apertura)) {
         cerrarPorFinDeDia()
@@ -356,7 +383,7 @@ const consultarEstado = async () => {
       cajaOtroUsuario.value = data?.caja_otro_usuario || null
       
       if (data && data.monto_anterior !== undefined) {
-        formApertura.value.monto_apertura = parseFloat(data.monto_anterior)
+        formApertura.value.monto_apertura = parseFloat(data.monto_anterior).toFixed(2)
       }
 
       if (cajaOtroUsuario.value) {
@@ -395,7 +422,8 @@ const ejecutarApertura = async () => {
 
     if (activas && activas.length > 0) {
       const cajaExistente = activas[0]
-      const responsable = cajaExistente.usuario?.nombre || cajaExistente.usuario?.name || 'otro usuario'
+      const u = cajaExistente.usuario
+      const responsable = [u?.nombre || u?.name, u?.apellido].filter(Boolean).join(' ') || 'otro usuario'
       
       await Swal.fire({
         icon: 'warning',
@@ -427,6 +455,7 @@ const ejecutarApertura = async () => {
 
     const datosEnvio = {
       ...formApertura.value,
+      monto_apertura: Number(formApertura.value.monto_apertura),
       ...(userId ? { user_id: userId } : {})
     }
 
@@ -460,7 +489,7 @@ const ejecutarApertura = async () => {
 const ejecutarCierre = async () => {
   procesando.value = true
   try {
-    await cajaService.cerrarCaja(formCierre.value)
+    await cajaService.cerrarCaja({ monto_cierre: Number(formCierre.value.monto_cierre) })
     
     Swal.fire({
       icon: 'success',
@@ -489,7 +518,10 @@ const ejecutarCierre = async () => {
 
 onMounted(() => {
   consultarEstado()
-  reloj = setInterval(revisarFinDeDia, 30000)
+  reloj = setInterval(() => {
+    hora.value = horaSV()
+    revisarFinDeDia()
+  }, 30000)
 })
 
 onUnmounted(() => clearInterval(reloj))
