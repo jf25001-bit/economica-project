@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Lote;
 use App\Models\Producto;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -65,6 +66,10 @@ class LoteController extends Controller
         Request $request,
         $id
     ) {
+        if (!$this->esAdministrador()) {
+            return $this->accesoDenegado();
+        }
+
         try {
 
             $lote =
@@ -117,6 +122,10 @@ class LoteController extends Controller
 
     public function reducir(Request $request, $id)
     {
+        if (!$this->esAdministrador()) {
+            return $this->accesoDenegado();
+        }
+
         $validated = $request->validate([
             'cantidad' => 'required|integer|min:1|max:100000'
         ], [
@@ -172,6 +181,10 @@ class LoteController extends Controller
 
     public function destroy($id)
     {
+        if (!$this->esAdministrador()) {
+            return $this->accesoDenegado();
+        }
+
         try {
 
             $lote =
@@ -191,6 +204,26 @@ class LoteController extends Controller
                     'Error al eliminar lote'
             ], 500);
         }
+    }
+
+    private function esAdministrador(): bool
+    {
+        $usuario = Auth::guard('api')->user();
+
+        if (!$usuario) {
+            return false;
+        }
+
+        $rol = strtolower(trim((string) ($usuario->rol->nombre ?? '')));
+
+        return $rol === 'administrador';
+    }
+
+    private function accesoDenegado()
+    {
+        return response()->json([
+            'message' => 'No tienes permiso para realizar esta acción.'
+        ], 403);
     }
 
     private function hoy(): string

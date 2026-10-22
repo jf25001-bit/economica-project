@@ -121,7 +121,7 @@
                   <th class="px-4 py-2.5 whitespace-nowrap text-center">Cantidad Actual</th>
                   <th class="px-4 py-2.5 whitespace-nowrap text-center">Estado</th>
                   <th class="px-4 py-2.5 whitespace-nowrap text-right">Vencimiento</th>
-                  <th class="px-4 py-2.5 whitespace-nowrap text-center">Acción</th>
+                  <th v-if="esAdmin" class="px-4 py-2.5 whitespace-nowrap text-center">Acción</th>
                 </tr>
               </thead>
 
@@ -182,7 +182,7 @@
                   >
                     {{ formatearFecha(lote.fecha_expiracion) }}
                   </td>
-                  <td class="px-4 py-2.5 whitespace-nowrap text-center">
+                  <td v-if="esAdmin" class="px-4 py-2.5 whitespace-nowrap text-center">
                     <button
                       v-if="puedeReducir(lote)"
                       type="button"
@@ -341,6 +341,17 @@ const error = ref('')
 const exito = ref('')
 const loteModal = ref(null)
 
+const obtenerRol = () => {
+  try {
+    const usuario = JSON.parse(localStorage.getItem('user'))
+    return String(usuario?.rol?.nombre || usuario?.rol || '').trim().toLowerCase()
+  } catch {
+    return ''
+  }
+}
+
+const esAdmin = obtenerRol() === 'administrador'
+
 const filtro = ref(['por-vencer', 'vencidos'].includes(route.query.filtro) ? route.query.filtro : '')
 
 let temporizador = null
@@ -357,7 +368,7 @@ const nombreDistinto = (lote) => {
 
 const esVencido = (lote) => lote.estadoVenc === 'vencido'
 
-const puedeReducir = (lote) => Number(lote.cantidad_actual) > 0
+const puedeReducir = (lote) => esAdmin && Number(lote.cantidad_actual) > 0
 
 const lotesVisibles = computed(() => {
   if (!producto.value) return []
@@ -383,6 +394,7 @@ const mensajeVacio = computed(() => {
 })
 
 const abrirModal = (lote) => {
+  if (!esAdmin) return
   loteModal.value = lote
 }
 

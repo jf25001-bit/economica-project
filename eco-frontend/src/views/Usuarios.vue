@@ -1,7 +1,6 @@
 <template>
   <div class="min-h-screen bg-slate-50/50 p-4 sm:p-6 md:p-8 w-full max-w-full overflow-x-hidden box-border">
 
-    <!-- Encabezado de Sección -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8 w-full">
       <div class="min-w-0 flex-1">
         <h1 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-800 tracking-tight truncate">
@@ -21,7 +20,6 @@
       </button>
     </div>
 
-    <!-- Barra de Búsqueda y Filtro de Rol -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-3 sm:p-4 mb-6 flex flex-col sm:flex-row gap-3 sm:gap-4 w-full max-w-full box-border">
       <div class="relative flex-1 min-w-0 w-full">
         <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
@@ -51,7 +49,6 @@
       </div>
     </div>
 
-    <!-- Tabla de Usuarios -->
     <div class="bg-white rounded-2xl sm:rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden w-full max-w-full">
       <div class="overflow-x-auto w-full">
         <table class="w-full min-w-[700px] table-fixed">
@@ -78,12 +75,10 @@
                   : 'hover:bg-slate-50/80'
               ]"
             >
-              <!-- ID -->
               <td class="px-4 py-3 sm:px-6 sm:py-4 font-bold text-slate-800 truncate">
                 #{{ u.id }}
               </td>
 
-              <!-- Nombre y Apellido -->
               <td class="px-4 py-3 sm:px-6 sm:py-4 font-bold text-slate-800 truncate">
                 {{ u.name }} {{ u.apellido }}
                 <span
@@ -94,24 +89,20 @@
                 </span>
               </td>
 
-              <!-- Email -->
               <td class="px-4 py-3 sm:px-6 sm:py-4 text-slate-600 text-sm truncate">
                 {{ u.email || '—' }}
               </td>
 
-              <!-- Teléfono -->
               <td class="px-4 py-3 sm:px-6 sm:py-4 text-slate-600 text-sm truncate">
                 {{ u.telefono || '—' }}
               </td>
 
-              <!-- Rol -->
               <td class="px-4 py-3 sm:px-6 sm:py-4 min-w-0">
                 <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-sky-50 text-sky-700 border border-sky-200/60 max-w-full truncate">
                   {{ u.rol?.nombre || 'Sin rol' }}
                 </span>
               </td>
 
-              <!-- Estado -->
               <td class="px-4 py-3 sm:px-6 sm:py-4 text-center whitespace-nowrap">
                 <span
                   class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold"
@@ -122,13 +113,13 @@
                 </span>
               </td>
 
-              <!-- Acciones -->
               <td class="px-4 py-3 sm:px-6 sm:py-4">
                 <div class="flex items-center justify-end gap-1.5 sm:gap-2">
                   <button
                     @click="editar(u)"
-                    class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-[#2B3A4A] hover:text-white transition cursor-pointer shrink-0"
-                    title="Editar Usuario"
+                    :disabled="!puedeEditar(u)"
+                    class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-[#2B3A4A] hover:text-white transition cursor-pointer shrink-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-slate-100 disabled:hover:text-slate-600"
+                    :title="puedeEditar(u) ? 'Editar Usuario' : 'No puedes editar a otro administrador'"
                   >
                     <i class="bi bi-pencil-fill text-xs sm:text-sm"></i>
                   </button>
@@ -146,7 +137,6 @@
               </td>
             </tr>
 
-            <!-- Estado Vacío -->
             <tr v-if="usuariosFiltrados.length === 0">
               <td colspan="7" class="py-12 sm:py-16 text-center text-slate-400">
                 <i class="bi bi-people text-3xl sm:text-4xl block mb-2 opacity-50"></i>
@@ -157,7 +147,6 @@
         </table>
       </div>
 
-      <!-- Paginación -->
       <Paginacion
         :current-page="paginaActual"
         :total-pages="totalPaginas"
@@ -165,11 +154,9 @@
       />
     </div>
 
-    <!-- Modal Formulario -->
     <div v-if="modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto">
       <div class="bg-white rounded-2xl sm:rounded-3xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-slate-100 box-border my-auto">
 
-        <!-- Modal Header -->
         <div class="bg-[#2B3A4A] text-white px-5 py-4 sm:px-6 sm:py-5 flex justify-between items-center shrink-0 w-full box-border">
           <div class="flex items-center gap-3 min-w-0 pr-2">
             <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/10 flex items-center justify-center text-sky-300 shrink-0">
@@ -191,10 +178,8 @@
           </button>
         </div>
 
-        <!-- Modal Body -->
         <div class="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1 w-full box-border">
 
-          <!-- Campos de texto -->
           <div v-for="campo in camposForm" :key="campo.key" class="min-w-0 w-full">
             <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5">{{ campo.label }}</label>
             <input
@@ -208,7 +193,6 @@
             <p v-if="errores[campo.key]" class="text-red-500 text-xs font-semibold mt-1 break-words">{{ errores[campo.key] }}</p>
           </div>
 
-          <!-- Campo Contraseña -->
           <div class="min-w-0 w-full">
             <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5">Contraseña</label>
             <div class="relative w-full">
@@ -231,7 +215,6 @@
             <p v-if="errores.password" class="text-red-500 text-xs font-semibold mt-1 break-words">{{ errores.password }}</p>
           </div>
 
-          <!-- Campo Rol de Usuario -->
           <div class="min-w-0 w-full relative">
             <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1.5">Rol de Usuario</label>
             <div class="relative w-full">
@@ -252,7 +235,6 @@
           </div>
         </div>
 
-        <!-- Modal Footer -->
         <div class="flex justify-end gap-2 sm:gap-3 p-4 sm:p-5 bg-slate-50 border-t border-slate-100 shrink-0 w-full box-border">
           <button
             @click="cerrar"
@@ -347,8 +329,9 @@ const filtrarCampo = (key, tipo) => {
 const esYo = (u) => currentUser.value && Number(u.id) === Number(currentUser.value.id)
 const esAdmin = (u) => u.rol?.nombre?.toLowerCase().includes(ROL_ADMIN_KEYWORD)
 
-// Protege al usuario logueado y a cualquier administrador de ser desactivados
 const protegido = (u) => esYo(u) || esAdmin(u)
+
+const puedeEditar = (u) => esYo(u) || !esAdmin(u)
 
 const usuariosFiltrados = computed(() => {
   const query = search.value.toLowerCase().trim()
@@ -480,6 +463,8 @@ const guardar = async () => {
 }
 
 const editar = (u) => {
+  if (!puedeEditar(u)) return
+
   form.value = {
     id: u.id,
     name: u.name || '',
