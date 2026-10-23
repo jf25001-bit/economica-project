@@ -85,8 +85,15 @@ export const imprimirTicket = (venta) => {
           .centro { text-align: center; }
           .negocio { font-size: 10px; font-weight: bold; }
           .separador { border-top: 1px dashed #000; margin: 3px 0; }
-          .linea { display: flex; justify-content: space-between; width: 100%; }
-          .producto { font-weight: bold; margin-top: 2px; word-break: break-all; }
+          .linea { display: flex; justify-content: space-between; width: 100%; gap: 4px; }
+          .producto {
+            font-weight: bold;
+            margin-top: 2px;
+            width: 100%;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+          }
           .total { font-size: 9px; font-weight: bold; }
         </style>
       </head>
